@@ -17,14 +17,14 @@
 import React, { cloneElement } from 'react';
 import useObservable from 'react-use/lib/useObservable';
 import AutoIcon from '@material-ui/icons/BrightnessAuto';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import {
+  Box,
   ListItem,
   ListItemSecondaryAction,
   ListItemText,
   makeStyles,
-  Tooltip,
+  MenuItem,
+  Select,
 } from '@material-ui/core';
 import { appThemeApiRef, useApi } from '@backstage/core-plugin-api';
 
@@ -40,12 +40,6 @@ const ThemeIcon = ({ icon, selected }: ThemeIconProps) =>
       })
     : null;
 
-type TooltipToggleButtonProps = {
-  children: JSX.Element;
-  title: string;
-  value: string;
-};
-
 const useStyles = makeStyles(theme => ({
   listItemSecondaryAction: {
     position: 'relative',
@@ -59,23 +53,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-// ToggleButtonGroup uses React.children.map instead of context
-// so wrapping with Tooltip breaks ToggleButton functionality.
-const TooltipToggleButton = ({
-  children,
-  title,
-  value,
-  ...props
-}: TooltipToggleButtonProps) => (
-  <Tooltip placement="top" arrow title={title}>
-    <ToggleButton value={value} {...props}>
-      {children}
-    </ToggleButton>
-  </Tooltip>
-);
-
 /** @public */
-export const UserSettingsThemeToggle = () => {
+export const UserSettingsThemeSelect = () => {
   const classes = useStyles();
   const appThemeApi = useApi(appThemeApiRef);
   const themeId = useObservable(
@@ -97,31 +76,29 @@ export const UserSettingsThemeToggle = () => {
     <ListItem>
       <ListItemText primary="Theme" secondary="Change the theme mode" />
       <ListItemSecondaryAction className={classes.listItemSecondaryAction}>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
+        <Select
           value={themeId ?? 'auto'}
-          onChange={(_event, newThemeId) => handleSetTheme(newThemeId)}
+          onChange={event => handleSetTheme(event.target.value as string)}
         >
-          <Tooltip placement="top" arrow title="Select auto theme">
-            <ToggleButton value="auto" selected={themeId === undefined}>
-              Auto&nbsp;
+          <MenuItem value="auto">
+            <Box display="flex" alignItems="center">
               <AutoIcon color={themeId === undefined ? 'primary' : undefined} />
-            </ToggleButton>
-          </Tooltip>
+              &nbsp;Auto
+            </Box>
+          </MenuItem>
           {themes.map(theme => (
-            <TooltipToggleButton
+            <MenuItem
               key={theme.id}
               title={`Select ${theme.title}`}
               value={theme.id}
             >
-              <>
-                {theme.title}&nbsp;
+              <Box display="flex" alignItems="center">
                 <ThemeIcon icon={theme.icon} selected={theme.id === themeId} />
-              </>
-            </TooltipToggleButton>
+                &nbsp;{theme.title}
+              </Box>
+            </MenuItem>
           ))}
-        </ToggleButtonGroup>
+        </Select>
       </ListItemSecondaryAction>
     </ListItem>
   );

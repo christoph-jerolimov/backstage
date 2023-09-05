@@ -17,14 +17,15 @@
 import React, { cloneElement } from 'react';
 import useObservable from 'react-use/lib/useObservable';
 import AutoIcon from '@material-ui/icons/BrightnessAuto';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import {
+  Box,
+  FormControlLabel,
   ListItem,
   ListItemSecondaryAction,
   ListItemText,
   makeStyles,
-  Tooltip,
+  Radio,
+  RadioGroup,
 } from '@material-ui/core';
 import { appThemeApiRef, useApi } from '@backstage/core-plugin-api';
 
@@ -40,12 +41,6 @@ const ThemeIcon = ({ icon, selected }: ThemeIconProps) =>
       })
     : null;
 
-type TooltipToggleButtonProps = {
-  children: JSX.Element;
-  title: string;
-  value: string;
-};
-
 const useStyles = makeStyles(theme => ({
   listItemSecondaryAction: {
     position: 'relative',
@@ -59,23 +54,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-// ToggleButtonGroup uses React.children.map instead of context
-// so wrapping with Tooltip breaks ToggleButton functionality.
-const TooltipToggleButton = ({
-  children,
-  title,
-  value,
-  ...props
-}: TooltipToggleButtonProps) => (
-  <Tooltip placement="top" arrow title={title}>
-    <ToggleButton value={value} {...props}>
-      {children}
-    </ToggleButton>
-  </Tooltip>
-);
-
 /** @public */
-export const UserSettingsThemeToggle = () => {
+export const UserSettingsThemeRadioGroup = () => {
   const classes = useStyles();
   const appThemeApi = useApi(appThemeApiRef);
   const themeId = useObservable(
@@ -97,31 +77,39 @@ export const UserSettingsThemeToggle = () => {
     <ListItem>
       <ListItemText primary="Theme" secondary="Change the theme mode" />
       <ListItemSecondaryAction className={classes.listItemSecondaryAction}>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
+        <RadioGroup
           value={themeId ?? 'auto'}
           onChange={(_event, newThemeId) => handleSetTheme(newThemeId)}
         >
-          <Tooltip placement="top" arrow title="Select auto theme">
-            <ToggleButton value="auto" selected={themeId === undefined}>
-              Auto&nbsp;
-              <AutoIcon color={themeId === undefined ? 'primary' : undefined} />
-            </ToggleButton>
-          </Tooltip>
+          <FormControlLabel
+            value="auto"
+            control={<Radio />}
+            label={
+              <Box display="flex" alignItems="center">
+                <AutoIcon
+                  color={themeId === undefined ? 'primary' : undefined}
+                />
+                &nbsp;Auto
+              </Box>
+            }
+          />
           {themes.map(theme => (
-            <TooltipToggleButton
+            <FormControlLabel
               key={theme.id}
-              title={`Select ${theme.title}`}
               value={theme.id}
-            >
-              <>
-                {theme.title}&nbsp;
-                <ThemeIcon icon={theme.icon} selected={theme.id === themeId} />
-              </>
-            </TooltipToggleButton>
+              control={<Radio />}
+              label={
+                <Box display="flex" alignItems="center">
+                  <ThemeIcon
+                    icon={theme.icon}
+                    selected={theme.id === themeId}
+                  />
+                  &nbsp;{theme.title}
+                </Box>
+              }
+            />
           ))}
-        </ToggleButtonGroup>
+        </RadioGroup>
       </ListItemSecondaryAction>
     </ListItem>
   );

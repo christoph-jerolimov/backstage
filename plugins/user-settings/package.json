@@ -83,6 +83,26 @@
             }
           }
         }
+      },
+      "userSettings": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "object",
+            "properties": {
+              "selectionType": {
+                "type": "string",
+                "enum": [
+                  "Default",
+                  "Toggle",
+                  "Select",
+                  "RadioGroup"
+                ],
+                "visibility": "frontend"
+              }
+            }
+          }
+        }
       }
     }
   }
