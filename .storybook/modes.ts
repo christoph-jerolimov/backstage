@@ -7,6 +7,14 @@ export const allModes = {
     themeMode: 'dark',
     themeName: 'backstage',
   },
+  'light redhat': {
+    themeMode: 'light',
+    themeName: 'redhat',
+  },
+  'dark redhat': {
+    themeMode: 'dark',
+    themeName: 'redhat',
+  },
   'light spotify': {
     themeMode: 'light',
     themeName: 'spotify',

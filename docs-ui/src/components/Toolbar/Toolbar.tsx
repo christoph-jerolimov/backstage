@@ -30,6 +30,7 @@ interface ToolbarProps {
 
 const themes = [
   { name: 'Backstage', value: 'backstage' },
+  { name: 'Red Hat', value: 'redhat' },
   { name: 'Spotify', value: 'spotify' },
   { name: 'Custom theme', value: 'custom' },
 ];

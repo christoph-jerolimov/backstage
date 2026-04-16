@@ -18,6 +18,7 @@ import '../packages/ui/src/css/styles.css';
 import './storybook.css';
 
 // Custom themes
+import './themes/redhat.css';
 import './themes/spotify.css';
 import { Box } from '../packages/ui/src/components/Box';
 
@@ -45,6 +46,7 @@ export default definePreview({
         icon: 'paintbrush',
         items: [
           { value: 'backstage', title: 'Backstage' },
+          { value: 'redhat', title: 'Red Hat' },
           { value: 'spotify', title: 'Spotify' },
         ],
         dynamicTitle: true,

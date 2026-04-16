@@ -1,0 +1,401 @@
+[data-theme-name='redhat'] {
+  /*
+   * Override BUI tokens with PatternFly tokens. In this storybook and in ui-docs the fallback is always used.
+   * These tokens are used here for documentation purposes to show how the BUI tokens map to PatternFly tokens.
+   */
+
+  /* Font families */
+  --bui-font-regular: var(--pf-t--global--font--family--body, "Red Hat Text", "RedHatText", "Noto Sans Arabic", "Noto Sans Hebrew", "Noto Sans JP", "Noto Sans KR", "Noto Sans Malayalam", "Noto Sans SC", "Noto Sans TC", "Noto Sans Thai", Helvetica, Arial, sans-serif);
+  /* This `--bui-redhat-` prefixed variable does NOT exist in BUI but is used only in this theme by some components below */
+  --bui-redhat-theme-font-heading: var(--pf-t--global--font--family--heading, "Red Hat Display", "RedHatDisplay", "Noto Sans Arabic", "Noto Sans Hebrew", "Noto Sans JP", "Noto Sans KR", "Noto Sans Malayalam", "Noto Sans SC", "Noto Sans TC", "Noto Sans Thai", Helvetica, Arial, sans-serif);
+  --bui-font-monospace: var(--pf-t--global--font--family--mono, "Red Hat Mono", "RedHatMono", "Courier New", Courier, monospace);
+
+  /* Font weights */
+  --bui-font-weight-regular: var(--pf-t--global--font--weight--body--default, 400);
+  --bui-font-weight-bold: var(--pf-t--global--font--weight--body--bold, 600);
+  /* This `--bui-redhat-` prefixed variable does NOT exist in BUI but is used only in this theme by some components below */
+  --bui-redhat-theme-font-weight-heading-regular: var(--pf-t--global--font--weight--heading--default, 400);
+  /* This `--bui-redhat-` prefixed variable does NOT exist in BUI but is used only in this theme by some components below */
+  --bui-redhat-theme-font-weight-heading-bold: var(--pf-t--global--font--weight--heading--bold, 600);
+
+ /*
+  * Font sizes are mostly similar between BUI and this theme. We used a slightly bigger font size.
+  *
+  * BUI "Body Medium" = --bui-font-size-3 is 0.875rem but we aligned with --pf-t--global--font--size--md which is 1rem.
+  *
+  * TODO: Check line height.
+  */
+  --bui-font-size-1: var(--pf-t--global--font--size--xs, 0.75rem); /* BUI default 0.625rem = 10px */
+  --bui-font-size-2: var(--pf-t--global--font--size--sm, 0.875rem); /* BUI default 0.75rem = 12px */
+  --bui-font-size-3: var(--pf-t--global--font--size--md, 14px /*1rem*/); /* BUI default 0.875rem = 14px */
+  --bui-font-size-4: var(--pf-t--global--font--size--lg, 1.125rem); /* BUI default 1rem = 16px */
+  --bui-font-size-5: var(--pf-t--global--font--size--xl, 1.25rem); /* BUI default 1.25rem = 20px */
+  --bui-font-size-6: var(--pf-t--global--font--size--2xl, 1.5rem); /* BUI default 1.5rem = 24px */
+  --bui-font-size-7: var(--pf-t--global--font--size--3xl, 1.75rem); /* BUI default 2rem = 32px */
+  --bui-font-size-8: var(--pf-t--global--font--size--4xl, 2.25rem); /* BUI default 3rem = 48px */
+  --bui-font-size-9: var(--pf-t--global--font--size--5xl, 3rem); /* BUI default 4rem = 64px */
+  --bui-font-size-10: var(--pf-t--global--font--size--6xl, 4rem); /* BUI default 5.75rem = 92px */
+
+  /*
+   * Spacing
+   *
+   * Use default BUI spacing tokens because they are matching mostly the PatternFly tokens.
+   * 
+   * For example `--bui-space: 0.25rem` is same as `pf-t--global--spacer--xs: 0.25rem`
+   */
+
+  /*
+   * Radius
+   *
+   * While BUI has 6 radius tokens and a `full` token, PatternFly has just 4 radius tokens and a `sharp` (0px) and a `pill` token.
+   * We mapped the BUI tokens to the closest PatternFly tokens and used custom values in the middle between `small` and `medium`
+   * so that BUI component users can still expect different radius options.
+   *
+   * The `full` token is mapped to the `pill` token in PatternFly but we kept 9999px instead of 999px from PF.
+   */
+  --bui-radius-1: var(--pf-t--global--border--radius--tiny, 4px); /* default: 0.125rem */
+  --bui-radius-2: var(--pf-t--global--border--radius--small, 6px); /* default: 0.25rem */
+  --bui-radius-3: 8px; /* default: 0.5rem */
+  --bui-radius-4: 12px; /* default: 0.75rem */
+  --bui-radius-5: var(--pf-t--global--border--radius--medium, 16px); /* default: 1rem */
+  --bui-radius-6: var(--pf-t--global--border--radius--large, 24px); /* default: 1.25rem */
+  --bui-radius-full: var(--pf-t--global--border--radius--pill, 9999px); /* default: 9999px */
+
+  /*
+   * https://www.patternfly.org/components/accordion
+   *
+   * Remove the padding from the accordion and put it on the button and
+   * panel to increase the click size -- and align it visually with PatternFly
+   */
+  .bui-Accordion {
+    padding: 0;
+  }
+  .bui-AccordionTriggerButton {
+    border-top-left-radius: var(--bui-radius-3);;
+    border-top-right-radius: var(--bui-radius-3);;
+    padding: var(--bui-space-3);
+  }
+  .bui-Accordion[data-expanded='true'] > .bui-AccordionPanel {
+    margin: var(--bui-space-3);
+    margin-top: 0px;
+    padding: var(--bui-space-3);
+  }
+
+  .bui-Accordion[data-expanded="true"][data-bg="neutral-1"] {
+    background-color: var(--bui-bg-neutral-2);
+  }
+  .bui-AccordionTriggerButton:hover, .bui-AccordionTriggerButton:focus {
+    background-color: var(--bui-bg-neutral-3);
+  }
+  .bui-Accordion[data-expanded="true"][data-bg="neutral-1"] > .bui-AccordionPanel {
+    background-color: var(--bui-bg-neutral-1);
+    /* padding: var(--bui-space-2); */
+    border-radius: var(--bui-radius-3);
+  }
+
+  /* https://www.patternfly.org/components/alert */
+  .bui-Alert {
+    --alert-border-color: var(--bui-border-1);
+
+    background-color: var(--bui-white);
+    color: var(--bui-black);
+    border: 2px solid var(--alert-border-color);
+    border-radius: var(--bui-radius-5);
+    box-shadow: var(--bui-shadow);
+  }
+
+  .bui-Alert[data-status='info'] {
+    --alert-border-color: var(--bui-border-info);
+  }
+  .bui-Alert[data-status='success'] {
+    --alert-border-color: var(--bui-border-success);
+  }
+  .bui-Alert[data-status='warning'] {
+    --alert-border-color: var(--bui-border-warning);
+  }
+  .bui-Alert[data-status='danger'] {
+    --alert-border-color: var(--bui-border-danger);
+  }
+  .bui-AlertIcon {
+    color: var(--bui-border-danger);
+  }
+
+  /* https://www.patternfly.org/components/button/ */
+  .bui-Button {
+    background: var(--bg) radial-gradient(circle, transparent 1%, color-mix(in srgb, currentcolor 15%, transparent) 2%) center/15000% 15000%;
+    border-radius: var(--bui-radius-full);
+    font-weight: var(--bui-font-weight-normal);
+    padding: 8px 24px;
+  }
+ .bui-Button:active {
+    background-size: 100% 100%;
+    transition-duration: 0s;
+  }
+
+  /* ButtonLinks looks in BUI more like buttons, this changes the design more to a, yes, link. As in PatternFly */
+  .bui-ButtonLink, .bui-ButtonLink[data-variant='primary'] {
+    --bg: transparent;
+    --bg-hover: var(--bui-bg-neutral-1-hover);
+    --bg-active: transparent;
+    --fg: var(--pf-t--global--icon--color--brand--default, #0066cc);
+
+    font-weight: var(--bui-font-weight-normal);
+  }
+  .bui-ButtonLink[data-variant='primary'] {
+    font-weight: var(--bui-font-weight-bold);
+  }
+  .bui-ButtonLink[data-disabled='true'] {
+    --bg: transparent;
+    --bg-hover: transparent;
+    --bg-active: transparent;
+    --fg: var(--bui-fg-solid-disabled);
+  }
+
+  .bui-Button[data-variant="primary"] {
+    --bg: var(--bui-bg-solid);
+    --bg-hover: var(--bui-bg-solid-hover);
+    --bg-active: var(--bui-bg-solid-pressed);
+    --fg: var(--bui-white);
+  }
+  .bui-Button[data-variant="secondary"] {
+    --bg: transparent;
+    --bg-hover: transparent;
+    --bg-active: transparent;
+    --fg: var(--bui-bg-solid);
+    border: 1px solid var(--bui-bg-solid);
+    &:hover {
+      border-color: var(--bui-bg-solid-hover);
+      outline: 1px solid var(--bui-bg-solid-hover);
+    }
+  }
+  .bui-Button[data-variant="tertiary"] {
+    --bg: transparent;
+    --bg-hover: transparent;
+    --bg-active: transparent;
+    --fg: var(--bui-bg-solid);
+    border: 1px solid var(--pf-v6-c-button--m-tertiary--BorderColor, #c7c7c7);
+    &:hover {
+      border-color: var(--pf-v6-c-button--hover--BorderColor, #c7c7c7);
+      outline: 1px solid var(--bui-bg-solid-hover);
+    }
+  }
+
+  /* https://www.patternfly.org/components/card */
+  .bui-Card {
+    border: 1px solid var(--pf-t--global--border--color--default, #c7c7c7);
+    border-radius: var(--bui-radius-5); /* pf-t--global--border--radius--medium is use for moderately rounded corners, like cards. */
+    padding: var(--bui-space-4);
+  }
+  /* TODO: improve scroll gradient in Card.module.css. For now, we have disabled that shadow gradient */
+  /* https://www.bram.us/2023/09/16/solved-by-css-scroll-driven-animations-detect-if-an-element-can-scroll-or-not/ */
+  .bui-Card:has(.bui-CardHeader) .bui-CardBody {
+    &::before {
+      background: none;
+    }
+  }
+  .bui-Card:has(.bui-CardFooter) .bui-CardBody {
+    &::after {
+      background: none;
+    }
+  }
+  .bui-CardBody::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+  }
+  .bui-CardBody::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, .5);
+    box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+  }
+
+  /* https://www.patternfly.org/components/modal */
+  .bui-Dialog {
+    --dialog-border-radius: var(--bui-radius-6);
+  }
+  .bui-DialogHeader {
+    padding-inline-start: var(--bui-space-5);
+    padding-block-start: var(--bui-space-4);
+    border-bottom: none;
+  }
+  .bui-DialogHeader > .bui-Button[slot="close"] {
+    border: none;
+    border-radius: var(--bui-radius-3);
+    color: var(--bui-black);
+    background-color: transparent;
+    padding: var(--bui-space-2);
+  }
+  .bui-DialogHeader > .bui-Button[slot="close"]:hover {
+    background-color: var(--bui-bg-neutral-1-hover);
+    border: none;
+    outline: none;
+  }
+  .bui-DialogHeader > .bui-Button[slot="close"] > span > svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .bui-DialogBody {
+    padding: var(--bui-space-5);
+  }
+  .bui-DialogFooter {
+    padding-inline-start: var(--bui-space-5);
+    padding-block-end: var(--bui-space-5);
+    border-top: none;
+    /* This is probably a bit "dangerous" ... swap buttons to the left and also change their order. */
+    justify-content: start;
+    flex-direction: row-reverse;
+  }
+
+  /* Header nav item is aliged with tabs https://www.patternfly.org/components/tabs */
+  .bui-HeaderNavList {
+    border-bottom: 1px solid var(--bui-border-1);
+  }
+  .bui-HeaderNavActive {
+    bottom: 1px;
+    height: 3px;
+    --bui-fg-primary: var(--bui-bg-solid);
+  }
+
+  /* https://www.patternfly.org/components/tabs */
+  .bui-TabList {
+    border-bottom: 1px solid var(--bui-border-1);
+  }
+  .bui-Tab {
+    margin-block: var(--bui-space-1);
+  }
+  .bui-TabActive {
+    bottom: 1px;
+    height: 3px;
+    --bui-fg-primary: var(--bui-bg-solid);
+  }
+
+  /* Aligned to PatternFly Label https://www.patternfly.org/components/label */
+  .bui-Tag {
+    border-radius: var(--bui-radius-full);
+  }
+
+  /* Aligned to PatternFly ToggleButton https://www.patternfly.org/components/toggle-group */
+  .bui-ToggleButton {
+    border: 1px solid var(--bui-border-1);
+    font-weight: var(--bui-font-weight-normal);
+    padding: var(--bui-space-4) var(--bui-space-4);
+  }
+}
+
+[data-theme-mode='light'][data-theme-name='redhat'] {
+  /* Base Colors */
+  --bui-black: #151515;
+  --bui-white: #ffffff;
+
+  /* Solid background colors */
+  --bui-bg-solid: var(--pf-t--global--icon--color--brand--default, #0066cc);
+  --bui-bg-solid-hover: var(--pf-t--global--icon--color--brand--hover, #004d99);
+  --bui-bg-solid-pressed: var(--pf-t--global--icon--color--brand--clicked, #004d99);
+  --bui-bg-solid-disabled: var(--pf-t--global--icon--color--disabled, #a3a3a3);
+
+  /* Neutral background colors */
+  --bui-bg-app: #f8f8f8;
+
+  --bui-bg-neutral-1: #fff;
+  --bui-bg-neutral-1-hover: oklch(0% 0 0 / 6%);
+  --bui-bg-neutral-1-pressed: oklch(0% 0 0 / 12%);
+  --bui-bg-neutral-1-disabled: oklch(0% 0 0 / 6%);
+
+  --bui-bg-neutral-2: oklch(0% 0 0 / 6%);
+  --bui-bg-neutral-2-hover: oklch(0% 0 0 / 12%);
+  --bui-bg-neutral-2-pressed: oklch(0% 0 0 / 16%);
+  --bui-bg-neutral-2-disabled: oklch(0% 0 0 / 6%);
+
+  --bui-bg-neutral-3: oklch(0% 0 0 / 6%);
+  --bui-bg-neutral-3-hover: oklch(0% 0 0 / 12%);
+  --bui-bg-neutral-3-pressed: oklch(0% 0 0 / 16%);
+  --bui-bg-neutral-3-disabled: oklch(0% 0 0 / 6%);
+
+  --bui-bg-neutral-4: oklch(0% 0 0 / 6%);
+  --bui-bg-neutral-4-hover: oklch(0% 0 0 / 12%);
+  --bui-bg-neutral-4-pressed: oklch(0% 0 0 / 16%);
+  --bui-bg-neutral-4-disabled: oklch(0% 0 0 / 6%);
+
+  /* Status background colors */
+  --bui-bg-danger: #ffe2e2;
+  --bui-bg-warning: #ffedd5;
+  --bui-bg-success: #dcfce7;
+  --bui-bg-info: #dbeafe;
+
+  /* Foreground colors */
+  --bui-fg-primary: var(--bui-black);
+  --bui-fg-secondary: oklch(0% 0 0 / 50%);
+  --bui-fg-disabled: oklch(0% 0 0 / 28%);
+  --bui-fg-solid: var(--bui-white);
+  --bui-fg-solid-disabled: var(--pf-t--global--icon--color--disabled, #a3a3a3);
+
+  /* Foreground Statuses */
+  --bui-fg-danger-on-bg: #991919;
+  --bui-fg-warning-on-bg: #92310a;
+  --bui-fg-success-on-bg: #116932;
+  --bui-fg-info-on-bg: #173da6;
+  --bui-fg-danger: #ec3b18;
+  --bui-fg-warning: #ef7a32;
+  --bui-fg-success: #1aaf4f;
+  --bui-fg-info: #0d74ce;
+
+  /* Border colors */
+  --bui-border-1: #d5d5d5;
+  --bui-border-2: #bababa;
+  --bui-border-info: var(--pf-t--global--border--color--status--info--default, #5e40be);
+  --bui-border-danger: var(--pf-t--global--border--color--status--danger--default, #b1380b);
+  --bui-border-warning: var(--pf-t--global--border--color--status--warning--default, #ffcc17);
+  --bui-border-success: var(--pf-t--global--border--color--status--success--default, #3d7317);
+
+  /* Special colors */
+  --bui-ring: #1f5493;
+  --bui-scrollbar: #a0a0a03b;
+  --bui-scrollbar-thumb: #a0a0a0;
+
+  /* Shadows */
+  --bui-shadow: rgba(41, 41, 41, 0.15) 0px 10px 20px 0px;
+
+  --bui-animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  /* --bui-fg-danger: var(--pf-t--global--color--status--danger--default, #b1380b);
+  --bui-fg-warning: var(--pf-t--global--color--status--warning--default, #ffcc17);
+  --bui-fg-success: var(--pf-t--global--color--status--success--default, #3d7317);
+  --bui-fg-info: var(--pf-t--global--color--status--info--default, #5e40be); */
+
+  /*
+
+  --bui-bg-neutral-0: lab(0% 0 0 / .06);
+  --bui-bg-neutral-1: lab(0% 0 0 / .06);
+  --bui-bg-neutral-2: lab(0% 0 0 / .06);
+  --bui-bg-neutral-3: lab(0% 0 0 / .06);
+  --bui-bg-neutral-4: lab(0% 0 0 / .06);
+
+  --bui-bg-solid: #0066cc;
+  --bui-bg-solid-hover: #004d99;
+  --bui-bg-solid-pressed: #004d99;
+
+  --bui-fg-solid-disabled: #a3a3a3;
+  --bui-bg-solid-disabled: #c7c7c7;
+
+  --bui-solid-danger: #00ff00;
+  --bui-solid-danger-hover: #00ff00;
+  --bui-solid-danger-pressed: #00ff00;
+  --bui-solid-danger: #00ff00;
+
+  --bui-fg-danger: #ffff00;
+  --bui-fg-warning: #ffff00;
+  --bui-fg-success: #00ff00;
+
+  --bui-bg-danger: #ffff00;
+  --bui-bg-warning: #ffff00;
+  --bui-bg-success: #00ff00;
+
+  --bg-danger-hover: #00ffff;
+
+  --bui-border-danger: #f87a7a;
+  --bui-border-warning: #ffff00;
+  --bui-border-success: #00ff00;
+
+
+  --bui-ring: rgba(0, 0, 0, 0.2);
+  */
+}
