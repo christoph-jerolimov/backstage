@@ -2502,6 +2502,62 @@ export type JustifyContent =
 
 export { Key };
 
+// @public
+export const LabeledValue: ForwardRefExoticComponent<
+  LabeledValueProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export type LabeledValueAlign = 'start' | 'center' | 'end';
+
+// @public
+export const LabeledValueDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-LabeledValue';
+    readonly label: 'bui-LabeledValueLabel';
+    readonly value: 'bui-LabeledValueValue';
+  };
+  readonly propDefs: {
+    readonly label: {};
+    readonly value: {};
+    readonly children: {};
+    readonly variant: {
+      readonly dataAttribute: true;
+      readonly default: 'horizontal';
+    };
+    readonly grow: {
+      readonly dataAttribute: true;
+    };
+    readonly align: {
+      readonly dataAttribute: true;
+      readonly default: 'start';
+    };
+    readonly className: {};
+  };
+};
+
+// @public
+export type LabeledValueOwnProps = {
+  label: ReactNode;
+  value?: string | number | Date | null;
+  children?: ReactNode;
+  variant?: Responsive<LabeledValueVariant>;
+  grow?: Responsive<boolean>;
+  align?: Responsive<LabeledValueAlign>;
+  className?: string;
+};
+
+// @public
+export interface LabeledValueProps
+  extends LabeledValueOwnProps,
+    Omit<React.ComponentPropsWithoutRef<'div'>, keyof LabeledValueOwnProps> {}
+
+// @public
+export type LabeledValueVariant = 'horizontal' | 'vertical';
+
 // @public (undocumented)
 export type LegacyOption = {
   value: string;
