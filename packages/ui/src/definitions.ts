@@ -61,6 +61,7 @@ export {
   HeaderDefinition,
   HeaderPageDefinition,
 } from './components/Header/definition';
+export { LabeledValueDefinition } from './components/LabeledValue/definition';
 export { LinkDefinition } from './components/Link/definition';
 export {
   ListDefinition,

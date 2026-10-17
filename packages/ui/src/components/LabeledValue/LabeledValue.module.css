@@ -1,0 +1,60 @@
+/*
+ * Copyright 2026 The Backstage Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@layer tokens, base, components, theme, utilities;
+
+@layer components {
+  .bui-LabeledValue {
+    display: flex;
+    min-width: 0;
+
+    &[data-variant='horizontal'] {
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--bui-space-2);
+    }
+
+    &[data-variant='vertical'] {
+      flex-direction: column;
+      gap: var(--bui-space-1);
+    }
+
+    &[data-variant='horizontal'][data-grow='true'] .bui-LabeledValueValue {
+      flex: 1 1 0%;
+    }
+
+    &[data-align='start'] .bui-LabeledValueValue {
+      text-align: start;
+    }
+
+    &[data-align='center'] .bui-LabeledValueValue {
+      text-align: center;
+    }
+
+    &[data-align='end'] .bui-LabeledValueValue {
+      text-align: end;
+    }
+  }
+
+  .bui-LabeledValueLabel {
+    flex: none;
+    min-width: 0;
+  }
+
+  .bui-LabeledValueValue {
+    min-width: 0;
+  }
+}

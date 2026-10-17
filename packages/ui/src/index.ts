@@ -40,6 +40,7 @@ export * from './components/Dialog';
 export * from './components/FieldLabel';
 export * from './components/PluginHeader';
 export * from './components/Header';
+export * from './components/LabeledValue';
 export * from './components/ButtonIcon';
 export * from './components/ButtonLink';
 export * from './components/Checkbox';
