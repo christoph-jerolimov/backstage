@@ -1683,6 +1683,47 @@ export interface CursorResponse<T> {
 }
 
 // @public
+const Date_2: ForwardRefExoticComponent<
+  DateProps & RefAttributes<HTMLTimeElement>
+>;
+export { Date_2 as Date };
+
+// @public
+export const DateDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-Date';
+  };
+  readonly propDefs: {
+    readonly value: {};
+    readonly relative: {
+      readonly default: true;
+    };
+    readonly tooltip: {
+      readonly default: 'absolute';
+    };
+    readonly formatOptions: {
+      readonly default: {
+        readonly dateStyle: 'medium';
+        readonly timeStyle: 'short';
+      };
+    };
+    readonly className: {};
+  };
+};
+
+// @public (undocumented)
+export type DateOwnProps = {
+  value: Date | string | number;
+  relative?: boolean;
+  tooltip?: 'absolute' | 'input' | 'none';
+  formatOptions?: Intl.DateTimeFormatOptions;
+  className?: string;
+};
+
+// @public
 export const DatePicker: ForwardRefExoticComponent<
   DatePickerProps & RefAttributes<HTMLDivElement>
 >;
@@ -1754,6 +1795,14 @@ export type DatePickerOwnProps = {
 export interface DatePickerProps
   extends Omit<DatePickerProps_2<DateValue>, 'className' | 'children'>,
     DatePickerOwnProps {}
+
+// @public (undocumented)
+export interface DateProps
+  extends Omit<
+      ComponentPropsWithoutRef<'time'>,
+      'children' | 'className' | 'dateTime'
+    >,
+    DateOwnProps {}
 
 // @public
 export const DateRangePicker: ForwardRefExoticComponent<

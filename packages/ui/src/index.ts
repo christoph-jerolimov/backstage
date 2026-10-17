@@ -34,6 +34,7 @@ export * from './components/Avatar';
 export * from './components/Badge';
 export * from './components/Button';
 export * from './components/Card';
+export * from './components/Date';
 export * from './components/DatePicker';
 export * from './components/DateRangePicker';
 export * from './components/Dialog';
