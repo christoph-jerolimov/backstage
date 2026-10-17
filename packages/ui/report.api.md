@@ -1934,6 +1934,159 @@ export interface DialogTriggerProps extends DialogTriggerProps_2 {}
 export type Display = 'none' | 'flex' | 'block' | 'inline';
 
 // @public
+export const Drawer: ForwardRefExoticComponent<
+  DrawerProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const DrawerBody: ForwardRefExoticComponent<
+  DrawerBodyProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const DrawerBodyDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-DrawerBody';
+  };
+  readonly propDefs: {
+    readonly children: {};
+    readonly className: {};
+  };
+};
+
+// @public (undocumented)
+export type DrawerBodyOwnProps = {
+  children?: ReactNode;
+  className?: string;
+};
+
+// @public
+export interface DrawerBodyProps
+  extends DrawerBodyOwnProps,
+    Omit<React.ComponentPropsWithoutRef<'div'>, keyof DrawerBodyOwnProps> {}
+
+// @public
+export const DrawerDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-DrawerOverlay';
+    readonly container: 'bui-Drawer';
+    readonly inner: 'bui-DrawerInner';
+    readonly content: 'bui-DrawerContent';
+  };
+  readonly propDefs: {
+    readonly children: {};
+    readonly className: {};
+    readonly placement: {
+      readonly dataAttribute: true;
+      readonly default: 'right';
+    };
+    readonly width: {};
+    readonly isNonModal: {
+      readonly dataAttribute: true;
+      readonly default: false;
+    };
+    readonly hideBackdrop: {
+      readonly dataAttribute: true;
+      readonly default: false;
+    };
+    readonly isDismissable: {
+      readonly default: true;
+    };
+    readonly style: {};
+  };
+};
+
+// @public
+export const DrawerFooter: ForwardRefExoticComponent<
+  DrawerFooterProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const DrawerFooterDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-DrawerFooter';
+  };
+  readonly propDefs: {
+    readonly children: {};
+    readonly className: {};
+  };
+};
+
+// @public (undocumented)
+export type DrawerFooterOwnProps = {
+  children?: ReactNode;
+  className?: string;
+};
+
+// @public
+export interface DrawerFooterProps
+  extends DrawerFooterOwnProps,
+    Omit<React.ComponentPropsWithoutRef<'div'>, keyof DrawerFooterOwnProps> {}
+
+// @public
+export const DrawerHeader: ForwardRefExoticComponent<
+  DrawerHeaderProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const DrawerHeaderDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-DrawerHeader';
+    readonly title: 'bui-DrawerHeaderTitle';
+  };
+  readonly propDefs: {
+    readonly children: {};
+    readonly className: {};
+  };
+};
+
+// @public (undocumented)
+export type DrawerHeaderOwnProps = {
+  children?: ReactNode;
+  className?: string;
+};
+
+// @public
+export interface DrawerHeaderProps
+  extends DrawerHeaderOwnProps,
+    Omit<HeadingProps, keyof DrawerHeaderOwnProps> {}
+
+// @public (undocumented)
+export type DrawerOwnProps = {
+  children?: ReactNode;
+  className?: string;
+  placement?: 'left' | 'right';
+  width?: number | string;
+  isNonModal?: boolean;
+  hideBackdrop?: boolean;
+  isDismissable?: boolean;
+  style?: React.CSSProperties;
+};
+
+// @public
+export interface DrawerProps
+  extends DrawerOwnProps,
+    Omit<ModalOverlayProps, keyof DrawerOwnProps> {}
+
+// @public
+export const DrawerTrigger: (props: DrawerTriggerProps) => JSX_2.Element;
+
+// @public
+export interface DrawerTriggerProps extends DialogTriggerProps_2 {}
+
+// @public
 export const FieldLabel: ForwardRefExoticComponent<
   FieldLabelProps & RefAttributes<HTMLDivElement>
 >;

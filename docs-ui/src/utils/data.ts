@@ -71,6 +71,11 @@ export const components: Page[] = [
     slug: 'dialog',
   },
   {
+    title: 'Drawer',
+    slug: 'drawer',
+    status: 'new',
+  },
+  {
     title: 'Flex',
     slug: 'flex',
   },

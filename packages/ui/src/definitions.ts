@@ -49,6 +49,7 @@ export {
 } from './components/DatePicker/definition';
 export { DateRangePickerDefinition } from './components/DateRangePicker/definition';
 export { DialogDefinition } from './components/Dialog/definition';
+export { DrawerDefinition } from './components/Drawer/definition';
 export { FieldErrorDefinition } from './components/FieldError/definition';
 export { FieldLabelDefinition } from './components/FieldLabel/definition';
 export { FlexDefinition } from './components/Flex/definition';
