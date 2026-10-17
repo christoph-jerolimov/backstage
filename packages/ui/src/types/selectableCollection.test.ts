@@ -65,12 +65,19 @@ describe('selectable collection types', () => {
       label: 'Draft',
       description: 'Still in progress',
     } satisfies IdentifiedOption;
+    const decorated = {
+      id: 'published',
+      label: 'Published',
+      icon: 'star',
+      leadingIcon: 'star',
+      value: 42,
+    } satisfies IdentifiedOption;
     const legacy = {
       value: 'draft',
       label: 'Draft',
     } satisfies LegacyOption;
     const staticOptions = {
-      options: [identified, legacy],
+      options: [identified, decorated, legacy],
     } satisfies PlainStaticOptionsCollection<Option>;
     const dynamicItems = {
       items: [{ id: 'ada', name: 'Ada Lovelace' }],
@@ -128,12 +135,13 @@ describe('selectable collection types', () => {
       },
     } satisfies StaticCompositionSearch;
 
-    const ambiguousOption = {
-      id: 'draft',
-      // @ts-expect-error identified options cannot also use the deprecated value field
+    const decoratedLegacyOptionSource = {
       value: 'draft',
       label: 'Draft',
-    } satisfies IdentifiedOption;
+      icon: 'star',
+    };
+    // @ts-expect-error option icons require id
+    const decoratedLegacyOption: LegacyOption = decoratedLegacyOptionSource;
 
     const missingOptionId = {
       label: 'Draft',
@@ -161,7 +169,7 @@ describe('selectable collection types', () => {
       uncontrolledServer,
       conflictingDerivedInput,
       staticFilter,
-      ambiguousOption,
+      decoratedLegacyOption,
       missingOptionId,
       richLegacyOption,
       conflictingCollection,

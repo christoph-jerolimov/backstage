@@ -1207,6 +1207,7 @@ export const ComboboxInputDefinition: {
   readonly bg: 'consumer';
   readonly propDefs: {
     readonly icon: {};
+    readonly selectedOption: {};
     readonly placeholder: {};
   };
 };
@@ -1337,6 +1338,7 @@ export const ComboboxItemTextDefinition: {
     readonly text: 'bui-ComboboxItemTextContent';
     readonly title: 'bui-ComboboxItemTitle';
     readonly description: 'bui-ComboboxItemDescription';
+    readonly value: 'bui-ComboboxItemValue';
   };
   readonly propDefs: {
     readonly title: {};
@@ -2484,10 +2486,11 @@ export interface HeaderTag {
 // @public (undocumented)
 export type IdentifiedOption = {
   id: string;
-  value?: never;
   label: string;
   description?: string;
+  icon?: ReactNode;
   leadingIcon?: ReactNode;
+  value?: ReactNode;
   disabled?: boolean;
 };
 
@@ -2508,6 +2511,7 @@ export type LegacyOption = {
   id?: never;
   label: string;
   description?: never;
+  icon?: never;
   leadingIcon?: never;
   disabled?: boolean;
 };
@@ -2839,7 +2843,7 @@ export interface NoPagination {
 }
 
 // @public (undocumented)
-export type NormalizedOption = Omit<IdentifiedOption, 'value'>;
+export type NormalizedOption = IdentifiedOption;
 
 // @public
 export const NumberField: ForwardRefExoticComponent<

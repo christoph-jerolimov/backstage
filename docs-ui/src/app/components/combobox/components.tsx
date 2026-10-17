@@ -2,7 +2,13 @@
 
 import { Combobox } from '../../../../../packages/ui/src/components/Combobox/Combobox';
 import { Flex } from '../../../../../packages/ui/src/components/Flex/Flex';
-import { RiCloudLine } from '@remixicon/react';
+import {
+  RiCloudLine,
+  RiCodeBoxLine,
+  RiDatabase2Line,
+  RiPlugLine,
+  RiStackLine,
+} from '@remixicon/react';
 
 const fontOptions = [
   { id: 'sans', label: 'Sans-serif' },
@@ -54,6 +60,13 @@ const sectionedFonts = [
   },
 ];
 
+const kindOptions = [
+  { id: 'component', label: 'Component', icon: <RiCodeBoxLine />, value: 128 },
+  { id: 'api', label: 'API', icon: <RiPlugLine />, value: 42 },
+  { id: 'resource', label: 'Resource', icon: <RiDatabase2Line />, value: 17 },
+  { id: 'system', label: 'System', icon: <RiStackLine />, value: 5 },
+];
+
 export const Preview = () => (
   <Combobox
     label="Font Family"
@@ -103,6 +116,27 @@ export const WithIcon = () => (
     placeholder="Pick a font"
     name="font"
     icon={<RiCloudLine />}
+    style={{ width: 300 }}
+  />
+);
+
+export const WithOptionIcons = () => (
+  <Combobox
+    label="Kind"
+    options={kindOptions.map(({ value, ...option }) => option)}
+    placeholder="Pick a kind"
+    defaultValue="component"
+    name="kind"
+    style={{ width: 300 }}
+  />
+);
+
+export const WithOptionValues = () => (
+  <Combobox
+    label="Kind"
+    options={kindOptions}
+    placeholder="Pick a kind"
+    name="kind"
     style={{ width: 300 }}
   />
 );

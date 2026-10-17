@@ -4,6 +4,47 @@ import {
   type PropDef,
 } from '@/utils/propDefs';
 import { Chip } from '@/components/Chip';
+import { optionPropDefs } from '../select/props-definition';
+
+export const comboboxOptionPropDefs: Record<string, PropDef> = {
+  id: optionPropDefs.id,
+  value: {
+    type: 'enum',
+    values: ['ReactNode', 'string'],
+    description: (
+      <>
+        Content displayed right-aligned in the dropdown, such as a count.
+        Requires <Chip>id</Chip>. Without <Chip>id</Chip>, a string{' '}
+        <Chip>value</Chip> is the deprecated option identity instead.
+      </>
+    ),
+  },
+  label: optionPropDefs.label,
+  disabled: optionPropDefs.disabled,
+  description: optionPropDefs.description,
+  icon: {
+    type: 'enum',
+    values: ['ReactNode'],
+    description: (
+      <>
+        Icon displayed before the option text in the dropdown and in the input
+        while the option is selected. Takes precedence over{' '}
+        <Chip>leadingIcon</Chip> in the dropdown. Requires <Chip>id</Chip>{' '}
+        instead of the deprecated <Chip>value</Chip> field.
+      </>
+    ),
+  },
+  leadingIcon: {
+    type: 'enum',
+    values: ['ReactNode'],
+    description: (
+      <>
+        Icon displayed before the option text in the dropdown only. Requires{' '}
+        <Chip>id</Chip> instead of the deprecated <Chip>value</Chip> field.
+      </>
+    ),
+  },
+};
 
 export const comboboxItemPropDefs: Record<string, PropDef> = {
   id: {

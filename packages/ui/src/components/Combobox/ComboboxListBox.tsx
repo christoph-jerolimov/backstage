@@ -75,10 +75,13 @@ const NoResults = () => {
 };
 
 function ComboboxOptionItem({ option }: { option: NormalizedOption }) {
+  // The option icon takes the leading slot and also follows the selection
+  // into the input, while leadingIcon stays in the list.
+  const leadingIcon = option.icon ?? option.leadingIcon;
   const { ownProps } = useDefinition(ComboboxItemTextDefinition, {
     title: option.label,
     description: option.description,
-    leadingIcon: option.leadingIcon,
+    leadingIcon,
   });
   const { classes } = ownProps;
   const {
@@ -94,9 +97,7 @@ function ComboboxOptionItem({ option }: { option: NormalizedOption }) {
       isDisabled={option.disabled}
       showSelectionIndicator
     >
-      {option.leadingIcon && (
-        <div className={classes.leadingIcon}>{option.leadingIcon}</div>
-      )}
+      {leadingIcon && <div className={classes.leadingIcon}>{leadingIcon}</div>}
       <div className={classes.text}>
         <Text
           slot="label"
@@ -110,6 +111,9 @@ function ComboboxOptionItem({ option }: { option: NormalizedOption }) {
           </Text>
         )}
       </div>
+      {option.value !== undefined && option.value !== null && (
+        <div className={classes.value}>{option.value}</div>
+      )}
     </ComboboxItem>
   );
 }

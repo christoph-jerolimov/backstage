@@ -78,8 +78,9 @@ type ComboboxAriaStateProps = {
   onInputChange?: (value: string) => void;
 };
 
-type AsyncComboboxState = {
+type AsyncComboboxState<T extends CollectionItem> = {
   value: Key | null;
+  selectedItem: T | null;
   inputValue: string;
   onChange: (value: Key | null) => void;
   onInputChange: (value: string) => void;
@@ -92,12 +93,13 @@ function resolveComboboxStateProps<T extends CollectionItem>({
   hasSearch,
 }: {
   runtimeState: ComboboxRuntimeStateProps<T>;
-  asyncState?: AsyncComboboxState;
+  asyncState?: AsyncComboboxState<T>;
   collection: CollectionAdapterResult<T>;
   hasSearch: boolean;
 }): ComboboxAriaStateProps {
   if (asyncState) {
-    return asyncState;
+    const { selectedItem: _selectedItem, ...ariaState } = asyncState;
+    return ariaState;
   }
 
   const selectionProps = {
@@ -329,6 +331,18 @@ function ComboboxImpl<T extends CollectionItem = NormalizedOption>(
     isDirectAsyncServer && items !== undefined
       ? getAsyncComboboxItemTextValue
       : undefined;
+  // Only plain option rows carry an option icon into the input. Custom item
+  // rendering owns its content, so a selected domain object is not inspected.
+  const rendersOptionRows =
+    options !== undefined ||
+    (items !== undefined && typeof children !== 'function');
+  let selectedOption: NormalizedOption | undefined;
+  if (rendersOptionRows && selectedKey !== null) {
+    const optionRows = (asyncComboboxState?.selectedItem
+      ? [asyncComboboxState.selectedItem]
+      : collection.canonicalItems) as unknown as NormalizedOption[];
+    selectedOption = optionRows.find(option => option.id === selectedKey);
+  }
 
   return (
     <AriaComboBox<T>
@@ -352,7 +366,11 @@ function ComboboxImpl<T extends CollectionItem = NormalizedOption>(
         description={description}
         descriptionSlot="description"
       />
-      <ComboboxInput icon={icon} placeholder={placeholder} />
+      <ComboboxInput
+        icon={icon}
+        selectedOption={selectedOption}
+        placeholder={placeholder}
+      />
       <FieldError />
       <Popover className={classes.popover} hideArrow {...dataAttributes}>
         <ComboboxListBox

@@ -120,10 +120,22 @@ export type StaticItemsCollection = {
 /** @public */
 export type IdentifiedOption = {
   id: string;
-  value?: never;
   label: string;
   description?: string;
+  /**
+   * Icon the Combobox displays before the option text in its list and in its
+   * input while the option is selected. Takes precedence over `leadingIcon`
+   * in the list.
+   */
+  icon?: ReactNode;
+  /**
+   * Icon displayed before the option text in the list only.
+   */
   leadingIcon?: ReactNode;
+  /**
+   * Content the Combobox displays right-aligned in its list, such as a count.
+   */
+  value?: ReactNode;
   disabled?: boolean;
 };
 
@@ -134,6 +146,7 @@ export type LegacyOption = {
   id?: never;
   label: string;
   description?: never;
+  icon?: never;
   leadingIcon?: never;
   disabled?: boolean;
 };
@@ -148,7 +161,7 @@ export type OptionSection = {
 };
 
 /** @public */
-export type NormalizedOption = Omit<IdentifiedOption, 'value'>;
+export type NormalizedOption = IdentifiedOption;
 
 /** @internal */
 export type NormalizedOptionSection = {

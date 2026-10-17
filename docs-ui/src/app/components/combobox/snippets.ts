@@ -46,6 +46,31 @@ export const comboboxIconSnippet = `<Combobox
   options={[ ... ]}
 />`;
 
+export const comboboxOptionIconsSnippet = `<Combobox
+  name="kind"
+  label="Kind"
+  placeholder="Pick a kind"
+  defaultValue="component"
+  options={[
+    { id: 'component', label: 'Component', icon: <RiCodeBoxLine /> },
+    { id: 'api', label: 'API', icon: <RiPlugLine /> },
+    { id: 'resource', label: 'Resource', icon: <RiDatabase2Line /> },
+    { id: 'system', label: 'System', icon: <RiStackLine /> },
+  ]}
+/>`;
+
+export const comboboxOptionValuesSnippet = `<Combobox
+  name="kind"
+  label="Kind"
+  placeholder="Pick a kind"
+  options={[
+    { id: 'component', label: 'Component', icon: <RiCodeBoxLine />, value: 128 },
+    { id: 'api', label: 'API', icon: <RiPlugLine />, value: 42 },
+    { id: 'resource', label: 'Resource', icon: <RiDatabase2Line />, value: 17 },
+    { id: 'system', label: 'System', icon: <RiStackLine />, value: 5 },
+  ]}
+/>`;
+
 export const comboboxSizesSnippet = `<Flex>
   <Combobox
     size="small"

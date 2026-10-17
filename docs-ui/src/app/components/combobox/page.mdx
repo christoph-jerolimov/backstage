@@ -7,6 +7,8 @@ import {
   WithLabelAndDescription,
   Sizes,
   WithIcon,
+  WithOptionIcons,
+  WithOptionValues,
   Disabled,
   DisabledOption,
   AllowsCustomValue,
@@ -14,14 +16,12 @@ import {
 } from './components';
 import {
   comboboxPropDefs,
+  comboboxOptionPropDefs,
   comboboxItemPropDefs,
   comboboxItemTextPropDefs,
   comboboxItemProfilePropDefs,
 } from './props-definition';
-import {
-  optionPropDefs,
-  optionSectionPropDefs,
-} from '../select/props-definition';
+import { optionSectionPropDefs } from '../select/props-definition';
 import {
   comboboxUsageSnippet,
   comboboxDefaultSnippet,
@@ -30,6 +30,8 @@ import {
   comboboxDisabledSnippet,
   comboboxResponsiveSnippet,
   comboboxIconSnippet,
+  comboboxOptionIconsSnippet,
+  comboboxOptionValuesSnippet,
   comboboxCustomSearchSnippet,
   comboboxDisabledOptionsSnippet,
   comboboxCustomValueSnippet,
@@ -72,7 +74,7 @@ Provide a visible `label` whenever possible, or use `aria-label` or
 Combobox accepts one collection source at a time:
 
 - Pass an `options` array for standard text rows with optional descriptions,
-  icons, or sections.
+  icons, right-aligned values, or sections.
 - Pass `items` with a child render function for domain objects or custom rows.
 - Compose item children directly for a short, fixed collection.
 - Pass a `useAsyncList` result to `options` or `items` for asynchronous data
@@ -129,11 +131,12 @@ loading state and cannot be combined with these manual props.
 
 The `options` prop accepts an array containing either of the following shapes.
 Use `id` for new code. The deprecated `value` identity remains supported for
-static arrays.
+static arrays. Options with an `id` can also carry an `icon`, a `leadingIcon`,
+and a right-aligned `value`.
 
 #### `Option`
 
-<PropsTable data={optionPropDefs} />
+<PropsTable data={comboboxOptionPropDefs} />
 
 #### `OptionSection`
 
@@ -230,6 +233,34 @@ callback. This manual mode keeps the regular key-based selection API.
   open
   preview={<WithIcon />}
   code={comboboxIconSnippet}
+/>
+
+### Option icons
+
+Give an option an `icon` to show it before the option text in the dropdown.
+The selected option's icon also replaces the field `icon` in the input while
+the input shows that option. Use `leadingIcon` instead for an icon that only
+appears in the dropdown.
+
+<Snippet
+  layout="side-by-side"
+  open
+  preview={<WithOptionIcons />}
+  code={comboboxOptionIconsSnippet}
+/>
+
+### Option values
+
+Give an option a `value` to show it right-aligned in the dropdown, for example
+a count of matching entities. The value is display content only and does not
+take part in filtering or selection. Options with the deprecated `value`
+identity and no `id` keep their existing behavior.
+
+<Snippet
+  layout="side-by-side"
+  open
+  preview={<WithOptionValues />}
+  code={comboboxOptionValuesSnippet}
 />
 
 ### Disabled

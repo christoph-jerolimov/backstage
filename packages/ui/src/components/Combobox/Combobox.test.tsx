@@ -201,6 +201,74 @@ describe('Combobox', () => {
     expect(screen.getByLabelText('Draft icon')).toBeInTheDocument();
   });
 
+  it('renders option icons and values and carries the selected icon into the input', () => {
+    renderCombobox(
+      <Combobox
+        aria-label="Kind"
+        icon={<span aria-label="Field icon" />}
+        options={[
+          {
+            id: 'component',
+            label: 'Component',
+            icon: <span aria-label="Component icon" />,
+            value: 42,
+          },
+          {
+            id: 'api',
+            label: 'API',
+            leadingIcon: <span aria-label="API icon" />,
+            value: <span aria-label="API count">7</span>,
+          },
+          { id: 'system', label: 'System' },
+        ]}
+      />,
+    );
+
+    const input = screen.getByRole('combobox');
+    const field = within(screen.getByRole('group'));
+    expect(field.getByLabelText('Field icon')).toBeInTheDocument();
+
+    openCombobox();
+
+    const componentOption = screen.getByRole('option', { name: /Component/ });
+    expect(
+      within(componentOption).getByLabelText('Component icon'),
+    ).toBeInTheDocument();
+    expect(within(componentOption).getByText('42')).toHaveClass(
+      'bui-ComboboxItemValue',
+    );
+    const apiOption = screen.getByRole('option', { name: /API/ });
+    expect(within(apiOption).getByLabelText('API icon')).toBeInTheDocument();
+    expect(within(apiOption).getByLabelText('API count')).toHaveTextContent(
+      '7',
+    );
+    expect(
+      within(screen.getByRole('option', { name: 'System' })).queryByText('42'),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(componentOption);
+
+    expect(input).toHaveValue('Component');
+    expect(field.getByLabelText('Component icon')).toBeInTheDocument();
+    expect(field.queryByLabelText('Field icon')).not.toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'Comp' } });
+
+    expect(field.queryByLabelText('Component icon')).not.toBeInTheDocument();
+    expect(field.getByLabelText('Field icon')).toBeInTheDocument();
+
+    fireEvent.blur(input);
+
+    expect(input).toHaveValue('Component');
+    expect(field.getByLabelText('Component icon')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('option', { name: /API/ }));
+
+    expect(input).toHaveValue('API');
+    expect(field.getByLabelText('Field icon')).toBeInTheDocument();
+    expect(field.queryByLabelText('Component icon')).not.toBeInTheDocument();
+  });
+
   it('keeps rendering deprecated value-based plain options', () => {
     renderCombobox(
       <Combobox

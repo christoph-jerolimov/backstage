@@ -65,6 +65,7 @@ export const ComboboxInputDefinition = defineComponent<ComboboxInputOwnProps>()(
     bg: 'consumer',
     propDefs: {
       icon: {},
+      selectedOption: {},
       placeholder: {},
     },
   },
@@ -132,6 +133,7 @@ export const ComboboxItemTextDefinition =
       text: 'bui-ComboboxItemTextContent',
       title: 'bui-ComboboxItemTitle',
       description: 'bui-ComboboxItemDescription',
+      value: 'bui-ComboboxItemValue',
     },
     propDefs: {
       title: {},

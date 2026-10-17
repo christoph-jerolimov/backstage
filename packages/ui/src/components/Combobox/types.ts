@@ -317,6 +317,11 @@ export type ComboboxProps<T extends { id: Key } = NormalizedOption> =
 /** @internal */
 export interface ComboboxInputOwnProps {
   icon?: ComboboxOwnProps['icon'];
+  /**
+   * The selected plain option. Its icon replaces the field icon while the
+   * input shows the option label.
+   */
+  selectedOption?: NormalizedOption;
   placeholder?: string;
 }
 

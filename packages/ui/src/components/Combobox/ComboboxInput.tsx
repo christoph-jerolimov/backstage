@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import { Button, Group, Input } from 'react-aria-components';
+import { useContext } from 'react';
+import {
+  Button,
+  ComboBoxStateContext,
+  Group,
+  Input,
+} from 'react-aria-components';
 import { RiArrowDownSLine } from '@remixicon/react';
 import { useDefinition } from '../../hooks/useDefinition';
 import { ComboboxInputDefinition } from './definition';
@@ -25,13 +31,20 @@ export function ComboboxInput(props: ComboboxInputOwnProps) {
     ComboboxInputDefinition,
     props,
   );
-  const { classes, icon, placeholder } = ownProps;
+  const { classes, icon, selectedOption, placeholder } = ownProps;
+  const state = useContext(ComboBoxStateContext);
+  // The option icon only decorates the committed value, so an edited query
+  // falls back to the field icon until the selection is restored or changed.
+  const showsSelectedOption =
+    selectedOption?.icon !== undefined &&
+    state?.inputValue === selectedOption.label;
+  const inputIcon = showsSelectedOption ? selectedOption.icon : icon;
 
   return (
     <Group className={classes.root} {...dataAttributes}>
-      {icon ? (
+      {inputIcon ? (
         <div className={classes.icon} aria-hidden="true">
-          {icon}
+          {inputIcon}
         </div>
       ) : null}
       <Input className={classes.input} placeholder={placeholder} />

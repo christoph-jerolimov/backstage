@@ -25,7 +25,14 @@ import { Flex } from '../Flex';
 import { Box } from '../Box';
 import { Text } from '../Text';
 import { Form } from 'react-aria-components';
-import { RiCheckLine, RiCloudLine } from '@remixicon/react';
+import {
+  RiCheckLine,
+  RiCloudLine,
+  RiCodeBoxLine,
+  RiDatabase2Line,
+  RiPlugLine,
+  RiStackLine,
+} from '@remixicon/react';
 import { useAsyncList } from '@backstage/ui';
 import { useState } from 'react';
 import { expect, screen, waitFor } from 'storybook/test';
@@ -112,6 +119,42 @@ export const WithIcon = meta.story({
     ...Default.input.args,
   },
   render: args => <Combobox {...args} icon={<RiCloudLine />} />,
+});
+
+const kindOptions = [
+  { id: 'component', label: 'Component', icon: <RiCodeBoxLine />, value: 128 },
+  { id: 'api', label: 'API', icon: <RiPlugLine />, value: 42 },
+  { id: 'resource', label: 'Resource', icon: <RiDatabase2Line />, value: 17 },
+  { id: 'system', label: 'System', icon: <RiStackLine />, value: 5 },
+];
+
+export const WithOptionIcons = meta.story({
+  args: {
+    label: 'Kind',
+    options: kindOptions.map(({ value, ...option }) => option),
+    placeholder: 'Pick a kind',
+    defaultValue: 'component',
+    name: 'kind',
+  },
+});
+
+export const WithOptionValues = meta.story({
+  args: {
+    label: 'Kind',
+    options: kindOptions.map(({ icon, ...option }) => option),
+    placeholder: 'Pick a kind',
+    name: 'kind',
+  },
+});
+
+export const WithOptionIconsAndValues = meta.story({
+  args: {
+    label: 'Kind',
+    options: kindOptions,
+    placeholder: 'Pick a kind',
+    icon: <RiCloudLine />,
+    name: 'kind',
+  },
 });
 
 export const WithSections = meta.story({

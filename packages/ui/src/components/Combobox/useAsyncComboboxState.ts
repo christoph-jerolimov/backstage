@@ -211,6 +211,7 @@ export function useAsyncComboboxState<T extends CollectionItem>(
 
   return {
     value: selectedItem?.id ?? null,
+    selectedItem,
     inputValue,
     onChange: handleChange,
     onInputChange: updateInputValue,
