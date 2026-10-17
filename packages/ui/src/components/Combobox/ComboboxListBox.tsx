@@ -75,10 +75,12 @@ const NoResults = () => {
 };
 
 function ComboboxOptionItem({ option }: { option: NormalizedOption }) {
+  const leadingIcon = option.leadingIcon ?? option.icon;
   const { ownProps } = useDefinition(ComboboxItemTextDefinition, {
     title: option.label,
     description: option.description,
-    leadingIcon: option.leadingIcon,
+    leadingIcon,
+    trailingValue: option.trailingValue,
   });
   const { classes } = ownProps;
   const {
@@ -94,9 +96,7 @@ function ComboboxOptionItem({ option }: { option: NormalizedOption }) {
       isDisabled={option.disabled}
       showSelectionIndicator
     >
-      {option.leadingIcon && (
-        <div className={classes.leadingIcon}>{option.leadingIcon}</div>
-      )}
+      {leadingIcon && <div className={classes.leadingIcon}>{leadingIcon}</div>}
       <div className={classes.text}>
         <Text
           slot="label"
@@ -110,6 +110,9 @@ function ComboboxOptionItem({ option }: { option: NormalizedOption }) {
           </Text>
         )}
       </div>
+      {option.trailingValue !== undefined && option.trailingValue !== null && (
+        <div className={classes.trailingValue}>{option.trailingValue}</div>
+      )}
     </ComboboxItem>
   );
 }

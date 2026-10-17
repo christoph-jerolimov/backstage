@@ -91,6 +91,17 @@ describe('Select types', () => {
     const valid = (
       <>
         <Select options={[{ id: 'draft', label: 'Draft' }]} />
+        <Select
+          options={[
+            {
+              id: 'draft',
+              label: 'Draft',
+              icon: <span>Icon</span>,
+              leadingIcon: <span>Leading</span>,
+              trailingValue: 3,
+            },
+          ]}
+        />
         <Select options={[{ value: 'draft', label: 'Draft' }]} />
         <Select items={owners} dependencies={['owner-renderer']}>
           {owner => (
@@ -160,6 +171,18 @@ describe('Select types', () => {
 
         {/* @ts-expect-error preset items keep the standard selection indicator */}
         <SelectItemText id="draft" title="Draft" showSelectionIndicator />
+
+        {/* @ts-expect-error deprecated value options do not support option icons */}
+        <Select
+          options={[
+            { value: 'draft', label: 'Draft', icon: <span>Icon</span> },
+          ]}
+        />
+
+        {/* @ts-expect-error deprecated value options do not support trailing values */}
+        <Select
+          options={[{ value: 'draft', label: 'Draft', trailingValue: 3 }]}
+        />
 
         {/* @ts-expect-error options and items are mutually exclusive */}
         <Select options={options} items={owners}>

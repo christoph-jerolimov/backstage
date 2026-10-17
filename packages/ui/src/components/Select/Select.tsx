@@ -186,7 +186,7 @@ function SelectImpl<
         description={description}
         descriptionSlot="description"
       />
-      <SelectTrigger icon={icon} />
+      <SelectTrigger icon={icon} showOptionIcon={options !== undefined} />
       <FieldError />
       <Popover className={classes.popover} hideArrow {...dataAttributes}>
         <SelectContent

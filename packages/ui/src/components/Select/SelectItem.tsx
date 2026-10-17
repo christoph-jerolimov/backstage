@@ -104,7 +104,7 @@ export function SelectItemText<T extends object = object>(
     SelectItemTextDefinition,
     props,
   );
-  const { classes, title, description, leadingIcon } = ownProps;
+  const { classes, title, description, leadingIcon, trailingValue } = ownProps;
 
   return (
     <SelectItem
@@ -127,6 +127,9 @@ export function SelectItemText<T extends object = object>(
             </Text>
           )}
         </div>
+        {trailingValue !== undefined && trailingValue !== null && (
+          <div className={classes.trailingValue}>{trailingValue}</div>
+        )}
       </div>
     </SelectItem>
   );

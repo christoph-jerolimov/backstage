@@ -113,7 +113,8 @@ export function ComboboxItemText<T extends object = object>(
     ComboboxItemTextDefinition,
     props,
   );
-  const { classes, title, description, leadingIcon, textValue } = ownProps;
+  const { classes, title, description, leadingIcon, trailingValue, textValue } =
+    ownProps;
 
   return (
     <ComboboxItem
@@ -133,6 +134,9 @@ export function ComboboxItemText<T extends object = object>(
           </Text>
         )}
       </div>
+      {trailingValue !== undefined && trailingValue !== null && (
+        <div className={classes.trailingValue}>{trailingValue}</div>
+      )}
     </ComboboxItem>
   );
 }

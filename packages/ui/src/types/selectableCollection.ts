@@ -123,7 +123,21 @@ export type IdentifiedOption = {
   value?: never;
   label: string;
   description?: string;
+  /**
+   * Icon shown before the label in the dropdown, and in the Select trigger
+   * when the option is selected.
+   */
+  icon?: ReactNode;
+  /**
+   * Icon shown before the label in the dropdown only. Takes precedence over
+   * `icon` in the dropdown when both are set.
+   */
   leadingIcon?: ReactNode;
+  /**
+   * Content shown right-aligned after the label in the dropdown, for example
+   * a count.
+   */
+  trailingValue?: ReactNode;
   disabled?: boolean;
 };
 
@@ -134,7 +148,9 @@ export type LegacyOption = {
   id?: never;
   label: string;
   description?: never;
+  icon?: never;
   leadingIcon?: never;
+  trailingValue?: never;
   disabled?: boolean;
 };
 

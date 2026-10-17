@@ -73,10 +73,12 @@ const NoResults = () => {
 };
 
 function PlainOptionItem({ option }: { option: NormalizedOption }) {
+  const leadingIcon = option.leadingIcon ?? option.icon;
   const { ownProps } = useDefinition(SelectItemTextDefinition, {
     title: option.label,
     description: option.description,
-    leadingIcon: option.leadingIcon,
+    leadingIcon,
+    trailingValue: option.trailingValue,
   });
   const { classes } = ownProps;
   // Keep the original plain-option label class available for existing themes.
@@ -94,8 +96,8 @@ function PlainOptionItem({ option }: { option: NormalizedOption }) {
       showSelectionIndicator
     >
       <div className={classes.content}>
-        {option.leadingIcon && (
-          <div className={classes.leadingIcon}>{option.leadingIcon}</div>
+        {leadingIcon && (
+          <div className={classes.leadingIcon}>{leadingIcon}</div>
         )}
         <div className={classes.text}>
           <Text
@@ -110,6 +112,10 @@ function PlainOptionItem({ option }: { option: NormalizedOption }) {
             </Text>
           )}
         </div>
+        {option.trailingValue !== undefined &&
+          option.trailingValue !== null && (
+            <div className={classes.trailingValue}>{option.trailingValue}</div>
+          )}
       </div>
     </SelectItem>
   );

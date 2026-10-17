@@ -19,25 +19,53 @@ import { Button, SelectValue } from 'react-aria-components';
 import { RiArrowDownSLine } from '@remixicon/react';
 import { useDefinition } from '../../hooks/useDefinition';
 import { SelectTriggerDefinition } from './definition';
+import type { SelectTriggerOwnProps } from './types';
+import type { NormalizedOption } from '../../types/selectableCollection';
 
-interface SelectTriggerProps {
-  icon?: ReactNode;
+function getSelectedOptionIcon(
+  selectedItems: ReadonlyArray<unknown>,
+): ReactNode | undefined {
+  // Only a single selected option has an unambiguous icon to show.
+  if (selectedItems.length !== 1) {
+    return undefined;
+  }
+
+  const [selectedItem] = selectedItems;
+  if (typeof selectedItem !== 'object' || selectedItem === null) {
+    return undefined;
+  }
+
+  return (selectedItem as Partial<NormalizedOption>).icon ?? undefined;
 }
 
-export function SelectTrigger(props: SelectTriggerProps) {
+export function SelectTrigger(props: SelectTriggerOwnProps) {
   const { ownProps, dataAttributes } = useDefinition(
     SelectTriggerDefinition,
     props,
   );
-  const { classes, icon } = ownProps;
+  const { classes, icon, showOptionIcon } = ownProps;
 
   return (
     <Button className={classes.root} {...dataAttributes}>
       {icon}
       <SelectValue className={classes.value}>
-        {({ isPlaceholder, selectedText, defaultChildren }) =>
-          isPlaceholder ? defaultChildren : selectedText
-        }
+        {({ isPlaceholder, selectedText, selectedItems, defaultChildren }) => {
+          const optionIcon =
+            showOptionIcon && !isPlaceholder
+              ? getSelectedOptionIcon(selectedItems)
+              : undefined;
+
+          return (
+            <>
+              {optionIcon && (
+                <span className={classes.valueIcon}>{optionIcon}</span>
+              )}
+              <span className={classes.valueText}>
+                {isPlaceholder ? defaultChildren : selectedText}
+              </span>
+            </>
+          );
+        }}
       </SelectValue>
       <div className={classes.chevron}>
         <RiArrowDownSLine aria-hidden="true" />

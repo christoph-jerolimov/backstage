@@ -164,6 +164,7 @@ describe('Select', () => {
           title="Draft"
           description="Work in progress"
           leadingIcon={<span>Icon</span>}
+          trailingValue={4}
         />
         <SelectItem id="custom" textValue="Custom">
           <span>Custom</span>
@@ -178,6 +179,9 @@ describe('Select', () => {
     const draft = screen.getByRole('option', { name: 'Draft' });
     expect(within(draft).getByText('Work in progress')).toBeVisible();
     expect(within(draft).getByText('Icon')).toBeVisible();
+    expect(within(draft).getByText('4')).toHaveClass(
+      'bui-SelectItemTrailingValue',
+    );
     expect(
       screen.getByRole('option', { name: 'CustomCustom details' }),
     ).toBeVisible();
@@ -328,6 +332,93 @@ describe('Select', () => {
     expect(within(draft).getByText('Icon')).toBeVisible();
     expect(within(draft).getByText('Draft')).toHaveClass('bui-SelectItemLabel');
     expect(screen.getByRole('option', { name: 'Published' })).toBeVisible();
+  });
+
+  it('renders option icons and trailing values, and shows the selected option icon in the trigger', () => {
+    render(
+      <Select
+        aria-label="Kind"
+        options={[
+          {
+            id: 'component',
+            label: 'Component',
+            icon: <span>ComponentIcon</span>,
+            trailingValue: 12,
+          },
+          {
+            id: 'api',
+            label: 'API',
+            icon: <span>ApiIcon</span>,
+            leadingIcon: <span>ApiLeadingIcon</span>,
+            trailingValue: '3',
+          },
+          { id: 'system', label: 'System' },
+        ]}
+      />,
+    );
+
+    const trigger = screen.getByRole('button');
+    expect(within(trigger).queryByText('ComponentIcon')).toBeNull();
+
+    openSelect();
+
+    const component = screen.getByRole('option', { name: 'Component' });
+    expect(within(component).getByText('ComponentIcon')).toBeVisible();
+    expect(within(component).getByText('12')).toHaveClass(
+      'bui-SelectItemTrailingValue',
+    );
+
+    // In the dropdown an explicit leadingIcon wins over icon.
+    const api = screen.getByRole('option', { name: 'API' });
+    expect(within(api).getByText('ApiLeadingIcon')).toBeVisible();
+    expect(within(api).queryByText('ApiIcon')).toBeNull();
+    expect(within(api).getByText('3')).toBeVisible();
+
+    const system = screen.getByRole('option', { name: 'System' });
+    expect(system.querySelector('.bui-SelectItemTrailingValue')).toBeNull();
+
+    fireEvent.click(component);
+
+    expect(trigger).toHaveTextContent('Component');
+    expect(
+      within(trigger).getByText('ComponentIcon').parentElement,
+    ).toHaveClass('bui-SelectValueIcon');
+    expect(within(trigger).queryByText('12')).toBeNull();
+
+    // The trigger shows icon, never leadingIcon.
+    openSelect();
+    fireEvent.click(screen.getByRole('option', { name: 'API' }));
+
+    expect(trigger).toHaveTextContent('API');
+    expect(within(trigger).getByText('ApiIcon')).toBeVisible();
+    expect(within(trigger).queryByText('ApiLeadingIcon')).toBeNull();
+  });
+
+  it('shows the option icon in the trigger only while exactly one option is selected', () => {
+    render(
+      <Select
+        aria-label="Kind"
+        selectionMode="multiple"
+        options={[
+          { id: 'component', label: 'Component', icon: <span>CIcon</span> },
+          { id: 'api', label: 'API', icon: <span>AIcon</span> },
+        ]}
+      />,
+    );
+
+    const trigger = screen.getByRole('button');
+
+    openSelect();
+    fireEvent.click(screen.getByRole('option', { name: 'Component' }));
+
+    expect(trigger).toHaveTextContent('Component');
+    expect(within(trigger).getByText('CIcon')).toBeVisible();
+
+    fireEvent.click(screen.getByRole('option', { name: 'API' }));
+
+    expect(trigger).toHaveTextContent(/Component.*API/);
+    expect(within(trigger).queryByText('CIcon')).toBeNull();
+    expect(within(trigger).queryByText('AIcon')).toBeNull();
   });
 
   it('renders the Select popover using the BUI Popover class structure', () => {

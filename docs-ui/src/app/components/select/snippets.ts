@@ -32,6 +32,18 @@ export const selectIconSnippet = `<Select
   options={[ ... ]}
 />`;
 
+export const selectOptionIconsSnippet = `<Select
+  name="kind"
+  label="Kind"
+  defaultValue="component"
+  options={[
+    { id: 'component', label: 'Component', icon: <RiBox3Line />, trailingValue: 128 },
+    { id: 'api', label: 'API', icon: <RiPlugLine />, trailingValue: 42 },
+    { id: 'system', label: 'System', icon: <RiStackLine />, trailingValue: 9 },
+    { id: 'resource', label: 'Resource', icon: <RiDatabase2Line />, trailingValue: 3 },
+  ]}
+/>`;
+
 export const selectSizesSnippet = `<Flex>
   <Select
     size="small"

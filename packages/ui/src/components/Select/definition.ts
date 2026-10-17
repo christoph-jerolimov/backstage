@@ -62,10 +62,13 @@ export const SelectTriggerDefinition = defineComponent<SelectTriggerOwnProps>()(
       root: 'bui-SelectTrigger',
       chevron: 'bui-SelectTriggerChevron',
       value: 'bui-SelectValue',
+      valueIcon: 'bui-SelectValueIcon',
+      valueText: 'bui-SelectValueText',
     },
     bg: 'consumer',
     propDefs: {
       icon: {},
+      showOptionIcon: {},
     },
   },
 );
@@ -154,11 +157,13 @@ export const SelectItemTextDefinition =
       text: 'bui-SelectItemTextContent',
       title: 'bui-SelectItemTitle',
       description: 'bui-SelectItemDescription',
+      trailingValue: 'bui-SelectItemTrailingValue',
     },
     propDefs: {
       title: {},
       description: {},
       leadingIcon: {},
+      trailingValue: {},
       className: {},
     },
   });

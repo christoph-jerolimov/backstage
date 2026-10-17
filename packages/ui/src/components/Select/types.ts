@@ -257,6 +257,10 @@ export type SelectProps<
 /** @internal */
 export interface SelectTriggerOwnProps {
   icon?: SelectOwnProps['icon'];
+  /**
+   * Whether to show the `icon` of the selected option in the trigger.
+   */
+  showOptionIcon?: boolean;
 }
 
 /** @internal */
@@ -314,6 +318,10 @@ export type SelectItemTextOwnProps = {
   title: string;
   description?: string;
   leadingIcon?: ReactNode;
+  /**
+   * Content shown right-aligned after the title, for example a count.
+   */
+  trailingValue?: ReactNode;
   className?: string;
 };
 

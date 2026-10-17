@@ -353,6 +353,10 @@ export type ComboboxItemTextOwnProps = {
   title: string;
   description?: string;
   leadingIcon?: ReactNode;
+  /**
+   * Content shown right-aligned after the title, for example a count.
+   */
+  trailingValue?: ReactNode;
   textValue?: string;
   className?: string;
 };

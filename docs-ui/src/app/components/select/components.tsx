@@ -2,7 +2,13 @@
 
 import { Select } from '../../../../../packages/ui/src/components/Select/Select';
 import { Flex } from '../../../../../packages/ui/src/components/Flex/Flex';
-import { RiCloudLine } from '@remixicon/react';
+import {
+  RiBox3Line,
+  RiCloudLine,
+  RiDatabase2Line,
+  RiPlugLine,
+  RiStackLine,
+} from '@remixicon/react';
 
 const fontOptions = [
   { id: 'sans', label: 'Sans-serif' },
@@ -114,6 +120,33 @@ export const WithIcon = () => (
     options={fontOptions}
     name="font"
     icon={<RiCloudLine />}
+    style={{ width: 300 }}
+  />
+);
+
+const entityKinds = [
+  {
+    id: 'component',
+    label: 'Component',
+    icon: <RiBox3Line />,
+    trailingValue: 128,
+  },
+  { id: 'api', label: 'API', icon: <RiPlugLine />, trailingValue: 42 },
+  { id: 'system', label: 'System', icon: <RiStackLine />, trailingValue: 9 },
+  {
+    id: 'resource',
+    label: 'Resource',
+    icon: <RiDatabase2Line />,
+    trailingValue: 3,
+  },
+];
+
+export const WithOptionIconsAndValues = () => (
+  <Select
+    label="Kind"
+    options={entityKinds}
+    name="kind"
+    defaultValue="component"
     style={{ width: 300 }}
   />
 );

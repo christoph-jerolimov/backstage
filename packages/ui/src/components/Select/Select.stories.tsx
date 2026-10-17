@@ -21,7 +21,14 @@ import { Flex } from '../Flex';
 import { Box } from '../Box';
 import { Text } from '../Text';
 import { Form } from 'react-aria-components';
-import { RiCheckLine, RiCloudLine } from '@remixicon/react';
+import {
+  RiBox3Line,
+  RiCheckLine,
+  RiCloudLine,
+  RiDatabase2Line,
+  RiPlugLine,
+  RiStackLine,
+} from '@remixicon/react';
 import { useAsyncList } from '@backstage/ui';
 import { useState } from 'react';
 import { expect, screen, waitFor } from 'storybook/test';
@@ -82,6 +89,31 @@ export const Searchable = meta.story({
     label: 'Country',
     search: { placeholder: 'Search countries...' },
     options: countries,
+  },
+});
+
+const entityKinds = [
+  {
+    id: 'component',
+    label: 'Component',
+    icon: <RiBox3Line />,
+    trailingValue: 128,
+  },
+  { id: 'api', label: 'API', icon: <RiPlugLine />, trailingValue: 42 },
+  { id: 'system', label: 'System', icon: <RiStackLine />, trailingValue: 9 },
+  {
+    id: 'resource',
+    label: 'Resource',
+    icon: <RiDatabase2Line />,
+    trailingValue: 3,
+  },
+];
+
+export const OptionIconsAndTrailingValues = meta.story({
+  args: {
+    label: 'Kind',
+    options: entityKinds,
+    defaultValue: 'component',
   },
 });
 

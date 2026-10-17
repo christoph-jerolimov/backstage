@@ -1337,11 +1337,13 @@ export const ComboboxItemTextDefinition: {
     readonly text: 'bui-ComboboxItemTextContent';
     readonly title: 'bui-ComboboxItemTitle';
     readonly description: 'bui-ComboboxItemDescription';
+    readonly trailingValue: 'bui-ComboboxItemTrailingValue';
   };
   readonly propDefs: {
     readonly title: {};
     readonly description: {};
     readonly leadingIcon: {};
+    readonly trailingValue: {};
     readonly textValue: {};
     readonly className: {};
   };
@@ -1352,6 +1354,7 @@ export type ComboboxItemTextOwnProps = {
   title: string;
   description?: string;
   leadingIcon?: ReactNode;
+  trailingValue?: ReactNode;
   textValue?: string;
   className?: string;
 };
@@ -2487,7 +2490,9 @@ export type IdentifiedOption = {
   value?: never;
   label: string;
   description?: string;
+  icon?: ReactNode;
   leadingIcon?: ReactNode;
+  trailingValue?: ReactNode;
   disabled?: boolean;
 };
 
@@ -2508,7 +2513,9 @@ export type LegacyOption = {
   id?: never;
   label: string;
   description?: never;
+  icon?: never;
   leadingIcon?: never;
+  trailingValue?: never;
   disabled?: boolean;
 };
 
@@ -3656,11 +3663,13 @@ export const SelectItemTextDefinition: {
     readonly text: 'bui-SelectItemTextContent';
     readonly title: 'bui-SelectItemTitle';
     readonly description: 'bui-SelectItemDescription';
+    readonly trailingValue: 'bui-SelectItemTrailingValue';
   };
   readonly propDefs: {
     readonly title: {};
     readonly description: {};
     readonly leadingIcon: {};
+    readonly trailingValue: {};
     readonly className: {};
   };
 };
@@ -3670,6 +3679,7 @@ export type SelectItemTextOwnProps = {
   title: string;
   description?: string;
   leadingIcon?: ReactNode;
+  trailingValue?: ReactNode;
   className?: string;
 };
 
@@ -3864,10 +3874,13 @@ export const SelectTriggerDefinition: {
     readonly root: 'bui-SelectTrigger';
     readonly chevron: 'bui-SelectTriggerChevron';
     readonly value: 'bui-SelectValue';
+    readonly valueIcon: 'bui-SelectValueIcon';
+    readonly valueText: 'bui-SelectValueText';
   };
   readonly bg: 'consumer';
   readonly propDefs: {
     readonly icon: {};
+    readonly showOptionIcon: {};
   };
 };
 

@@ -185,6 +185,12 @@ describe('Combobox', () => {
             label: 'Draft',
             description: 'Work in progress',
             leadingIcon: <span aria-label="Draft icon" />,
+            trailingValue: 7,
+          },
+          {
+            id: 'published',
+            label: 'Published',
+            icon: <span aria-label="Published icon" />,
           },
         ]}
       />,
@@ -199,6 +205,8 @@ describe('Combobox', () => {
     expect(screen.getByText('Draft')).toHaveClass('bui-ComboboxItemLabel');
     expect(screen.getByText('Work in progress')).toBeInTheDocument();
     expect(screen.getByLabelText('Draft icon')).toBeInTheDocument();
+    expect(screen.getByText('7')).toHaveClass('bui-ComboboxItemTrailingValue');
+    expect(screen.getByLabelText('Published icon')).toBeInTheDocument();
   });
 
   it('keeps rendering deprecated value-based plain options', () => {

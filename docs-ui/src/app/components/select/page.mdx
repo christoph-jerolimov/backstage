@@ -7,6 +7,7 @@ import {
   WithLabelAndDescription,
   Sizes,
   WithIcon,
+  WithOptionIconsAndValues,
   Disabled,
   DisabledOption,
   Searchable,
@@ -31,6 +32,7 @@ import {
   selectDisabledSnippet,
   selectResponsiveSnippet,
   selectIconSnippet,
+  selectOptionIconsSnippet,
   selectSearchableSnippet,
   selectCustomSearchSnippet,
   selectMultipleSnippet,
@@ -73,7 +75,7 @@ export const reactAriaUrls = {
 Select accepts one collection source at a time:
 
 - Pass an `options` array for standard text rows with optional descriptions,
-  icons, or sections.
+  icons, trailing values, or sections.
 - Pass `items` with a child render function for domain objects or custom rows.
 - Compose item children directly for a short, fixed collection.
 - Pass a `useAsyncList` result to `options` or `items` for asynchronous data
@@ -141,7 +143,8 @@ Low-level item wrapper for fully custom item content.
 
 ### SelectItemText
 
-Preset item with a title, optional description, and optional leading icon.
+Preset item with a title, optional description, optional leading icon, and
+optional trailing value.
 
 <PropsTable data={selectItemTextPropDefs} />
 
@@ -182,6 +185,23 @@ Preset item with an avatar and profile name.
   open
   preview={<WithIcon />}
   code={selectIconSnippet}
+/>
+
+### Option icons and trailing values
+
+Give an option an `icon` to show it before the label in the dropdown and in
+the trigger while that option is selected. With multiple selection, the
+trigger shows the icon only while exactly one option is selected. Use
+`leadingIcon` instead for an icon that appears in the dropdown only.
+
+Give an option a `trailingValue` to show content right-aligned after the
+label in the dropdown, for example the number of matching entities.
+
+<Snippet
+  layout="side-by-side"
+  open
+  preview={<WithOptionIconsAndValues />}
+  code={selectOptionIconsSnippet}
 />
 
 ### Disabled

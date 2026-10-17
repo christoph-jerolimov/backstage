@@ -132,11 +132,13 @@ export const ComboboxItemTextDefinition =
       text: 'bui-ComboboxItemTextContent',
       title: 'bui-ComboboxItemTitle',
       description: 'bui-ComboboxItemDescription',
+      trailingValue: 'bui-ComboboxItemTrailingValue',
     },
     propDefs: {
       title: {},
       description: {},
       leadingIcon: {},
+      trailingValue: {},
       textValue: {},
       className: {},
     },

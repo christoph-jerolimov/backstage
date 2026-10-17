@@ -60,6 +60,12 @@ export const comboboxItemTextPropDefs: Record<string, PropDef> = {
     values: ['ReactNode'],
     description: 'Icon displayed before the item text.',
   },
+  trailingValue: {
+    type: 'enum',
+    values: ['ReactNode'],
+    description:
+      'Content displayed right-aligned after the item text, such as a count.',
+  },
   isDisabled: {
     type: 'boolean',
     default: 'false',

@@ -31,11 +31,23 @@ export const optionPropDefs: Record<string, PropDef> = {
     description:
       'Secondary text displayed below the option label. Requires id instead of the deprecated value field.',
   },
+  icon: {
+    type: 'enum',
+    values: ['ReactNode'],
+    description:
+      'Icon displayed before the option text in the dropdown. Select also shows it in the trigger while that option is the only selected one. Requires id instead of the deprecated value field.',
+  },
   leadingIcon: {
     type: 'enum',
     values: ['ReactNode'],
     description:
-      'Icon displayed before the option text. Requires id instead of the deprecated value field.',
+      'Icon displayed before the option text in the dropdown only. Takes precedence over icon in the dropdown. Requires id instead of the deprecated value field.',
+  },
+  trailingValue: {
+    type: 'enum',
+    values: ['ReactNode'],
+    description:
+      'Content displayed right-aligned after the option text in the dropdown, such as a count. Requires id instead of the deprecated value field.',
   },
 };
 
@@ -107,6 +119,12 @@ export const selectItemTextPropDefs: Record<string, PropDef> = {
     type: 'enum',
     values: ['ReactNode'],
     description: 'Icon displayed before the item text.',
+  },
+  trailingValue: {
+    type: 'enum',
+    values: ['ReactNode'],
+    description:
+      'Content displayed right-aligned after the item text, such as a count.',
   },
   isDisabled: {
     type: 'boolean',
