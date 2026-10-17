@@ -29,6 +29,23 @@ export const preview = `<MenuTrigger>
   </Menu>
 </MenuTrigger>`;
 
+export const actions = `<MenuTrigger>
+  <ButtonIcon
+    variant="secondary"
+    icon={<RiMore2Line />}
+    aria-label="Actions"
+  />
+  <Menu placement="bottom end">
+    <MenuItem iconStart={<RiEdit2Line />}>Edit</MenuItem>
+    <MenuItem iconStart={<RiFileCopyLine />}>Duplicate</MenuItem>
+    <MenuItem iconStart={<RiShareBoxLine />}>Share</MenuItem>
+    <MenuSeparator />
+    <MenuItem iconStart={<RiDeleteBinLine />} color="danger">
+      Delete
+    </MenuItem>
+  </Menu>
+</MenuTrigger>`;
+
 export const submenu = `<MenuTrigger>
   <Button variant="secondary">Menu</Button>
   <Menu>

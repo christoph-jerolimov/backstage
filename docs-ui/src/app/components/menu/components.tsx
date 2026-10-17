@@ -12,12 +12,17 @@ import {
   MenuListBoxItem,
 } from '../../../../../packages/ui/src/components/Menu/Menu';
 import { Button } from '../../../../../packages/ui/src/components/Button/Button';
+import { ButtonIcon } from '../../../../../packages/ui/src/components/ButtonIcon/ButtonIcon';
 import { MemoryRouter } from 'react-router-dom';
 import {
   RiChat1Line,
+  RiDeleteBinLine,
+  RiEdit2Line,
+  RiFileCopyLine,
   RiFileLine,
   RiFolderLine,
   RiImageLine,
+  RiMore2Line,
   RiSettingsLine,
   RiShareBoxLine,
 } from '@remixicon/react';
@@ -42,6 +47,27 @@ export const Preview = () => (
             <MenuItem>Rename</MenuItem>
           </Menu>
         </SubmenuTrigger>
+      </Menu>
+    </MenuTrigger>
+  </MemoryRouter>
+);
+
+export const PreviewActions = () => (
+  <MemoryRouter>
+    <MenuTrigger>
+      <ButtonIcon
+        variant="secondary"
+        icon={<RiMore2Line />}
+        aria-label="Actions"
+      />
+      <Menu placement="bottom end">
+        <MenuItem iconStart={<RiEdit2Line />}>Edit</MenuItem>
+        <MenuItem iconStart={<RiFileCopyLine />}>Duplicate</MenuItem>
+        <MenuItem iconStart={<RiShareBoxLine />}>Share</MenuItem>
+        <MenuSeparator />
+        <MenuItem iconStart={<RiDeleteBinLine />} color="danger">
+          Delete
+        </MenuItem>
       </Menu>
     </MenuTrigger>
   </MemoryRouter>

@@ -3,6 +3,7 @@ import { Snippet } from '@/components/Snippet';
 import { CodeBlock } from '@/components/CodeBlock';
 import {
   Preview,
+  PreviewActions,
   PreviewSubmenu,
   PreviewIcons,
   PreviewLinks,
@@ -27,6 +28,7 @@ import {
 import {
   usage,
   preview,
+  actions,
   submenu,
   icons,
   sections,
@@ -155,6 +157,19 @@ Accepts two children: a `MenuItem` and a menu container.
 />
 
 ## Examples
+
+### Actions menu
+
+Use a `ButtonIcon` as the trigger for a compact menu of actions on an item,
+such as a row in a list or a card. Set `color="danger"` on destructive items
+and separate them from the other actions.
+
+<Snippet
+  layout="side-by-side"
+  open
+  preview={<PreviewActions />}
+  code={actions}
+/>
 
 ### Nested navigation
 
