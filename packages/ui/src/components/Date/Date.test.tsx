@@ -43,7 +43,7 @@ describe('Date', () => {
 
     const { rerender } = render(
       <>
-        <DateComponent value={new Date(NOW.getTime() - 30 * 1000)} />
+        <DateComponent value={new Date(NOW.getTime() - 40 * 1000)} />
         <DateComponent value={new Date(NOW.getTime() - 5 * MINUTE)} />
         <DateComponent value={threeHoursAgo} />
         <DateComponent value={new Date(NOW.getTime() - DAY)} />

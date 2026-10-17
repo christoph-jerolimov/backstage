@@ -23,6 +23,11 @@ const DAY = 24 * HOUR;
  */
 const RELATIVE_DAYS_THRESHOLD = 7;
 
+/**
+ * Dates closer than this to the current time are shown as "now".
+ */
+const NOW_THRESHOLD = 45 * 1000;
+
 export type RelativeTime = {
   value: number;
   unit: Intl.RelativeTimeFormatUnit;
@@ -65,13 +70,14 @@ export function getRelativeTime(
 ): RelativeTime | undefined {
   const diff = date.getTime() - now.getTime();
 
+  if (Math.abs(diff) < NOW_THRESHOLD) {
+    return { value: 0, unit: 'second' };
+  }
+
   // Values are rounded rather than truncated so that a date two hours ahead
   // reads "in 2 hours" even when rendered a few milliseconds later. A value
   // that rounds up to the next unit is expressed in that unit instead.
   const minutes = Math.round(diff / MINUTE);
-  if (Math.abs(minutes) < 1) {
-    return { value: 0, unit: 'second' };
-  }
   if (Math.abs(minutes) < 60) {
     return { value: minutes, unit: 'minute' };
   }
