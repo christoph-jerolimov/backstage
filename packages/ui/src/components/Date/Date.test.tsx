@@ -49,6 +49,9 @@ describe('Date', () => {
         <DateComponent value={new Date(NOW.getTime() - DAY)} />
         <DateComponent value={new Date(NOW.getTime() + 3 * DAY)} />
         <DateComponent value={tenDaysAgo} />
+        <DateComponent value={new Date(NOW.getTime() + 2 * HOUR - 50)} />
+        <DateComponent value={new Date(NOW.getTime() + DAY - 50)} />
+        <DateComponent value={new Date(NOW.getTime() - 59.6 * MINUTE)} />
       </>,
     );
 
@@ -57,6 +60,11 @@ describe('Date', () => {
     expect(screen.getByText('3 hours ago')).toBeInTheDocument();
     expect(screen.getByText('yesterday')).toBeInTheDocument();
     expect(screen.getByText('in 3 days')).toBeInTheDocument();
+    // Future dates rendered moments after they were computed round up rather
+    // than down, and values close to the next unit are promoted to it.
+    expect(screen.getByText('in 2 hours')).toBeInTheDocument();
+    expect(screen.getByText('tomorrow')).toBeInTheDocument();
+    expect(screen.getByText('1 hour ago')).toBeInTheDocument();
     expect(
       screen.getByText(
         absolute(tenDaysAgo, { dateStyle: 'medium', timeStyle: 'short' }),

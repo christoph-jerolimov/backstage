@@ -64,16 +64,21 @@ export function getRelativeTime(
   now: Date,
 ): RelativeTime | undefined {
   const diff = date.getTime() - now.getTime();
-  const distance = Math.abs(diff);
 
-  if (distance < MINUTE) {
+  // Values are rounded rather than truncated so that a date two hours ahead
+  // reads "in 2 hours" even when rendered a few milliseconds later. A value
+  // that rounds up to the next unit is expressed in that unit instead.
+  const minutes = Math.round(diff / MINUTE);
+  if (Math.abs(minutes) < 1) {
     return { value: 0, unit: 'second' };
   }
-  if (distance < HOUR) {
-    return { value: Math.trunc(diff / MINUTE), unit: 'minute' };
+  if (Math.abs(minutes) < 60) {
+    return { value: minutes, unit: 'minute' };
   }
-  if (distance < DAY) {
-    return { value: Math.trunc(diff / HOUR), unit: 'hour' };
+
+  const hours = Math.round(diff / HOUR);
+  if (Math.abs(hours) < 24) {
+    return { value: hours, unit: 'hour' };
   }
 
   const days = calendarDaysBetween(now, date);
