@@ -24,6 +24,7 @@ import {
 } from '@backstage/plugin-scaffolder-react';
 import { JsonValue } from '@backstage/types';
 import {
+  Box,
   Button,
   Step,
   StepList,
@@ -67,7 +68,8 @@ ajvErrors(validator.ajv);
 export type BackstageTemplateStepperClassKey =
   | 'backButton'
   | 'footer'
-  | 'formWrapper';
+  | 'formWrapper'
+  | 'stepList';
 
 const useStyles = makeStyles(
   theme => ({
@@ -82,6 +84,13 @@ const useStyles = makeStyles(
     },
     formWrapper: {
       padding: theme.spacing(2),
+    },
+    stepList: {
+      // Keep every step readable and let the surrounding box scroll
+      // horizontally when the steps do not fit.
+      '& > li': {
+        minWidth: 128,
+      },
     },
   }),
   { name: 'BackstageTemplateStepper' },
@@ -262,23 +271,25 @@ export const Stepper = (stepperProps: StepperProps) => {
   return (
     <>
       {isValidating && <LinearProgress variant="indeterminate" />}
-      <StepperNavigation
-        selectedKey={activeStep}
-        lastCompletedStep={activeStep - 1}
-        onSelectionChange={key => {
-          const index = Number(key);
-          if (index < activeStep) {
-            setActiveStep(index);
-          }
-        }}
-      >
-        <StepList>
-          {steps.map((step, index) => (
-            <Step key={index} id={index} title={step.title} />
-          ))}
-          <Step id={steps.length} title={reviewLabel} />
-        </StepList>
-      </StepperNavigation>
+      <Box px="4" py="4" style={{ overflowX: 'auto' }}>
+        <StepperNavigation
+          selectedKey={activeStep}
+          lastCompletedStep={activeStep - 1}
+          onSelectionChange={key => {
+            const index = Number(key);
+            if (index < activeStep) {
+              setActiveStep(index);
+            }
+          }}
+        >
+          <StepList className={styles.stepList}>
+            {steps.map((step, index) => (
+              <Step key={index} id={index} title={step.title} />
+            ))}
+            <Step id={steps.length} title={reviewLabel} />
+          </StepList>
+        </StepperNavigation>
+      </Box>
       <div className={styles.formWrapper} ref={formWrapperRef}>
         {/* eslint-disable-next-line no-nested-ternary */}
         {activeStep < steps.length ? (

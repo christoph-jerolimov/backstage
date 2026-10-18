@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Step, StepList, Stepper } from '@backstage/ui';
-import Box from '@material-ui/core/Box';
+import { Box, Step, StepList, Stepper } from '@backstage/ui';
 import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
@@ -26,6 +25,13 @@ import { ScaffolderStep } from '@backstage/plugin-scaffolder-react';
 
 const useStyles = makeStyles(
   theme => ({
+    stepList: {
+      // Keep every step readable and let the surrounding box scroll
+      // horizontally when the steps do not fit.
+      '& > li': {
+        minWidth: 128,
+      },
+    },
     completed: {
       '& .bui-StepIndicator': {
         color: theme.palette.common.white,
@@ -77,13 +83,13 @@ export const TaskSteps = (props: TaskStepsProps) => {
         isComplete={props.isComplete ?? false}
         isError={props.isError ?? false}
       />
-      <Box padding={2}>
+      <Box p="4" style={{ overflowX: 'auto' }}>
         <Stepper
           isReadOnly
           selectedKey={steps[activeStep]?.id}
           lastCompletedStep={lastStartedStep?.id ?? null}
         >
-          <StepList>
+          <StepList className={classes.stepList}>
             {steps.map(step => {
               const isSkipped = step.status === 'skipped';
               const isFailed =
