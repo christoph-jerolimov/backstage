@@ -52,7 +52,7 @@ import { RowProps as RowProps_2 } from 'react-aria-components';
 import type { SearchFieldProps as SearchFieldProps_2 } from 'react-aria-components';
 import { Selection as Selection_2 } from 'react-aria-components';
 import type { SelectProps as SelectProps_2 } from 'react-aria-components';
-import type { SeparatorProps } from 'react-aria-components';
+import type { SeparatorProps as SeparatorProps_2 } from 'react-aria-components';
 import type { SliderProps as SliderProps_2 } from 'react-aria-components';
 import type { SortDescriptor as SortDescriptor_2 } from 'react-stately';
 import { SortDirection } from 'react-aria-components';
@@ -2824,7 +2824,7 @@ export type MenuSeparatorOwnProps = {
 // @public (undocumented)
 export interface MenuSeparatorProps
   extends MenuSeparatorOwnProps,
-    Omit<SeparatorProps, keyof MenuSeparatorOwnProps> {}
+    Omit<SeparatorProps_2, keyof MenuSeparatorOwnProps> {}
 
 // @public
 export const MenuTrigger: (props: MenuTriggerProps) => JSX_2.Element;
@@ -3870,6 +3870,43 @@ export const SelectTriggerDefinition: {
     readonly icon: {};
   };
 };
+
+// @public
+export const Separator: ForwardRefExoticComponent<
+  SeparatorProps & RefAttributes<HTMLElement>
+>;
+
+// @public
+export const SeparatorDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-Separator';
+  };
+  readonly propDefs: {
+    readonly orientation: {
+      readonly dataAttribute: true;
+      readonly default: 'horizontal';
+    };
+    readonly className: {};
+    readonly style: {};
+  };
+  readonly utilityProps: readonly ['m', 'mx', 'my', 'mt', 'mb', 'ml', 'mr'];
+};
+
+// @public (undocumented)
+export type SeparatorOwnProps = {
+  orientation?: 'horizontal' | 'vertical';
+  className?: string;
+  style?: CSSProperties;
+};
+
+// @public
+export interface SeparatorProps
+  extends SeparatorOwnProps,
+    MarginProps,
+    Omit<SeparatorProps_2, keyof SeparatorOwnProps | 'elementType'> {}
 
 // @public
 export const Skeleton: (props: SkeletonProps) => JSX_2.Element;
