@@ -47,6 +47,7 @@ export * from './components/CheckboxGroup';
 export * from './components/Combobox';
 export * from './components/RadioGroup';
 export * from './components/Slider';
+export * from './components/Stepper';
 export * from './components/Table';
 export * from './components/TablePagination';
 export * from './components/Tabs';

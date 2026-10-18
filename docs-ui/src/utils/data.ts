@@ -135,6 +135,11 @@ export const components: Page[] = [
     slug: 'slider',
   },
   {
+    title: 'Stepper',
+    slug: 'stepper',
+    status: 'new',
+  },
+  {
     title: 'Switch',
     slug: 'switch',
   },
