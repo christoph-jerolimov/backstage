@@ -16,7 +16,7 @@
 
 import type { TemplateEntityV1beta3 } from '@backstage/plugin-scaffolder-common';
 import Chip from '@material-ui/core/Chip';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import Grid from '@material-ui/core/Grid';
 
 /**
@@ -29,7 +29,7 @@ export interface TemplateCardTagsProps {
 export const TemplateCardTags = ({ template }: TemplateCardTagsProps) => (
   <>
     <Grid item xs={12}>
-      <Divider data-testid="template-card-separator--tags" />
+      <Separator data-testid="template-card-separator--tags" />
     </Grid>
     <Grid item xs={12}>
       <Grid container spacing={2} data-testid="template-card-tags">

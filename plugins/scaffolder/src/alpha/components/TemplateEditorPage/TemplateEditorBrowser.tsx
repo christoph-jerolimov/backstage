@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import Grid from '@material-ui/core/Grid';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
@@ -102,7 +102,7 @@ export function TemplateEditorBrowser(props: { onClose?: () => void }) {
           </IconButton>
         </Tooltip>
       </Grid>
-      <Divider />
+      <Separator />
       <FileBrowser
         selected={directoryEditor.selectedFile?.path ?? ''}
         onSelect={directoryEditor.setSelectedFile}

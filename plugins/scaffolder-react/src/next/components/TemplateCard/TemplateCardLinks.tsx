@@ -16,7 +16,7 @@
 
 import { IconComponent, useApp } from '@backstage/core-plugin-api';
 import { TemplateEntityV1beta3 } from '@backstage/plugin-scaffolder-common';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import Grid from '@material-ui/core/Grid';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import LanguageIcon from '@material-ui/icons/Language';
@@ -47,7 +47,7 @@ export const TemplateCardLinks = ({
   return (
     <>
       <Grid item xs={12}>
-        <Divider data-testid="template-card-separator--links" />
+        <Separator data-testid="template-card-separator--links" />
       </Grid>
       <Grid item xs={12}>
         <Grid container spacing={2} data-testid="template-card-links">

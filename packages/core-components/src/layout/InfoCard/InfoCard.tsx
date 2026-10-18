@@ -18,7 +18,7 @@ import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader, { CardHeaderProps } from '@material-ui/core/CardHeader';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import { ReactNode } from 'react';
@@ -252,7 +252,7 @@ export function InfoCard(props: Props): JSX.Element {
         {actionsTopRight && (
           <CardActionsTopRight>{actionsTopRight}</CardActionsTopRight>
         )}
-        {divider && <Divider />}
+        {divider && <Separator />}
         <CardContent
           className={classNames(cardClassName, {
             [classes.noPadding]: noPadding,

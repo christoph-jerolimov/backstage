@@ -23,7 +23,6 @@ import { useEffect, useState, useCallback } from 'react';
 import useDebounce from 'react-use/esm/useDebounce';
 import { useTemplateSecrets } from '@backstage/plugin-scaffolder-react';
 import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
 import Typography from '@material-ui/core/Typography';
 
 import { RepoBranchPickerProps } from './schema';
@@ -33,7 +32,7 @@ import { DefaultRepoBranchPicker } from './DefaultRepoBranchPicker';
 import { GitHubRepoBranchPicker } from './GitHubRepoBranchPicker';
 import { MarkdownContent } from '@backstage/core-components';
 import { useScaffolderTheme } from '@backstage/plugin-scaffolder-react/alpha';
-import { Flex, Text } from '@backstage/ui';
+import { Flex, Separator, Text } from '@backstage/ui';
 
 /**
  * The underlying component that is rendered in the form for the `RepoBranchPicker`
@@ -190,7 +189,7 @@ export const RepoBranchPicker = (props: RepoBranchPickerProps) => {
       {schema.title && (
         <Box my={1}>
           <Typography variant="h5">{schema.title}</Typography>
-          <Divider />
+          <Separator />
         </Box>
       )}
       {description && (

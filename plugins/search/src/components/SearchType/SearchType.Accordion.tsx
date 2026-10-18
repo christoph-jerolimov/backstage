@@ -21,7 +21,7 @@ import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -197,7 +197,7 @@ export const SearchTypeAccordion = (props: SearchTypeAccordionProps) => {
           >
             {definedTypes.map(type => (
               <Fragment key={type.value}>
-                <Divider />
+                <Separator />
                 <ListItem
                   selected={
                     types[0] === type.value ||

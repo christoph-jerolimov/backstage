@@ -19,7 +19,7 @@ import LanguageIcon from '@material-ui/icons/Language';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import { Link } from '@backstage/core-components';
 
 const WebLink = ({
@@ -50,7 +50,7 @@ export const LinksGroup = ({ links }: { links?: EntityLink[] }) => {
 
   return (
     <>
-      <Divider />
+      <Separator />
       {links.map(link => {
         return (
           <WebLink

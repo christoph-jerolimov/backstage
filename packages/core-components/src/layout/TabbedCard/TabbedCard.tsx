@@ -17,7 +17,7 @@
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import Tab, { TabProps } from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -121,7 +121,7 @@ export function TabbedCard(props: PropsWithChildren<Props>) {
         >
           {children}
         </Tabs>
-        <Divider />
+        <Separator />
         <CardContent>{selectedTabContent}</CardContent>
         {deepLink && <BottomLink {...deepLink} />}
       </ErrorBoundary>
