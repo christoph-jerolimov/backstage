@@ -194,8 +194,49 @@
       min-width: 0;
       margin-top: var(--bui-space-1);
       margin-bottom: var(--bui-space-1);
-      margin-left: calc(0.75rem - 0.5px);
+      margin-inline-start: calc(0.75rem - 0.5px);
     }
+  }
+
+  /* Text below the indicator, horizontal orientation only */
+  .bui-Stepper[data-placement='below'][data-orientation='horizontal']
+    .bui-StepList {
+    gap: 0;
+  }
+
+  .bui-Stepper[data-placement='below'][data-orientation='horizontal']
+    .bui-Step {
+    position: relative;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .bui-Stepper[data-placement='below'][data-orientation='horizontal']
+    .bui-StepTrigger {
+    flex-direction: column;
+    align-items: center;
+    max-width: 100%;
+  }
+
+  .bui-Stepper[data-placement='below'][data-orientation='horizontal']
+    .bui-StepContent {
+    align-items: center;
+    padding-block: 0;
+    padding-inline: var(--bui-space-2);
+  }
+
+  .bui-Stepper[data-placement='below'][data-orientation='horizontal']
+    .bui-StepConnector {
+    position: absolute;
+    top: calc(0.75rem - 0.5px);
+    inset-inline-start: calc(50% + 1rem);
+    inset-inline-end: calc(-50% + 1rem);
+    flex: none;
+    height: 1px;
+    min-width: 0;
+    margin: 0;
   }
 
   .bui-StepPanel {

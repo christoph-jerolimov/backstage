@@ -36,6 +36,7 @@ export const StepperDefinition = defineComponent<StepperOwnProps>()({
   },
   propDefs: {
     orientation: { dataAttribute: true, default: 'horizontal' },
+    placement: { dataAttribute: true, default: 'aside' },
     className: {},
     children: {},
   },

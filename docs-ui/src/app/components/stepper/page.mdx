@@ -15,6 +15,7 @@ import {
   defaultSnippet,
   withDescriptionsSnippet,
   verticalSnippet,
+  textBelowSnippet,
   readOnlySnippet,
   disabledStepSnippet,
   controlledSnippet,
@@ -25,6 +26,7 @@ import {
   Default,
   WithDescriptions,
   Vertical,
+  TextBelow,
   ReadOnly,
   DisabledStep,
   Controlled,
@@ -123,6 +125,18 @@ With `orientation="vertical"` the step list is shown next to the content.
   height={320}
   preview={<Vertical />}
   code={verticalSnippet}
+/>
+
+### Text below the indicator
+
+With `placement="below"` the title and description are centered below the indicator, and all steps share the available width equally. By default the text is shown aside the indicator, on the right in left-to-right languages and on the left in right-to-left languages.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<TextBelow />}
+  code={textBelowSnippet}
 />
 
 ### Read only

@@ -75,6 +75,15 @@ export const verticalSnippet = `<Stepper orientation="vertical">
   </Flex>
 </Stepper>`;
 
+export const textBelowSnippet = `<Stepper placement="below">
+  <StepList aria-label="Create component">
+    <Step id="details" title="Details" description="Name and summary" />
+    <Step id="owner" title="Owner" description="Team and lifecycle" />
+    <Step id="review" title="Review" description="Check and create" />
+  </StepList>
+  ...
+</Stepper>`;
+
 export const readOnlySnippet = `<Stepper isReadOnly>
   <StepList aria-label="Create component">
     <Step id="details" title="Details" />

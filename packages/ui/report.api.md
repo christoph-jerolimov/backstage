@@ -4126,6 +4126,10 @@ export const StepperDefinition: {
       readonly dataAttribute: true;
       readonly default: 'horizontal';
     };
+    readonly placement: {
+      readonly dataAttribute: true;
+      readonly default: 'aside';
+    };
     readonly className: {};
     readonly children: {};
   };
@@ -4167,9 +4171,13 @@ export type StepperOrientation = 'horizontal' | 'vertical';
 // @public
 export type StepperOwnProps = {
   orientation?: StepperOrientation;
+  placement?: StepperPlacement;
   className?: string;
   children?: ReactNode;
 };
+
+// @public
+export type StepperPlacement = 'aside' | 'below';
 
 // @public
 export const StepperPreviousButton: ForwardRefExoticComponent<

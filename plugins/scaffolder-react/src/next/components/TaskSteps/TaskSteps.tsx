@@ -86,6 +86,7 @@ export const TaskSteps = (props: TaskStepsProps) => {
       <Box p="4" style={{ overflowX: 'auto' }}>
         <Stepper
           isReadOnly
+          placement="below"
           selectedKey={steps[activeStep]?.id}
           lastCompletedStep={lastStartedStep?.id ?? null}
         >

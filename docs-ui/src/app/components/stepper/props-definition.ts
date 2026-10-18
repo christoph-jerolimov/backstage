@@ -11,6 +11,13 @@ export const stepperPropDefs: Record<string, PropDef> = {
     default: 'horizontal',
     description: 'Whether the steps are laid out in a row or in a column.',
   },
+  placement: {
+    type: 'enum',
+    values: ['aside', 'below'],
+    default: 'aside',
+    description:
+      'Where the text of each step is shown. With aside, the text follows the indicator in reading direction. With below, the text is centered below the indicator. Only applies to the horizontal orientation.',
+  },
   selectedKey: {
     type: 'enum',
     values: ['Key', 'null'],

@@ -197,6 +197,21 @@ describe('Stepper', () => {
     expect(screen.queryByText('Review panel')).not.toBeInTheDocument();
   });
 
+  it('renders the text below the indicator', () => {
+    render(
+      <Stepper placement="below">
+        <StepList aria-label="Flow">
+          <Step id="a" title="A" />
+        </StepList>
+      </Stepper>,
+    );
+
+    expect(screen.getByRole('list').parentElement).toHaveAttribute(
+      'data-placement',
+      'below',
+    );
+  });
+
   it('renders the vertical orientation and custom step content', () => {
     render(
       <Stepper orientation="vertical">
@@ -212,6 +227,10 @@ describe('Stepper', () => {
     expect(screen.getByRole('list').parentElement).toHaveAttribute(
       'data-orientation',
       'vertical',
+    );
+    expect(screen.getByRole('list').parentElement).toHaveAttribute(
+      'data-placement',
+      'aside',
     );
     expect(screen.getByText('Custom A')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Custom A/ })).toHaveAttribute(

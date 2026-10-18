@@ -26,6 +26,14 @@ import type { ButtonProps } from '../Button/types';
 export type StepperOrientation = 'horizontal' | 'vertical';
 
 /**
+ * Where the title and description of a step are shown relative to the step
+ * indicator.
+ *
+ * @public
+ */
+export type StepperPlacement = 'aside' | 'below';
+
+/**
  * Own props for the Stepper component.
  *
  * @public
@@ -36,6 +44,15 @@ export type StepperOwnProps = {
    * @defaultValue 'horizontal'
    */
   orientation?: StepperOrientation;
+  /**
+   * Where the text of each step is shown. With `aside`, the text follows the
+   * indicator in reading direction, so it is on the right in left-to-right
+   * languages and on the left in right-to-left languages. With `below`, the
+   * text is centered below the indicator. Only applies to the horizontal
+   * orientation.
+   * @defaultValue 'aside'
+   */
+  placement?: StepperPlacement;
   className?: string;
   children?: ReactNode;
 };

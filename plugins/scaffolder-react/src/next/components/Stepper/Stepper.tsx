@@ -273,6 +273,7 @@ export const Stepper = (stepperProps: StepperProps) => {
       {isValidating && <LinearProgress variant="indeterminate" />}
       <Box px="4" py="4" style={{ overflowX: 'auto' }}>
         <StepperNavigation
+          placement="below"
           selectedKey={activeStep}
           lastCompletedStep={activeStep - 1}
           onSelectionChange={key => {

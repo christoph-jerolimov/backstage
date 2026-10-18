@@ -41,6 +41,10 @@ const meta = preview.meta({
       control: 'inline-radio',
       options: ['horizontal', 'vertical'],
     },
+    placement: {
+      control: 'inline-radio',
+      options: ['aside', 'below'],
+    },
     isReadOnly: { control: 'boolean' },
     isDisabled: { control: 'boolean' },
   },
@@ -156,6 +160,31 @@ export const Vertical = meta.story({
         </StepPanel>
         <Navigation />
       </Flex>
+    </Stepper>
+  ),
+});
+
+export const TextBelow = meta.story({
+  args: {
+    placement: 'below',
+  },
+  render: args => (
+    <Stepper {...args}>
+      <StepList aria-label="Create component">
+        <Step id="details" title="Details" description="Name and summary" />
+        <Step id="owner" title="Owner" description="Team and lifecycle" />
+        <Step id="review" title="Review" description="Check and create" />
+      </StepList>
+      <StepPanel id="details">
+        <DetailsForm />
+      </StepPanel>
+      <StepPanel id="owner">
+        <OwnerForm />
+      </StepPanel>
+      <StepPanel id="review">
+        <Review />
+      </StepPanel>
+      <Navigation />
     </Stepper>
   ),
 });

@@ -33,6 +33,7 @@ export {
 } from './definition';
 export type {
   StepperOrientation,
+  StepperPlacement,
   StepperOwnProps,
   StepperProps,
   StepListOwnProps,

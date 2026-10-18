@@ -100,6 +100,20 @@ export const Vertical = () => {
   );
 };
 
+export const TextBelow = () => {
+  return (
+    <Stepper placement="below">
+      <StepList aria-label="Create component">
+        <Step id="details" title="Details" description="Name and summary" />
+        <Step id="owner" title="Owner" description="Team and lifecycle" />
+        <Step id="review" title="Review" description="Check and create" />
+      </StepList>
+      <Panels />
+      <Navigation />
+    </Stepper>
+  );
+};
+
 export const ReadOnly = () => {
   return (
     <Stepper isReadOnly>
