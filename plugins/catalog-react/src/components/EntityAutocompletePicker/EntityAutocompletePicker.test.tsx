@@ -348,6 +348,50 @@ describe('<EntityAutocompletePicker/>', () => {
     expect(screen.queryByText('option2')).not.toBeInTheDocument();
   });
 
+  it('responds to external filter changes when nothing is selected', async () => {
+    const catalogApi = catalogApiMock({
+      entities: entitiesWithOptions(defaultOptions),
+    });
+    const ChangeFilterButton = () => {
+      const { updateFilters } = useEntityList<EntityFilters>();
+
+      return (
+        <button
+          data-testid="external-filter-change-button"
+          onClick={() =>
+            updateFilters({ options: new EntityOptionFilter(['option3']) })
+          }
+        >
+          Trigger external filter change
+        </button>
+      );
+    };
+
+    render(
+      <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
+        <MockEntityListContextProvider<EntityFilters>>
+          <EntityAutocompletePicker<EntityFilters>
+            label="Options"
+            path="spec.options"
+            name="options"
+            Filter={EntityOptionFilter}
+          />
+          <ChangeFilterButton />
+        </MockEntityListContextProvider>
+      </TestApiProvider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.queryByText('Options')).toBeInTheDocument(),
+    );
+    expect(screen.queryByText('option3')).not.toBeInTheDocument();
+
+    screen.getByTestId('external-filter-change-button').click();
+    await waitFor(() =>
+      expect(screen.queryByText('option3')).toBeInTheDocument(),
+    );
+  });
+
   it('filters available values by kind as default', async () => {
     const catalogApi = catalogApiMock({
       entities: entitiesWithOptions(defaultOptions),

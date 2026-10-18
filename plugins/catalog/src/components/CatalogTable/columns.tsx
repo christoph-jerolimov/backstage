@@ -17,14 +17,65 @@ import {
   defaultEntityPresentation,
   EntityRefLink,
   EntityRefLinks,
+  EntityTagFilter,
+  useEntityList,
   type EntityPresentationApi,
 } from '@backstage/plugin-catalog-react';
 import Chip from '@material-ui/core/Chip';
+import Tooltip from '@material-ui/core/Tooltip';
+import { useCallback } from 'react';
 import { CatalogTableRow } from './types';
 import { OverflowTooltip, TableColumn } from '@backstage/core-components';
 import { Entity } from '@backstage/catalog-model';
 import { JsonArray } from '@backstage/types';
 import { EntityTableColumnTitle } from '@backstage/plugin-catalog-react/alpha';
+import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
+import { catalogTranslationRef } from '../../alpha/translation';
+
+/**
+ * A tag chip that toggles the given tag in the entity list tag filter when
+ * clicked. Tags that are already part of the filter are removed from it,
+ * all other tags are added to the current selection.
+ */
+function EntityTagChip(props: { tag: string }) {
+  const { tag } = props;
+  const { filters, updateFilters } = useEntityList();
+  const { t } = useTranslationRef(catalogTranslationRef);
+
+  const selected = filters.tags?.values.includes(tag) ?? false;
+
+  const handleClick = useCallback(() => {
+    updateFilters(prevFilters => {
+      const currentTags = prevFilters.tags?.values ?? [];
+      const newTags = currentTags.includes(tag)
+        ? currentTags.filter(value => value !== tag)
+        : [...currentTags, tag];
+      return {
+        tags: newTags.length ? new EntityTagFilter(newTags) : undefined,
+      };
+    });
+  }, [tag, updateFilters]);
+
+  return (
+    <Tooltip
+      title={
+        selected
+          ? t('catalogTable.removeTagFilterTitle', { tag })
+          : t('catalogTable.addTagFilterTitle', { tag })
+      }
+    >
+      <Chip
+        label={tag}
+        size="small"
+        variant="outlined"
+        color={selected ? 'primary' : 'default'}
+        style={{ margin: '2px' }}
+        clickable
+        onClick={handleClick}
+      />
+    </Tooltip>
+  );
+}
 
 // The columnFactories symbol is not directly exported, but through the
 // CatalogTable.columns field.
@@ -159,6 +210,12 @@ export const columnFactories = Object.freeze({
       width: 'auto',
     };
   },
+  /**
+   * Creates a column that renders the tags of each entity as chips.
+   *
+   * Clicking a tag chip adds the tag to the tag filter of the surrounding
+   * entity list, clicking a chip of an already selected tag removes it again.
+   */
   createTagsColumn(): TableColumn<CatalogTableRow> {
     return {
       title: <EntityTableColumnTitle translationKey="tags" />,
@@ -169,15 +226,7 @@ export const columnFactories = Object.freeze({
       render: ({ entity }) => (
         <>
           {entity.metadata.tags &&
-            entity.metadata.tags.map(t => (
-              <Chip
-                key={t}
-                label={t}
-                size="small"
-                variant="outlined"
-                style={{ margin: '2px' }}
-              />
-            ))}
+            entity.metadata.tags.map(t => <EntityTagChip key={t} tag={t} />)}
         </>
       ),
       width: 'auto',

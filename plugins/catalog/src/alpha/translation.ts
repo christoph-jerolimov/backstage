@@ -91,6 +91,8 @@ export const catalogTranslationRef = createTranslationRef({
       starActionTitle: 'Add to favorites',
       unStarActionTitle: 'Remove from favorites',
       allFilters: 'All',
+      addTagFilterTitle: 'Filter by tag "{{tag}}"',
+      removeTagFilterTitle: 'Remove tag "{{tag}}" from filter',
     },
     dependencyOfComponentsCard: {
       title: 'Dependency of components',

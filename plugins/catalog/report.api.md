@@ -297,6 +297,8 @@ export const catalogTranslationRef: TranslationRef<
     readonly 'searchResultItem.owner': 'Owner';
     readonly 'searchResultItem.lifecycle': 'Lifecycle';
     readonly 'catalogTable.allFilters': 'All';
+    readonly 'catalogTable.addTagFilterTitle': 'Filter by tag "{{tag}}"';
+    readonly 'catalogTable.removeTagFilterTitle': 'Remove tag "{{tag}}" from filter';
     readonly 'catalogTable.warningPanelTitle': 'Could not fetch catalog entities.';
     readonly 'catalogTable.viewActionTitle': 'View';
     readonly 'catalogTable.editActionTitle': 'Edit';

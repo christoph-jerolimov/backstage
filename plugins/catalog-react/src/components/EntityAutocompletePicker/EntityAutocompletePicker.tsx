@@ -152,9 +152,11 @@ export function EntityAutocompletePicker<
     } as Partial<T>);
   }, [name, shouldAddFilter, selectedOptions, Filter, updateFilters]);
 
-  // Update selected options when filter value changes
+  // Update selected options when filter value changes, e.g. when the filter
+  // is updated from somewhere else than this picker. Skipped until the
+  // available options have loaded, since the filter is cleared until then.
   useEffect(() => {
-    if (!shouldAddFilter) return;
+    if (!availableOptions.length) return;
 
     const newSelectedOptions = filteredOptions ?? [];
 

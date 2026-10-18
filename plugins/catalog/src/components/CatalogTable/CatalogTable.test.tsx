@@ -25,6 +25,7 @@ import {
   entityRouteRef,
   MockStarredEntitiesApi,
   starredEntitiesApiRef,
+  useEntityList,
   UserListFilter,
 } from '@backstage/plugin-catalog-react';
 import { MockEntityListContextProvider } from '@backstage/plugin-catalog-react/testUtils';
@@ -126,6 +127,70 @@ describe('CatalogTable component', () => {
     expect(screen.getByText(/component1/)).toBeInTheDocument();
     expect(screen.getByText(/component2/)).toBeInTheDocument();
     expect(screen.getByText(/component3/)).toBeInTheDocument();
+  });
+
+  it('should toggle the tag filter when clicking a tag chip', async () => {
+    const TagFilterProbe = () => {
+      const { filters } = useEntityList();
+      return (
+        <span>Tag filter: {filters.tags?.values.join(',') ?? 'none'}</span>
+      );
+    };
+    const taggedEntities: Entity[] = [
+      {
+        apiVersion: 'backstage.io/v1alpha1',
+        kind: 'Component',
+        metadata: { name: 'component1', tags: ['java', 'backend'] },
+      },
+      {
+        apiVersion: 'backstage.io/v1alpha1',
+        kind: 'Component',
+        metadata: { name: 'component2', tags: ['frontend'] },
+      },
+    ];
+
+    await renderInTestApp(
+      <ApiProvider apis={mockApis}>
+        <MockEntityListContextProvider
+          value={{
+            entities: taggedEntities,
+            filters: { kind: new EntityKindFilter('component', 'Component') },
+          }}
+        >
+          <CatalogTable />
+          <TagFilterProbe />
+        </MockEntityListContextProvider>
+      </ApiProvider>,
+      {
+        mountedRoutes: {
+          '/catalog/:namespace/:kind/:name': entityRouteRef,
+        },
+      },
+    );
+
+    expect(await screen.findByText('Tag filter: none')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('java'));
+    });
+    expect(await screen.findByText('Tag filter: java')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('frontend'));
+    });
+    expect(
+      await screen.findByText('Tag filter: java,frontend'),
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('java'));
+    });
+    expect(await screen.findByText('Tag filter: frontend')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('frontend'));
+    });
+    expect(await screen.findByText('Tag filter: none')).toBeInTheDocument();
   });
 
   it('should use specified edit URL if in annotation', async () => {
