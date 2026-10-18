@@ -43,6 +43,7 @@ import type { MenuTriggerProps as MenuTriggerProps_2 } from 'react-aria-componen
 import type { ModalOverlayProps } from 'react-aria-components';
 import type { NumberFieldProps as NumberFieldProps_2 } from 'react-aria-components';
 import { PopoverProps as PopoverProps_2 } from 'react-aria-components';
+import type { ProgressBarProps } from 'react-aria-components';
 import type { RadioGroupProps as RadioGroupProps_2 } from 'react-aria-components';
 import type { RadioProps as RadioProps_2 } from 'react-aria-components';
 import type { ReactElement } from 'react';
@@ -3998,6 +3999,57 @@ export type Space =
 
 // @public (undocumented)
 export interface SpaceProps extends MarginProps, PaddingProps {}
+
+// @public
+export const Spinner: ForwardRefExoticComponent<
+  SpinnerProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const SpinnerDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-Spinner';
+    readonly icon: 'bui-SpinnerIcon';
+  };
+  readonly propDefs: {
+    readonly size: {
+      readonly dataAttribute: true;
+      readonly default: 'medium';
+    };
+    readonly label: {
+      readonly default: 'Loading';
+    };
+    readonly className: {};
+    readonly style: {};
+  };
+};
+
+// @public (undocumented)
+export type SpinnerOwnProps = {
+  size?: 'small' | 'medium' | 'large';
+  label?: string;
+  className?: string;
+  style?: CSSProperties;
+};
+
+// @public (undocumented)
+export interface SpinnerProps
+  extends Omit<
+      ProgressBarProps,
+      | 'children'
+      | 'className'
+      | 'style'
+      | 'isIndeterminate'
+      | 'value'
+      | 'minValue'
+      | 'maxValue'
+      | 'formatOptions'
+      | 'valueLabel'
+    >,
+    SpinnerOwnProps {}
 
 // @public (undocumented)
 export const SubmenuTrigger: (props: SubmenuTriggerProps) => JSX_2.Element;

@@ -83,6 +83,7 @@ export {
   SelectItemTextDefinition,
 } from './components/Select/definition';
 export { SkeletonDefinition } from './components/Skeleton/definition';
+export { SpinnerDefinition } from './components/Spinner/definition';
 export { SliderDefinition } from './components/Slider/definition';
 export { SwitchDefinition } from './components/Switch/definition';
 export { ToggleButtonDefinition } from './components/ToggleButton/definition';
