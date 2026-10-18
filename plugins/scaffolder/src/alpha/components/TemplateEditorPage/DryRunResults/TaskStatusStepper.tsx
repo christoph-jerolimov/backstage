@@ -123,7 +123,8 @@ export const TaskStatusStepper = memo(
     const classes = useStyles(props);
     const { t } = useTranslationRef(scaffolderTranslationRef);
 
-    // Every step that has started can be selected to show its logs.
+    // Every step that has started counts as completed for the progress line,
+    // the indicator of each step shows its actual status.
     const lastStartedStep = [...steps]
       .reverse()
       .find(step => step.status !== 'open');
@@ -132,6 +133,7 @@ export const TaskStatusStepper = memo(
       <Stepper
         orientation="vertical"
         className={classes.root}
+        allowsSkipping
         selectedKey={currentStepId}
         lastCompletedStep={lastStartedStep?.id ?? null}
         onSelectionChange={key => onUserStepChange(String(key))}

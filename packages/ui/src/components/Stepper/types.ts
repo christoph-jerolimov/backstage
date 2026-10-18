@@ -98,6 +98,15 @@ export interface StepperProps
    */
   onLastCompletedStepChange?: (key: Key | null) => void;
   /**
+   * Whether the user can select any step from the step list, including steps
+   * that have not been reached yet. By default only completed steps and the
+   * step directly after the last completed one can be selected. When skipping
+   * is allowed, selecting a later step does not mark the skipped steps as
+   * completed.
+   * @defaultValue false
+   */
+  allowsSkipping?: boolean;
+  /**
    * Whether the user can select steps directly from the step list. When
    * read-only, navigation is only possible with the previous and next buttons
    * or programmatically.
@@ -281,6 +290,10 @@ export interface StepperState {
    * Whether the last step is selected.
    */
   isLastStep: boolean;
+  /**
+   * Whether any step can be selected from the step list.
+   */
+  allowsSkipping: boolean;
   /**
    * Whether the stepper is read-only.
    */

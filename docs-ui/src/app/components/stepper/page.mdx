@@ -16,6 +16,7 @@ import {
   withDescriptionsSnippet,
   verticalSnippet,
   textBelowSnippet,
+  allowsSkippingSnippet,
   readOnlySnippet,
   disabledStepSnippet,
   controlledSnippet,
@@ -27,6 +28,7 @@ import {
   WithDescriptions,
   Vertical,
   TextBelow,
+  AllowsSkipping,
   ReadOnly,
   DisabledStep,
   Controlled,
@@ -55,7 +57,7 @@ import { ChangelogComponent } from '@/components/ChangelogComponent';
 
 <CodeBlock code={stepperUsageSnippet} />
 
-A stepper is made of a `StepList` that shows the progress, one `StepPanel` per step with the content of that step, and the `StepperPreviousButton` and `StepperNextButton` to move between steps. Steps are completed in order: the user can go back to any completed step from the step list, but can only move forward with the next button.
+A stepper is made of a `StepList` that shows the progress, one `StepPanel` per step with the content of that step, and the `StepperPreviousButton` and `StepperNextButton` to move between steps. Steps are completed in order: the user can go back to any completed step from the step list, but can only move forward with the next button, unless `allowsSkipping` is set.
 
 ## API reference
 
@@ -137,6 +139,18 @@ With `placement="below"` the title and description are centered below the indica
   height={320}
   preview={<TextBelow />}
   code={textBelowSnippet}
+/>
+
+### Allow skipping
+
+By default the user can only go back to completed steps and forward with the next button. With `allowsSkipping` every step can be selected from the step list, and skipped steps are not marked as completed.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<AllowsSkipping />}
+  code={allowsSkippingSnippet}
 />
 
 ### Read only

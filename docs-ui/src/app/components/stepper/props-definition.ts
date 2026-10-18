@@ -52,6 +52,12 @@ export const stepperPropDefs: Record<string, PropDef> = {
     description:
       'Called when the last completed step changes. The last completed step advances automatically whenever a later step gets selected.',
   },
+  allowsSkipping: {
+    type: 'boolean',
+    default: 'false',
+    description:
+      'Whether the user can select any step from the step list, including steps that have not been reached yet. By default only completed steps and the step directly after the last completed one can be selected. When skipping is allowed, selecting a later step does not mark the skipped steps as completed.',
+  },
   isReadOnly: {
     type: 'boolean',
     default: 'false',
@@ -198,6 +204,10 @@ export const useStepperPropDefs: Record<string, PropDef> = {
   isLastStep: {
     type: 'boolean',
     description: 'Whether the last step is selected.',
+  },
+  allowsSkipping: {
+    type: 'boolean',
+    description: 'Whether any step can be selected from the step list.',
   },
   isReadOnly: {
     type: 'boolean',

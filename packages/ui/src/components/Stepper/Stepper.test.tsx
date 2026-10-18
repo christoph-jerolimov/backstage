@@ -134,6 +134,35 @@ describe('Stepper', () => {
     expect(screen.getByRole('button', { name: /Review/ })).toBeDisabled();
   });
 
+  it('lets the user select any step when skipping is allowed', async () => {
+    const onLastCompletedStepChange = jest.fn();
+    renderStepper({ allowsSkipping: true, onLastCompletedStepChange });
+
+    expect(screen.getByRole('button', { name: /Review/ })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: /Review/ }));
+    expect(await screen.findByText('Review panel')).toBeInTheDocument();
+    // Skipped steps are not marked as completed.
+    expect(onLastCompletedStepChange).not.toHaveBeenCalled();
+    expect(screen.getAllByRole('listitem')[0]).not.toHaveAttribute(
+      'data-completed',
+    );
+    expect(screen.getAllByRole('listitem')[1]).not.toHaveAttribute(
+      'data-completed',
+    );
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /Details/ }));
+    expect(await screen.findByText('Details panel')).toBeInTheDocument();
+    // The next button still completes the current step.
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByText('Owner panel')).toBeInTheDocument();
+    expect(onLastCompletedStepChange).toHaveBeenLastCalledWith('details');
+    expect(screen.getAllByRole('listitem')[0]).toHaveAttribute(
+      'data-completed',
+      'true',
+    );
+  });
+
   it('supports read-only, disabled and controlled usage', async () => {
     const { rerender } = renderStepper({ isReadOnly: true });
 

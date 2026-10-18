@@ -114,6 +114,20 @@ export const TextBelow = () => {
   );
 };
 
+export const AllowsSkipping = () => {
+  return (
+    <Stepper allowsSkipping>
+      <StepList aria-label="Create component">
+        <Step id="details" title="Details" />
+        <Step id="owner" title="Owner" />
+        <Step id="review" title="Review" />
+      </StepList>
+      <Panels />
+      <Navigation />
+    </Stepper>
+  );
+};
+
 export const ReadOnly = () => {
   return (
     <Stepper isReadOnly>

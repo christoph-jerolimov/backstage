@@ -4216,6 +4216,7 @@ export interface StepperProps
       HTMLAttributes<HTMLDivElement>,
       keyof StepperOwnProps | 'defaultValue'
     > {
+  allowsSkipping?: boolean;
   defaultLastCompletedStep?: Key;
   defaultSelectedKey?: Key;
   isDisabled?: boolean;
@@ -4228,6 +4229,7 @@ export interface StepperProps
 
 // @public
 export interface StepperState {
+  allowsSkipping: boolean;
   isDisabled: boolean;
   isFirstStep: boolean;
   isLastStep: boolean;

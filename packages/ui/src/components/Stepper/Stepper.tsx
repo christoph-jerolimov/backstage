@@ -168,6 +168,7 @@ export const Stepper = forwardRef(
       lastCompletedStep: controlledLastCompletedStep,
       defaultLastCompletedStep,
       onLastCompletedStepChange,
+      allowsSkipping = false,
       isReadOnly = false,
       isDisabled = false,
       ...divProps
@@ -207,15 +208,15 @@ export const Stepper = forwardRef(
     const selectedKey = selectedKeyState ?? stepKeys[0] ?? null;
     const selectedIndex =
       selectedKey === null ? -1 : stepKeys.indexOf(selectedKey);
-    // Every step before the selected one always counts as completed, even
-    // when the selected step was set directly without completing the ones
-    // before it.
+    // In a linear flow every step before the selected one counts as
+    // completed, even when the selected step was set directly without
+    // completing the ones before it. When skipping is allowed, the completed
+    // steps are tracked separately from the selection.
     const rawLastCompletedIndex =
       lastCompletedStep === null ? -1 : stepKeys.indexOf(lastCompletedStep);
-    const lastCompletedIndex = Math.max(
-      rawLastCompletedIndex,
-      selectedIndex - 1,
-    );
+    const lastCompletedIndex = allowsSkipping
+      ? rawLastCompletedIndex
+      : Math.max(rawLastCompletedIndex, selectedIndex - 1);
 
     // Persists the completed steps before the selection changes, so that they
     // stay reachable when the user navigates back to an earlier step.
@@ -240,10 +241,18 @@ export const Stepper = forwardRef(
         if (index === -1 || key === selectedKey) {
           return;
         }
-        commitCompletedSteps(index - 1);
+        if (!allowsSkipping) {
+          commitCompletedSteps(index - 1);
+        }
         setSelectedKeyState(key);
       },
-      [stepKeys, selectedKey, commitCompletedSteps, setSelectedKeyState],
+      [
+        stepKeys,
+        selectedKey,
+        allowsSkipping,
+        commitCompletedSteps,
+        setSelectedKeyState,
+      ],
     );
 
     const selectNextStep = useCallback(() => {
@@ -279,9 +288,16 @@ export const Stepper = forwardRef(
         if (index === -1 || steps[index].isDisabled) {
           return false;
         }
-        return index <= lastCompletedIndex + 1;
+        return allowsSkipping || index <= lastCompletedIndex + 1;
       },
-      [isDisabled, isReadOnly, stepKeys, steps, lastCompletedIndex],
+      [
+        isDisabled,
+        isReadOnly,
+        allowsSkipping,
+        stepKeys,
+        steps,
+        lastCompletedIndex,
+      ],
     );
 
     const state = useMemo<StepperState>(
@@ -293,6 +309,7 @@ export const Stepper = forwardRef(
         isFirstStep: selectedIndex <= 0,
         isLastStep:
           selectedIndex === -1 || selectedIndex === stepKeys.length - 1,
+        allowsSkipping,
         isReadOnly,
         isDisabled,
         setSelectedKey,
@@ -307,6 +324,7 @@ export const Stepper = forwardRef(
         selectedKey,
         selectedIndex,
         lastCompletedIndex,
+        allowsSkipping,
         isReadOnly,
         isDisabled,
         setSelectedKey,

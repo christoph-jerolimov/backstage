@@ -45,6 +45,7 @@ const meta = preview.meta({
       control: 'inline-radio',
       options: ['aside', 'below'],
     },
+    allowsSkipping: { control: 'boolean' },
     isReadOnly: { control: 'boolean' },
     isDisabled: { control: 'boolean' },
   },
@@ -174,6 +175,31 @@ export const TextBelow = meta.story({
         <Step id="details" title="Details" description="Name and summary" />
         <Step id="owner" title="Owner" description="Team and lifecycle" />
         <Step id="review" title="Review" description="Check and create" />
+      </StepList>
+      <StepPanel id="details">
+        <DetailsForm />
+      </StepPanel>
+      <StepPanel id="owner">
+        <OwnerForm />
+      </StepPanel>
+      <StepPanel id="review">
+        <Review />
+      </StepPanel>
+      <Navigation />
+    </Stepper>
+  ),
+});
+
+export const AllowsSkipping = meta.story({
+  args: {
+    allowsSkipping: true,
+  },
+  render: args => (
+    <Stepper {...args}>
+      <StepList aria-label="Create component">
+        <Step id="details" title="Details" />
+        <Step id="owner" title="Owner" />
+        <Step id="review" title="Review" />
       </StepList>
       <StepPanel id="details">
         <DetailsForm />

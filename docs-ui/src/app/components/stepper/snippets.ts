@@ -84,6 +84,15 @@ export const textBelowSnippet = `<Stepper placement="below">
   ...
 </Stepper>`;
 
+export const allowsSkippingSnippet = `<Stepper allowsSkipping>
+  <StepList aria-label="Create component">
+    <Step id="details" title="Details" />
+    <Step id="owner" title="Owner" />
+    <Step id="review" title="Review" />
+  </StepList>
+  ...
+</Stepper>`;
+
 export const readOnlySnippet = `<Stepper isReadOnly>
   <StepList aria-label="Create component">
     <Step id="details" title="Details" />
