@@ -17,14 +17,15 @@
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { BUIProvider } from '../../provider';
-import { PluginHeaderBreadcrumbs } from './PluginHeaderBreadcrumbs';
-import type { PluginHeaderBreadcrumbEntry } from './types';
+import { createRef } from 'react';
+import { Breadcrumbs } from './Breadcrumbs';
+import type { BreadcrumbItem } from './types';
 
-function renderBreadcrumbs(entries: PluginHeaderBreadcrumbEntry[]) {
+function renderBreadcrumbs(items: BreadcrumbItem[]) {
   return render(
     <MemoryRouter>
       <BUIProvider>
-        <PluginHeaderBreadcrumbs entries={entries} />
+        <Breadcrumbs items={items} />
       </BUIProvider>
     </MemoryRouter>,
   );
@@ -34,7 +35,7 @@ function LocationStatus() {
   return <span role="status">{useLocation().pathname}</span>;
 }
 
-function renderNestedBreadcrumbs(entries: PluginHeaderBreadcrumbEntry[]) {
+function renderNestedBreadcrumbs(items: BreadcrumbItem[]) {
   return render(
     <MemoryRouter
       basename="/app"
@@ -47,7 +48,7 @@ function renderNestedBreadcrumbs(entries: PluginHeaderBreadcrumbEntry[]) {
             path="catalog/entity/*"
             element={
               <>
-                <PluginHeaderBreadcrumbs entries={entries} />
+                <Breadcrumbs items={items} />
                 <LocationStatus />
               </>
             }
@@ -71,14 +72,14 @@ function simulateTruncation() {
   };
 }
 
-describe('PluginHeaderBreadcrumbs', () => {
-  it('renders nothing when entries is empty', () => {
+describe('Breadcrumbs', () => {
+  it('renders nothing when items is empty', () => {
     const { container } = renderBreadcrumbs([]);
 
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders a single entry as a clickable link', () => {
+  it('renders a single item as a clickable link', () => {
     renderBreadcrumbs([{ label: 'Catalog', href: '/catalog' }]);
 
     expect(screen.getByRole('navigation')).toBeInTheDocument();
@@ -86,7 +87,40 @@ describe('PluginHeaderBreadcrumbs', () => {
     expect(link).toHaveAttribute('href', '/catalog');
   });
 
-  it('renders the last entry as plain text and ancestors as links', () => {
+  it('forwards the ref, class names and nav attributes', () => {
+    const ref = createRef<HTMLElement>();
+    render(
+      <MemoryRouter>
+        <BUIProvider>
+          <Breadcrumbs
+            ref={ref}
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Current', href: '/current' },
+            ]}
+            className="custom"
+            aria-label="Where you are"
+            id="trail"
+          />
+        </BUIProvider>
+      </MemoryRouter>,
+    );
+
+    const nav = screen.getByRole('navigation', { name: 'Where you are' });
+    expect(ref.current).toBe(nav);
+    expect(nav).toHaveAttribute('id', 'trail');
+    expect(nav).toHaveClass('bui-Breadcrumbs', 'custom');
+    expect(screen.getByRole('list')).toHaveClass('bui-BreadcrumbsList');
+    const items = screen.getAllByRole('listitem');
+    expect(items).toHaveLength(2);
+    items.forEach(item => expect(item).toHaveClass('bui-BreadcrumbsItem'));
+    expect(items[1]).toHaveAttribute('data-current');
+    expect(items[0].querySelector('[aria-hidden="true"]')).toHaveClass(
+      'bui-BreadcrumbsSeparator',
+    );
+  });
+
+  it('renders the last item as plain text and ancestors as links', () => {
     renderBreadcrumbs([
       { label: 'Home', href: '/' },
       { label: 'Services', href: '/services' },
@@ -154,7 +188,7 @@ describe('PluginHeaderBreadcrumbs', () => {
     expect(svgs.length).toBe(2);
   });
 
-  it('does not render a separator after the current entry', () => {
+  it('does not render a separator after the current item', () => {
     renderBreadcrumbs([
       { label: 'Home', href: '/' },
       { label: 'Current', href: '/current' },
@@ -166,7 +200,7 @@ describe('PluginHeaderBreadcrumbs', () => {
   });
 
   describe('collapsing behaviour', () => {
-    it('collapses middle items when there are 5 or more entries', () => {
+    it('collapses middle items when there are 5 or more items', () => {
       renderBreadcrumbs([
         { label: 'Root', href: '/' },
         { label: 'A', href: '/a' },
@@ -185,7 +219,7 @@ describe('PluginHeaderBreadcrumbs', () => {
       expect(screen.queryByRole('link', { name: 'B' })).not.toBeInTheDocument();
     });
 
-    it('does not collapse items when there are fewer than 5 entries', () => {
+    it('does not collapse items when there are fewer than 5 items', () => {
       renderBreadcrumbs([
         { label: 'Root', href: '/' },
         { label: 'A', href: '/a' },

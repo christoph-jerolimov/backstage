@@ -59,3 +59,23 @@ export const withHeader = `<PluginHeader
   ]}
   customActions={<Button>Custom action</Button>}
 />`;
+
+export const withBreadcrumbs = `<PluginHeader
+  title="my-service"
+  breadcrumbs={[
+    { label: 'Home', href: '/' },
+    { label: 'Services', href: '/services' },
+    { label: 'my-service', href: '/services/my-service' },
+  ]}
+  tabs={[
+    { id: 'overview', label: 'Overview', href: '/overview' },
+    { id: 'checks', label: 'Checks', href: '/checks' },
+    { id: 'tracks', label: 'Tracks', href: '/tracks' },
+  ]}
+  customActions={
+    <>
+      <ButtonIcon variant="tertiary" icon={<RiCloudy2Line />} />
+      <ButtonIcon variant="tertiary" icon={<RiHeartLine />} />
+    </>
+  }
+/>`;

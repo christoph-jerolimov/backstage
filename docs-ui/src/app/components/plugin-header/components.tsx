@@ -70,3 +70,23 @@ export const WithHeader = () => (
     </>
   </MemoryRouter>
 );
+
+export const WithBreadcrumbs = () => (
+  <MemoryRouter>
+    <PluginHeader
+      title="my-service"
+      breadcrumbs={[
+        { label: 'Home', href: '/' },
+        { label: 'Services', href: '/services' },
+        { label: 'my-service', href: '/services/my-service' },
+      ]}
+      tabs={tabs.slice(0, 3)}
+      customActions={
+        <>
+          <ButtonIcon variant="tertiary" icon={<RiCloudy2Line />} />
+          <ButtonIcon variant="tertiary" icon={<RiHeartLine />} />
+        </>
+      }
+    />
+  </MemoryRouter>
+);

@@ -496,6 +496,47 @@ export type BoxUtilityProps = {
   maxHeight?: Responsive<string>;
 };
 
+// @public
+export interface BreadcrumbItem {
+  href: string;
+  label: string;
+}
+
+// @public
+export const Breadcrumbs: ForwardRefExoticComponent<
+  BreadcrumbsProps & RefAttributes<HTMLElement>
+>;
+
+// @public
+export const BreadcrumbsDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-Breadcrumbs';
+    readonly list: 'bui-BreadcrumbsList';
+    readonly item: 'bui-BreadcrumbsItem';
+    readonly separator: 'bui-BreadcrumbsSeparator';
+    readonly ellipsis: 'bui-BreadcrumbsEllipsis';
+  };
+  readonly propDefs: {
+    readonly items: {};
+    readonly className: {};
+  };
+};
+
+// @public
+export interface BreadcrumbsOwnProps {
+  // (undocumented)
+  className?: string;
+  items: BreadcrumbItem[];
+}
+
+// @public
+export interface BreadcrumbsProps
+  extends BreadcrumbsOwnProps,
+    Omit<React.HTMLAttributes<HTMLElement>, keyof BreadcrumbsOwnProps> {}
+
 // @public (undocumented)
 export type Breakpoint = 'initial' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
@@ -3046,7 +3087,6 @@ export const PluginHeaderDefinition: {
     readonly toolbarIcon: 'bui-PluginHeaderToolbarIcon';
     readonly toolbarName: 'bui-PluginHeaderToolbarName';
     readonly breadcrumbs: 'bui-PluginHeaderBreadcrumbs';
-    readonly breadcrumbsEllipsis: 'bui-PluginHeaderBreadcrumbsEllipsis';
     readonly tabs: 'bui-PluginHeaderTabsWrapper';
   };
   readonly propDefs: {
