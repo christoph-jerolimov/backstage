@@ -14,15 +14,33 @@
  * limitations under the License.
  */
 
+import { ProgressBar } from '@backstage/ui';
 import Box from '@material-ui/core/Box';
-import LinearProgress, {
-  LinearProgressProps,
-} from '@material-ui/core/LinearProgress';
+import { LinearProgressProps } from '@material-ui/core/LinearProgress';
 import { useTheme } from '@material-ui/core/styles';
 import { PropsWithChildren, useEffect, useState } from 'react';
 
+/**
+ * A linear progress indicator that is shown after a short delay, so that it
+ * does not flash for operations that finish quickly.
+ *
+ * @remarks
+ * The indicator is rendered with the Backstage UI `ProgressBar`. The `variant`,
+ * `value`, `className`, `style`, `id` and `aria-*` props are honored; other
+ * Material UI specific props such as `classes`, `color` and `valueBuffer` have
+ * no effect.
+ */
 export function Progress(props: PropsWithChildren<LinearProgressProps>) {
-  const { 'aria-label': ariaLabel, ...progressProps } = props;
+  const {
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
+    'aria-describedby': ariaDescribedBy,
+    id,
+    className,
+    style,
+    variant = 'indeterminate',
+    value,
+  } = props;
   const theme = useTheme();
   const [isVisible, setIsVisible] = useState(false);
 
@@ -35,9 +53,15 @@ export function Progress(props: PropsWithChildren<LinearProgressProps>) {
   }, [theme.transitions.duration.short]);
 
   return isVisible ? (
-    <LinearProgress
-      {...progressProps}
-      aria-label={ariaLabel ?? 'Loading'}
+    <ProgressBar
+      id={id}
+      className={className}
+      style={style}
+      isIndeterminate={variant === 'indeterminate' || variant === 'query'}
+      value={value}
+      aria-label={ariaLabelledBy ? ariaLabel : ariaLabel ?? 'Loading'}
+      aria-labelledby={ariaLabelledBy}
+      aria-describedby={ariaDescribedBy}
       data-testid="progress"
     />
   ) : (

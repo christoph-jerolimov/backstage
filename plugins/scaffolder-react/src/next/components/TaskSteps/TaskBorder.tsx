@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-import LinearProgress from '@material-ui/core/LinearProgress';
-import { makeStyles } from '@material-ui/core/styles';
-
-const useStyles = makeStyles(theme => ({
-  failed: {
-    backgroundColor: theme.palette.error.main,
-  },
-  success: {
-    backgroundColor: theme.palette.success.main,
-  },
-}));
+import { ProgressBar } from '@backstage/ui';
 
 /**
  * The visual progress of the task event stream
@@ -33,17 +23,15 @@ export const TaskBorder = (props: {
   isComplete: boolean;
   isError: boolean;
 }) => {
-  const styles = useStyles();
-
   if (!props.isComplete) {
-    return <LinearProgress variant="indeterminate" />;
+    return <ProgressBar isIndeterminate aria-label="Task in progress" />;
   }
 
   return (
-    <LinearProgress
-      variant="determinate"
-      classes={{ bar: props.isError ? styles.failed : styles.success }}
+    <ProgressBar
       value={100}
+      color={props.isError ? 'danger' : 'success'}
+      aria-label={props.isError ? 'Task failed' : 'Task completed'}
     />
   );
 };
