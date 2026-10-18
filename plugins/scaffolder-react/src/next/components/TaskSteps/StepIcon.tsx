@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { Spinner } from '@backstage/ui';
 import { StepIconProps } from '@material-ui/core/StepIcon';
 import { makeStyles } from '@material-ui/core/styles';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
@@ -41,7 +41,7 @@ export const StepIcon = (props: StepIconProps & { skipped: boolean }) => {
 
   const getMiddle = () => {
     if (active) {
-      return <CircularProgress size="20px" />;
+      return <Spinner size="medium" />;
     }
     if (completed) {
       return <CheckCircleOutline />;

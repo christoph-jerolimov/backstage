@@ -15,7 +15,7 @@
  */
 
 import Box from '@material-ui/core/Box';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { Spinner } from '@backstage/ui';
 
 /**
  * @internal
@@ -34,7 +34,7 @@ export function TableLoadingBody(props: { colSpan?: number }) {
               minHeight: '15rem',
             }}
           >
-            <CircularProgress size="5rem" />
+            <Spinner size="large" />
           </Box>
         </td>
       </tr>

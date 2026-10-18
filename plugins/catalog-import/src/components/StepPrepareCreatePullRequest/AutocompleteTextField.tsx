@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { Spinner } from '@backstage/ui';
 import TextField from '@material-ui/core/TextField';
 import { TextFieldProps } from '@material-ui/core/TextField/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -131,9 +131,7 @@ export const AutocompleteTextField = <TFieldValue extends string>(
                 ...params.InputProps,
                 endAdornment: (
                   <Fragment>
-                    {loading ? (
-                      <CircularProgress color="inherit" size="1em" />
-                    ) : null}
+                    {loading ? <Spinner size="small" /> : null}
                     {params.InputProps.endAdornment}
                   </Fragment>
                 ),

@@ -17,7 +17,7 @@
 import { LinkButton } from '@backstage/core-components';
 import { useTranslationRef } from '@backstage/frontend-plugin-api';
 import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { Spinner } from '@backstage/ui';
 import { makeStyles } from '@material-ui/core/styles';
 import { ComponentProps } from 'react';
 
@@ -33,8 +33,7 @@ const useStyles = makeStyles(theme => ({
     position: 'absolute',
     top: '50%',
     left: '50%',
-    marginTop: -12,
-    marginLeft: -12,
+    transform: 'translate(-50%, -50%)',
   },
   button: {
     marginTop: theme.spacing(1),
@@ -57,7 +56,7 @@ export const NextButton = (
         disabled={props.disabled || props.loading}
       />
       {props.loading && (
-        <CircularProgress size="1.5rem" className={classes.buttonProgress} />
+        <Spinner size="medium" className={classes.buttonProgress} />
       )}
       {props.loading}
     </div>
