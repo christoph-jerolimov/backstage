@@ -45,6 +45,7 @@ export const catalogReactTranslationRef = createTranslationRef({
     },
     entityPeekAheadPopover: {
       title: 'Drill into the entity to see all of the tags.',
+      tagsLabel: 'Tags',
       emailCardAction: {
         title: 'Email {{email}}',
         subTitle: 'mailto {{email}}',

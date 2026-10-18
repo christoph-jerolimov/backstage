@@ -19,7 +19,7 @@ import {
   EntityPeekAheadPopover,
   EntityPeekAheadPopoverProps,
 } from './EntityPeekAheadPopover';
-import Button from '@material-ui/core/Button';
+import { Button } from '@backstage/ui';
 import { wrapInTestApp, TestApiProvider } from '@backstage/test-utils';
 import { catalogApiRef } from '../../api';
 import {
@@ -41,6 +41,10 @@ const mockCatalogApi = catalogApiMock({
         name: 'playback',
         namespace: 'default',
         description: 'Details about the playback service',
+        tags: ['java', 'spring', 'kotlin', 'gradle', 'jvm', 'backend'],
+      },
+      spec: {
+        type: 'service',
       },
     },
     {

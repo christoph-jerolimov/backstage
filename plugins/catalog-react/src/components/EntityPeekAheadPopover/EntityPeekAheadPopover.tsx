@@ -16,30 +16,38 @@
 
 import useAsyncFn from 'react-use/esm/useAsyncFn';
 import { catalogApiRef } from '../../api';
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
-import HoverPopover from 'material-ui-popup-state/HoverPopover';
 import {
-  bindHover,
-  bindPopover,
-  usePopupState,
-} from 'material-ui-popup-state/hooks';
-import Box from '@material-ui/core/Box';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import Chip from '@material-ui/core/Chip';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
-import { useApiHolder } from '@backstage/core-plugin-api';
-import { isGroupEntity, isUserEntity } from '@backstage/catalog-model';
-import { Progress, ResponseErrorPanel } from '@backstage/core-components';
+  CSSProperties,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Alert,
+  Flex,
+  Link,
+  Popover,
+  Skeleton,
+  Tag,
+  TagGroup,
+  Text,
+  Tooltip,
+  TooltipTrigger,
+} from '@backstage/ui';
+import { useApiHolder, useRouteRef } from '@backstage/core-plugin-api';
+import {
+  getCompoundEntityRef,
+  isGroupEntity,
+  isUserEntity,
+} from '@backstage/catalog-model';
+import { entityRouteRef } from '../../routes';
 import {
   EntityCardActions,
   UserCardActions,
   GroupCardActions,
 } from './CardActionComponents';
-import { debounce } from 'lodash';
 import { catalogReactTranslationRef } from '../../translation';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 
@@ -53,22 +61,23 @@ export type EntityPeekAheadPopoverProps = PropsWithChildren<{
   delayTime?: number;
 }>;
 
-const useStyles = makeStyles(() => {
-  return {
-    popoverPaper: {
-      width: '30em',
-    },
-    descriptionTypography: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      display: '-webkit-box',
-      WebkitLineClamp: 2,
-      WebkitBoxOrient: 'vertical',
-    },
-  };
-});
+const popoverStyle: CSSProperties = {
+  width: '30em',
+};
+
+const descriptionStyle: CSSProperties = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  display: '-webkit-box',
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: 'vertical',
+};
 
 const maxTagChips = 4;
+
+// Grace period that lets the pointer travel from the trigger into the popover
+// without the popover closing in between.
+const closeDelayTime = 150;
 
 /**
  * Shows an entity popover on hover of a component.
@@ -78,18 +87,29 @@ const maxTagChips = 4;
 export const EntityPeekAheadPopover = (props: EntityPeekAheadPopoverProps) => {
   const { entityRef, children, delayTime = 500 } = props;
   const { t } = useTranslationRef(catalogReactTranslationRef);
-  const classes = useStyles();
   const apiHolder = useApiHolder();
-  const popupState = usePopupState({
-    variant: 'popover',
-    popupId: 'entity-peek-ahead',
-  });
-  const [isHovered, setIsHovered] = useState(false);
+  const entityRoute = useRouteRef(entityRouteRef);
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const openTimer = useRef<ReturnType<typeof setTimeout>>();
+  const closeTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  const debouncedHandleMouseEnter = useMemo(
-    () => debounce(() => setIsHovered(true), delayTime),
-    [delayTime],
-  );
+  const clearTimers = useCallback(() => {
+    clearTimeout(openTimer.current);
+    clearTimeout(closeTimer.current);
+  }, []);
+
+  const handleMouseEnter = () => {
+    clearTimers();
+    openTimer.current = setTimeout(() => setIsOpen(true), delayTime);
+  };
+
+  const handleMouseLeave = () => {
+    clearTimers();
+    closeTimer.current = setTimeout(() => setIsOpen(false), closeDelayTime);
+  };
+
+  useEffect(() => clearTimers, [clearTimers]);
 
   const [{ loading, error, value: entity }, load] = useAsyncFn(async () => {
     const catalogApi = apiHolder.get(catalogApiRef);
@@ -103,98 +123,94 @@ export const EntityPeekAheadPopover = (props: EntityPeekAheadPopoverProps) => {
     return undefined;
   }, [apiHolder, entityRef]);
 
-  const handleOnMouseLeave = () => {
-    setIsHovered(false);
-    debouncedHandleMouseEnter.cancel();
-  };
-
   useEffect(() => {
-    if (popupState.isOpen && !entity && !error && !loading) {
+    if (isOpen && !entity && !error && !loading) {
       load();
     }
-  }, [popupState.isOpen, load, entity, error, loading]);
+  }, [isOpen, load, entity, error, loading]);
+
+  const tags = entity?.metadata.tags ?? [];
+  const hiddenTagCount = Math.max(0, tags.length - maxTagChips);
 
   return (
     <>
-      <Typography component="span" onMouseEnter={debouncedHandleMouseEnter}>
-        <Typography
-          component="span"
-          data-testid="trigger"
-          {...bindHover(popupState)}
-        >
-          {children}
-        </Typography>
-      </Typography>
-      {isHovered && (
-        <HoverPopover
-          PaperProps={{
-            className: classes.popoverPaper,
-          }}
-          {...bindPopover(popupState)}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
-          }}
-          onMouseLeave={handleOnMouseLeave}
-        >
-          <Card>
-            <CardContent>
-              {error && <ResponseErrorPanel error={error} />}
-              {loading && <Progress />}
-              {entity && (
-                <>
-                  <Typography color="textSecondary">
-                    {entity.metadata.namespace}
-                  </Typography>
-                  <Typography variant="h5" component="div">
-                    {entity.metadata.name}
-                  </Typography>
-                  <Typography color="textSecondary" gutterBottom>
-                    {entity.kind}
-                  </Typography>
-                  {entity.metadata.description && (
-                    <Typography
-                      className={classes.descriptionTypography}
-                      paragraph
-                    >
-                      {entity.metadata.description}
-                    </Typography>
-                  )}
-                  <Typography>{entity.spec?.type?.toString()}</Typography>
-                  <Box marginTop="0.5em">
-                    {(entity.metadata.tags || [])
-                      .slice(0, maxTagChips)
-                      .map(tag => {
-                        return <Chip key={tag} size="small" label={tag} />;
-                      })}
-                    {entity.metadata.tags?.length &&
-                      entity.metadata.tags?.length > maxTagChips && (
-                        <Tooltip title={t('entityPeekAheadPopover.title')}>
-                          <Chip key="other-tags" size="small" label="..." />
-                        </Tooltip>
-                      )}
-                  </Box>
-                </>
-              )}
-            </CardContent>
-            {!error && entity && (
-              <CardActions>
-                <>
-                  {isUserEntity(entity) && <UserCardActions entity={entity} />}
-                  {isGroupEntity(entity) && (
-                    <GroupCardActions entity={entity} />
-                  )}
-                  <EntityCardActions entity={entity} />
-                </>
-              </CardActions>
+      <span
+        ref={triggerRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {children}
+      </span>
+      <Popover
+        triggerRef={triggerRef}
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        isNonModal
+        placement="bottom"
+        style={popoverStyle}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {error && <Alert status="danger" description={error.message} />}
+        {loading && (
+          <Flex direction="column" gap="2">
+            <Skeleton width="30%" height={16} />
+            <Skeleton width="60%" height={24} />
+            <Skeleton width="100%" height={16} />
+          </Flex>
+        )}
+        {entity && (
+          <Flex direction="column" gap="2">
+            <Flex direction="column" gap="1">
+              <Text variant="body-x-small" color="secondary">
+                {entity.metadata.namespace}
+              </Text>
+              <Text as="div" variant="title-small">
+                {entity.metadata.name}
+              </Text>
+              <Text variant="body-small" color="secondary">
+                {entity.kind}
+              </Text>
+            </Flex>
+            {entity.metadata.description && (
+              <Text as="p" variant="body-medium" style={descriptionStyle}>
+                {entity.metadata.description}
+              </Text>
             )}
-          </Card>
-        </HoverPopover>
-      )}
+            {entity.spec?.type && (
+              <Text variant="body-medium">{String(entity.spec.type)}</Text>
+            )}
+            {tags.length > 0 && (
+              <Flex align="center" gap="1">
+                <TagGroup aria-label={t('entityPeekAheadPopover.tagsLabel')}>
+                  {tags.slice(0, maxTagChips).map(tag => (
+                    <Tag key={tag} size="small">
+                      {tag}
+                    </Tag>
+                  ))}
+                </TagGroup>
+                {hiddenTagCount > 0 && (
+                  <TooltipTrigger>
+                    <Link
+                      href={entityRoute(getCompoundEntityRef(entity))}
+                      variant="body-x-small"
+                      color="secondary"
+                    >
+                      +{hiddenTagCount}
+                    </Link>
+                    <Tooltip>{t('entityPeekAheadPopover.title')}</Tooltip>
+                  </TooltipTrigger>
+                )}
+              </Flex>
+            )}
+            <Flex justify="end" gap="1">
+              {isUserEntity(entity) && <UserCardActions entity={entity} />}
+              {isGroupEntity(entity) && <GroupCardActions entity={entity} />}
+              <EntityCardActions entity={entity} />
+            </Flex>
+          </Flex>
+        )}
+      </Popover>
     </>
   );
 };

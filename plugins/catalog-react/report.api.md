@@ -175,6 +175,7 @@ export const catalogReactTranslationRef: TranslationRef<
     readonly 'entityProcessingStatusPicker.title': 'Processing Status';
     readonly 'entityTagPicker.title': 'Tags';
     readonly 'entityPeekAheadPopover.title': 'Drill into the entity to see all of the tags.';
+    readonly 'entityPeekAheadPopover.tagsLabel': 'Tags';
     readonly 'entityPeekAheadPopover.entityCardActionsAriaLabel': 'Show';
     readonly 'entityPeekAheadPopover.entityCardActionsTitle': 'Show details';
     readonly 'entityPeekAheadPopover.emailCardAction.title': 'Email {{email}}';

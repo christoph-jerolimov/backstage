@@ -21,7 +21,7 @@ import { ApiProvider } from '@backstage/core-app-api';
 import { TestApiRegistry, renderInTestApp } from '@backstage/test-utils';
 import { catalogApiMock } from '@backstage/plugin-catalog-react/testUtils';
 import { catalogApiRef } from '../../api';
-import Button from '@material-ui/core/Button';
+import { Button } from '@backstage/ui';
 import { entityRouteRef } from '../../routes';
 
 const catalogApi = catalogApiMock({
@@ -32,9 +32,11 @@ const catalogApi = catalogApiMock({
       metadata: {
         namespace: 'default',
         name: 'service1',
+        description: 'The first service',
+        tags: ['java', 'spring', 'kotlin', 'gradle', 'jvm', 'backend'],
       },
       spec: {
-        tags: ['java'],
+        type: 'service',
       },
     },
   ],
@@ -63,12 +65,27 @@ describe('<EntityPeekAheadPopover/>', () => {
     expect(screen.queryByText('service1')).toBeNull();
     await user.hover(screen.getByTestId('popover1'));
     expect(await screen.findByText('service1')).toBeInTheDocument();
+    expect(screen.getByText('default')).toBeInTheDocument();
+    expect(screen.getByText('Component')).toBeInTheDocument();
+    expect(screen.getByText('The first service')).toBeInTheDocument();
+    expect(screen.getByText('service')).toBeInTheDocument();
+    expect(screen.getByRole('row', { name: 'java' })).toBeInTheDocument();
+    expect(screen.getByRole('row', { name: 'gradle' })).toBeInTheDocument();
+    expect(screen.queryByRole('row', { name: 'jvm' })).toBeNull();
+    expect(screen.getByRole('link', { name: '+2' })).toHaveAttribute(
+      'href',
+      '/catalog/default/Component/service1',
+    );
+    expect(screen.getByRole('link', { name: 'Show' })).toHaveAttribute(
+      'href',
+      '/catalog/default/Component/service1',
+    );
 
     expect(screen.getByText('s2')).toBeInTheDocument();
     expect(screen.queryByText('service2')).toBeNull();
     await user.hover(screen.getByTestId('popover2'));
     expect(
-      await screen.findByText('Error: component:default/service2 not found'),
+      await screen.findByText('component:default/service2 not found'),
     ).toBeInTheDocument();
   });
 });
