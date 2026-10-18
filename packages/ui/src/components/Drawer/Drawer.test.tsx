@@ -93,6 +93,36 @@ describe('Drawer', () => {
     });
   });
 
+  it('supports top and bottom placements sized by height', async () => {
+    const { rerender } = render(
+      <Drawer isOpen placement="bottom" height={320}>
+        {drawerContent}
+      </Drawer>,
+    );
+
+    await screen.findByRole('dialog');
+    expect(document.querySelector('.bui-DrawerOverlay')).toHaveAttribute(
+      'data-placement',
+      'bottom',
+    );
+    expect(document.querySelector('.bui-Drawer')).toHaveStyle({
+      '--bui-drawer-height': '320px',
+    });
+
+    rerender(
+      <Drawer isOpen placement="top" height="40vh">
+        {drawerContent}
+      </Drawer>,
+    );
+    expect(document.querySelector('.bui-DrawerOverlay')).toHaveAttribute(
+      'data-placement',
+      'top',
+    );
+    expect(document.querySelector('.bui-Drawer')).toHaveStyle({
+      '--bui-drawer-height': '40vh',
+    });
+  });
+
   it('keeps the page interactive when non-modal and respects isDismissable', async () => {
     const Controlled = () => {
       const [isOpen, setIsOpen] = useState(true);

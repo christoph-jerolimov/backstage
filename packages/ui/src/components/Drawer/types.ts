@@ -32,18 +32,28 @@ export type DrawerOwnProps = {
   children?: ReactNode;
   className?: string;
   /**
-   * The edge of the viewport the drawer slides in from.
+   * The edge of the viewport the drawer slides in from. A left or right
+   * drawer takes the full height of the viewport, a top or bottom drawer
+   * takes its full width.
    *
    * @defaultValue 'right'
    */
-  placement?: 'left' | 'right';
+  placement?: 'left' | 'right' | 'top' | 'bottom';
   /**
-   * The width of the drawer, in pixels (number) or CSS units (string).
-   * The drawer never grows wider than the viewport.
+   * The width of a left or right drawer, in pixels (number) or CSS units
+   * (string). The drawer never grows wider than the viewport. Ignored for
+   * top and bottom drawers, which always span the full viewport width.
    *
    * @defaultValue 400
    */
   width?: number | string;
+  /**
+   * The height of a top or bottom drawer, in pixels (number) or CSS units
+   * (string). By default the drawer grows with its content, up to the full
+   * viewport height. Ignored for left and right drawers, which always span
+   * the full viewport height.
+   */
+  height?: number | string;
   /**
    * Whether the drawer is non-modal. A non-modal drawer has no backdrop, does
    * not trap focus and does not block scrolling, so the rest of the page stays

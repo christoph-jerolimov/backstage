@@ -40,6 +40,7 @@ export const DrawerDefinition = defineComponent<DrawerOwnProps>()({
     className: {},
     placement: { dataAttribute: true, default: 'right' },
     width: {},
+    height: {},
     isNonModal: { dataAttribute: true, default: false },
     hideBackdrop: { dataAttribute: true, default: false },
     isDismissable: { default: true },

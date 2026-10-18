@@ -34,16 +34,24 @@ export const drawerPropDefs: Record<string, PropDef> = {
   },
   placement: {
     type: 'enum',
-    values: ['left', 'right'],
+    values: ['left', 'right', 'top', 'bottom'],
     default: 'right',
-    description: 'The edge of the viewport the drawer slides in from.',
+    description:
+      'The edge of the viewport the drawer slides in from. Left and right drawers take the full viewport height, top and bottom drawers take the full viewport width.',
   },
   width: {
     type: 'enum',
     values: ['number', 'string'],
     default: '400',
     description:
-      'Width in pixels (number) or CSS units (string). The drawer never grows wider than the viewport.',
+      'Width of a left or right drawer in pixels (number) or CSS units (string). The drawer never grows wider than the viewport.',
+  },
+  height: {
+    type: 'enum',
+    values: ['number', 'string'],
+    default: 'auto',
+    description:
+      'Height of a top or bottom drawer in pixels (number) or CSS units (string). The drawer never grows taller than the viewport.',
   },
   isNonModal: {
     type: 'boolean',

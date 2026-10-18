@@ -552,7 +552,6 @@ export const techdocsTranslationRef: TranslationRef<
     readonly 'home.supportButton': 'Discover documentation in your ecosystem.';
     readonly 'aboutCard.viewTechdocs': 'View TechDocs';
     readonly 'buildLogs.title': 'Build Details';
-    readonly 'buildLogs.closeDrawer': 'Close the drawer';
     readonly 'buildLogs.showBuildLogs': 'Show Build Logs';
     readonly 'buildLogs.waitingForLogs': 'Waiting for logs...';
     readonly 'stateIndicator.initialBuild.message': 'Documentation is accessed for the first time and is being prepared. The subsequent loads are much faster.';

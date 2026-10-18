@@ -15,16 +15,21 @@
  */
 
 import { ReactNode, useState } from 'react';
-import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
-import Drawer from '@material-ui/core/Drawer';
 import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { Theme, useTheme } from '@material-ui/core/styles';
 import FilterListIcon from '@material-ui/icons/FilterList';
+import { Drawer, DrawerBody, DrawerHeader } from '@backstage/ui';
 import { catalogReactTranslationRef } from '../../translation';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
+
+/**
+ * Material UI renders menus, popovers and dialogs in portals outside of the
+ * drawer. Interacting with them must not dismiss the drawer.
+ */
+const isOutsideMaterialUiPopup = (element: Element) =>
+  !element.closest('[role="presentation"]');
 
 /** @public */
 export const Filters = (props: {
@@ -53,23 +58,14 @@ export const Filters = (props: {
         {t('catalogFilter.buttonTitle')}
       </Button>
       <Drawer
-        open={filterDrawerOpen}
-        onClose={() => setFilterDrawerOpen(false)}
-        anchor={props.options?.drawerAnchor ?? 'left'}
-        disableAutoFocus
-        keepMounted
-        variant="temporary"
+        isOpen={filterDrawerOpen}
+        onOpenChange={setFilterDrawerOpen}
+        placement={props.options?.drawerAnchor ?? 'left'}
+        isNonModal
+        shouldCloseOnInteractOutside={isOutsideMaterialUiPopup}
       >
-        <Box m={2}>
-          <Typography
-            variant="h6"
-            component="h2"
-            style={{ marginBottom: theme.spacing(1) }}
-          >
-            {t('catalogFilter.title')}
-          </Typography>
-          {props.children}
-        </Box>
+        <DrawerHeader>{t('catalogFilter.title')}</DrawerHeader>
+        <DrawerBody>{props.children}</DrawerBody>
       </Drawer>
     </>
   ) : (

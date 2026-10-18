@@ -41,6 +41,16 @@ export const drawerPlacementSnippet = `<DrawerTrigger>
   </Drawer>
 </DrawerTrigger>`;
 
+export const drawerBottomSnippet = `<DrawerTrigger>
+  <Button variant="secondary">Open from the bottom</Button>
+  <Drawer placement="bottom" height={320}>
+    <DrawerHeader>Bottom sheet</DrawerHeader>
+    <DrawerBody>
+      ...
+    </DrawerBody>
+  </Drawer>
+</DrawerTrigger>`;
+
 export const drawerHiddenBackdropSnippet = `<DrawerTrigger>
   <Button variant="secondary">Open Drawer</Button>
   <Drawer hideBackdrop>

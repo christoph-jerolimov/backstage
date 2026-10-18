@@ -37,49 +37,35 @@ describe('<TechDocsBuildLogs />', () => {
     expect(rendered.queryByText(/Build Details/i)).not.toBeInTheDocument();
   });
 
-  it('should open drawer', async () => {
+  it('should open and close the drawer', async () => {
     const rendered = await renderInTestApp(<TechDocsBuildLogs buildLog={[]} />);
     await userEvent.click(rendered.getByText(/Show Build Logs/i));
-    expect(rendered.getByText(/Build Details/i)).toBeInTheDocument();
+    expect(
+      await rendered.findByRole('dialog', { name: /Build Details/i }),
+    ).toBeInTheDocument();
+
+    await userEvent.click(rendered.getByRole('button', { name: 'Close' }));
+    expect(rendered.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 
 describe('<TechDocsBuildLogsDrawerContent />', () => {
   it('should render with empty log', async () => {
-    const onClose = jest.fn();
     const rendered = await renderInTestApp(
-      <TechDocsBuildLogsDrawerContent buildLog={[]} onClose={onClose} />,
+      <TechDocsBuildLogsDrawerContent buildLog={[]} />,
     );
     expect(rendered.getByText(/Build Details/i)).toBeInTheDocument();
     expect(
       await rendered.findByText(/Waiting for logs.../i),
     ).toBeInTheDocument();
-
-    expect(onClose).toHaveBeenCalledTimes(0);
   });
 
   it('should render logs', async () => {
-    const onClose = jest.fn();
     const rendered = await renderInTestApp(
-      <TechDocsBuildLogsDrawerContent
-        buildLog={['Line 1', 'Line 2']}
-        onClose={onClose}
-      />,
+      <TechDocsBuildLogsDrawerContent buildLog={['Line 1', 'Line 2']} />,
     );
     expect(rendered.getByText(/Build Details/i)).toBeInTheDocument();
     expect(await rendered.findByText(/Line 1/i)).toBeInTheDocument();
     expect(await rendered.findByText(/Line 2/i)).toBeInTheDocument();
-
-    expect(onClose).toHaveBeenCalledTimes(0);
-  });
-
-  it('should call onClose', async () => {
-    const onClose = jest.fn();
-    const rendered = await renderInTestApp(
-      <TechDocsBuildLogsDrawerContent buildLog={[]} onClose={onClose} />,
-    );
-    rendered.getByTitle('Close the drawer').click();
-
-    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

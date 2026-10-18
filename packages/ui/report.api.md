@@ -1987,6 +1987,7 @@ export const DrawerDefinition: {
       readonly default: 'right';
     };
     readonly width: {};
+    readonly height: {};
     readonly isNonModal: {
       readonly dataAttribute: true;
       readonly default: false;
@@ -2067,8 +2068,9 @@ export interface DrawerHeaderProps
 export type DrawerOwnProps = {
   children?: ReactNode;
   className?: string;
-  placement?: 'left' | 'right';
+  placement?: 'left' | 'right' | 'top' | 'bottom';
   width?: number | string;
+  height?: number | string;
   isNonModal?: boolean;
   hideBackdrop?: boolean;
   isDismissable?: boolean;

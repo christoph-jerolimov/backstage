@@ -47,6 +47,21 @@ export const PreviewPlacement = () => (
   </DrawerTrigger>
 );
 
+export const PreviewBottom = () => (
+  <DrawerTrigger>
+    <Button variant="secondary">Open from the bottom</Button>
+    <Drawer placement="bottom" height={320}>
+      <DrawerHeader>Bottom sheet</DrawerHeader>
+      <DrawerBody>
+        <Text>
+          Top and bottom drawers span the full width of the viewport and are
+          sized with the height prop.
+        </Text>
+      </DrawerBody>
+    </Drawer>
+  </DrawerTrigger>
+);
+
 export const PreviewHiddenBackdrop = () => (
   <DrawerTrigger>
     <Button variant="secondary">Open Drawer</Button>

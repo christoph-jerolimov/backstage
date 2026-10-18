@@ -4,6 +4,7 @@ import { CodeBlock } from '@/components/CodeBlock';
 import {
   Default,
   PreviewPlacement,
+  PreviewBottom,
   PreviewHiddenBackdrop,
   PreviewNonModal,
 } from './components';
@@ -18,6 +19,7 @@ import {
   drawerUsageSnippet,
   drawerDefaultSnippet,
   drawerPlacementSnippet,
+  drawerBottomSnippet,
   drawerHiddenBackdropSnippet,
   drawerNonModalSnippet,
   drawerWithNoTriggerSnippet,
@@ -36,7 +38,7 @@ export const reactAriaUrls = {
 
 <PageTitle
   title="Drawer"
-  description="A panel that slides in from the left or right edge of the viewport, with header, body, and footer sections."
+  description="A panel that slides in from an edge of the viewport, with header, body, and footer sections."
 />
 
 <Snippet
@@ -98,16 +100,26 @@ If you want to close the drawer while pressing a button, you can use the `slot="
 
 ## Examples
 
-### Placement and width
+### Placement and size
 
-Use `placement` to open the drawer from the left edge, and `width` to size it.
-The drawer always takes the full height of the viewport.
+Use `placement` to pick the edge the drawer slides in from. A left or right
+drawer takes the full height of the viewport and is sized with `width`.
 
 <Snippet
   align="center"
   py={4}
   preview={<PreviewPlacement />}
   code={drawerPlacementSnippet}
+/>
+
+A top or bottom drawer takes the full width of the viewport and is sized with
+`height`. Without a `height` it grows with its content.
+
+<Snippet
+  align="center"
+  py={4}
+  preview={<PreviewBottom />}
+  code={drawerBottomSnippet}
 />
 
 ### Hidden backdrop

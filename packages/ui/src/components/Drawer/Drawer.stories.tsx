@@ -39,7 +39,12 @@ const meta = preview.meta({
   argTypes: {
     isOpen: { control: 'boolean' },
     defaultOpen: { control: 'boolean' },
-    placement: { control: 'select', options: ['left', 'right'] },
+    placement: {
+      control: 'select',
+      options: ['left', 'right', 'top', 'bottom'],
+    },
+    width: { control: 'text' },
+    height: { control: 'text' },
     isNonModal: { control: 'boolean' },
     hideBackdrop: { control: 'boolean' },
     isDismissable: { control: 'boolean' },
@@ -97,6 +102,19 @@ export const Open = Default.extend({
 export const PlacementLeft = Open.extend({
   args: {
     placement: 'left',
+  },
+});
+
+export const PlacementTop = Open.extend({
+  args: {
+    placement: 'top',
+  },
+});
+
+export const PlacementBottom = Open.extend({
+  args: {
+    placement: 'bottom',
+    height: 320,
   },
 });
 

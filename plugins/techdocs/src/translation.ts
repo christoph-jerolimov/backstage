@@ -25,7 +25,6 @@ export const techdocsTranslationRef = createTranslationRef({
     },
     buildLogs: {
       title: 'Build Details',
-      closeDrawer: 'Close the drawer',
       showBuildLogs: 'Show Build Logs',
       waitingForLogs: 'Waiting for logs...',
     },

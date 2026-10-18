@@ -128,11 +128,12 @@ const toCssSize = (value: number | string | undefined) =>
   typeof value === 'number' ? `${value}px` : value;
 
 /**
- * A panel that slides in from the left or right edge of the viewport. A modal drawer blocks the page behind it until it closes, while a non-modal drawer leaves the page interactive.
+ * A panel that slides in from an edge of the viewport. A modal drawer blocks the page behind it until it closes, while a non-modal drawer leaves the page interactive.
  *
  * @remarks
- * Use `placement` to pick the edge the drawer slides in from and `width` to
- * size it; the drawer always takes the full height of the viewport.
+ * Use `placement` to pick the edge the drawer slides in from. A left or right
+ * drawer takes the full viewport height and is sized with `width`; a top or
+ * bottom drawer takes the full viewport width and is sized with `height`.
  *
  * By default the drawer is modal: it shows a backdrop, traps focus, and closes
  * when the user clicks outside of it or presses Escape. Set `hideBackdrop` to
@@ -173,12 +174,25 @@ export const Drawer = forwardRef<React.ElementRef<typeof Modal>, DrawerProps>(
       props,
       { classNameTarget: 'container' },
     );
-    const { classes, children, width, isNonModal, isDismissable, style } =
-      ownProps;
+    const {
+      classes,
+      children,
+      width,
+      height,
+      isNonModal,
+      isDismissable,
+      style,
+    } = ownProps;
 
     const containerStyle = {
       ['--bui-drawer-width' as keyof React.CSSProperties]:
         toCssSize(width) || '400px',
+      ...(height
+        ? {
+            ['--bui-drawer-height' as keyof React.CSSProperties]:
+              toCssSize(height),
+          }
+        : {}),
       ...style,
     };
 

@@ -15,13 +15,9 @@
  */
 
 import { useElementFilter } from '@backstage/core-plugin-api';
+import { Drawer, DrawerBody, DrawerHeader } from '@backstage/ui';
 import BottomNavigation from '@material-ui/core/BottomNavigation';
-import Box from '@material-ui/core/Box';
-import IconButton from '@material-ui/core/IconButton';
 import { Theme, makeStyles } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
-import Typography from '@material-ui/core/Typography';
-import CloseIcon from '@material-ui/icons/Close';
 import MenuIcon from '@material-ui/icons/Menu';
 import { orderBy } from 'lodash';
 import {
@@ -74,30 +70,22 @@ const useStyles = makeStyles<Theme, { sidebarConfig: SidebarConfig }>(
       },
     },
 
+    // The overlay menu keeps the sidebar colors and leaves room for the
+    // bottom navigation below it.
     overlay: props => ({
-      background: theme.palette.navigation.background,
-      width: '100%',
-      bottom: `${props.sidebarConfig.mobileSidebarHeight}px`,
-      height: `calc(100% - ${props.sidebarConfig.mobileSidebarHeight}px)`,
-      flex: '0 1 auto',
-      overflow: 'auto',
-    }),
-
-    overlayHeader: {
-      display: 'flex',
+      '--bui-fg-primary': theme.palette.navigation.color,
+      '--bui-fg-secondary': theme.palette.navigation.color,
+      backgroundColor: theme.palette.navigation.background,
       color: theme.palette.navigation.color,
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: theme.spacing(2, 3),
-    },
-
-    overlayHeaderClose: {
-      color: theme.palette.navigation.color,
-    },
-
-    marginMobileSidebar: props => ({
       marginBottom: `${props.sidebarConfig.mobileSidebarHeight}px`,
+      '& [data-bg]': {
+        backgroundColor: 'transparent',
+      },
     }),
+
+    overlayBody: {
+      padding: 0,
+    },
   }),
 );
 
@@ -121,27 +109,20 @@ const OverlayMenu = ({
 
   return (
     <Drawer
-      anchor="bottom"
-      open={open}
-      onClose={onClose}
-      ModalProps={{
-        BackdropProps: { classes: { root: classes.marginMobileSidebar } },
-      }}
-      classes={{
-        root: classes.marginMobileSidebar,
-        paperAnchorBottom: classes.overlay,
+      placement="bottom"
+      height={`calc(100% - ${sidebarConfig.mobileSidebarHeight}px)`}
+      className={classes.overlay}
+      isOpen={open}
+      onOpenChange={isOpen => {
+        if (!isOpen) {
+          onClose();
+        }
       }}
     >
-      <Box className={classes.overlayHeader}>
-        <Typography variant="h3">{label}</Typography>
-        <IconButton
-          onClick={onClose}
-          classes={{ root: classes.overlayHeaderClose }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </Box>
-      <Box component="nav">{children}</Box>
+      <DrawerHeader>{label}</DrawerHeader>
+      <DrawerBody className={classes.overlayBody}>
+        <nav>{children}</nav>
+      </DrawerBody>
     </Drawer>
   );
 };

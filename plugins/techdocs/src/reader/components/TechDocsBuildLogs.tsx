@@ -15,33 +15,15 @@
  */
 
 import { LogViewer } from '@backstage/core-components';
+import { Drawer, DrawerBody, DrawerHeader } from '@backstage/ui';
 import Button from '@material-ui/core/Button';
-import Drawer from '@material-ui/core/Drawer';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-import Close from '@material-ui/icons/Close';
 import { useState } from 'react';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { techdocsTranslationRef } from '../../translation';
 
 const useDrawerStyles = makeStyles((theme: Theme) =>
   createStyles({
-    paper: {
-      width: '100%',
-      [theme.breakpoints.up('sm')]: {
-        width: '75%',
-      },
-      [theme.breakpoints.up('md')]: {
-        width: '50%',
-      },
-      padding: theme.spacing(2.5),
-    },
-    root: {
-      height: '100%',
-      overflow: 'hidden',
-    },
     logs: {
       background: theme.palette.background.default,
     },
@@ -50,50 +32,24 @@ const useDrawerStyles = makeStyles((theme: Theme) =>
 
 export const TechDocsBuildLogsDrawerContent = ({
   buildLog,
-  onClose,
 }: {
   buildLog: string[];
-  onClose: () => void;
 }) => {
   const classes = useDrawerStyles();
   const { t } = useTranslationRef(techdocsTranslationRef);
   const logText =
     buildLog.length === 0 ? t('buildLogs.waitingForLogs') : buildLog.join('\n');
   return (
-    <Grid
-      container
-      direction="column"
-      className={classes.root}
-      spacing={0}
-      wrap="nowrap"
-    >
-      <Grid
-        item
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        spacing={0}
-        wrap="nowrap"
-      >
-        <Typography variant="h5">{t('buildLogs.title')}</Typography>
-        <IconButton
-          key="dismiss"
-          title={t('buildLogs.closeDrawer')}
-          onClick={onClose}
-          color="inherit"
-        >
-          <Close />
-        </IconButton>
-      </Grid>
-      <Grid item xs>
+    <>
+      <DrawerHeader>{t('buildLogs.title')}</DrawerHeader>
+      <DrawerBody>
         <LogViewer text={logText} classes={{ root: classes.logs }} />
-      </Grid>
-    </Grid>
+      </DrawerBody>
+    </>
   );
 };
 
 export const TechDocsBuildLogs = ({ buildLog }: { buildLog: string[] }) => {
-  const classes = useDrawerStyles();
   const [open, setOpen] = useState(false);
   const { t } = useTranslationRef(techdocsTranslationRef);
 
@@ -102,16 +58,8 @@ export const TechDocsBuildLogs = ({ buildLog }: { buildLog: string[] }) => {
       <Button color="inherit" onClick={() => setOpen(true)}>
         {t('buildLogs.showBuildLogs')}
       </Button>
-      <Drawer
-        classes={{ paper: classes.paper }}
-        anchor="right"
-        open={open}
-        onClose={() => setOpen(false)}
-      >
-        <TechDocsBuildLogsDrawerContent
-          buildLog={buildLog}
-          onClose={() => setOpen(false)}
-        />
+      <Drawer isOpen={open} onOpenChange={setOpen} width="max(50%, 360px)">
+        <TechDocsBuildLogsDrawerContent buildLog={buildLog} />
       </Drawer>
     </>
   );
