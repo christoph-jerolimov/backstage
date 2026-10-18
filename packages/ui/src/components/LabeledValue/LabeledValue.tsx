@@ -115,15 +115,14 @@ export const LabeledValue = forwardRef<HTMLDivElement, LabeledValueProps>(
         {...dataAttributes}
         {...restProps}
       >
-        <div className={classes.label}>
-          {typeof label === 'string' ? (
-            <Text as="span" variant="body-medium" color="secondary">
-              {label}
-            </Text>
-          ) : (
-            label
-          )}
-        </div>
+        <Text
+          as="div"
+          variant="body-medium"
+          color="secondary"
+          className={classes.label}
+        >
+          {label}
+        </Text>
         <div className={classes.value}>{content}</div>
       </div>
     );

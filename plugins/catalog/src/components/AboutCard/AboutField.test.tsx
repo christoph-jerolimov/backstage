@@ -18,27 +18,29 @@ import { renderInTestApp } from '@backstage/test-utils';
 import { screen } from '@testing-library/react';
 import { AboutField } from './AboutField';
 
-// jsdom does not apply the plugin's style sheet over MUI's own in
-// getComputedStyle, so the assertion reads the margin declared by the
-// component's own class instead of the computed value.
-function marginBottomDeclaredByOwnClass(element: Element): string | undefined {
-  const ownClasses = Array.from(element.classList)
-    .filter(cls => !cls.startsWith('Mui'))
-    .map(cls => `.${cls}`);
-  return Array.from(document.styleSheets)
-    .flatMap(sheet => Array.from(sheet.cssRules))
-    .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
-    .filter(rule => ownClasses.includes(rule.selectorText))
-    .map(rule => rule.style.marginBottom)
-    .find(Boolean);
-}
-
 describe('<AboutField />', () => {
-  it('keeps a gap between the label and its value', async () => {
-    await renderInTestApp(<AboutField label="Owner" value="team-a" />);
-
-    expect(marginBottomDeclaredByOwnClass(screen.getByText('Owner'))).toBe(
-      '8px',
+  it('renders the label above the value, children or an unknown fallback', async () => {
+    const { rerender } = await renderInTestApp(
+      <AboutField label="Owner" value="team-a" className="custom" />,
     );
+
+    const label = screen.getByText('Owner');
+    expect(label).toBeInTheDocument();
+    expect(label.nextSibling).toHaveTextContent('team-a');
+    expect(label.parentElement).toHaveAttribute('data-variant', 'vertical');
+    expect(label.parentElement).toHaveClass('custom');
+
+    rerender(
+      <AboutField label="Owner" value="ignored">
+        <a href="/team-a">team-a link</a>
+      </AboutField>,
+    );
+    expect(
+      screen.getByRole('link', { name: 'team-a link' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('ignored')).not.toBeInTheDocument();
+
+    rerender(<AboutField label="Owner" />);
+    expect(screen.getByText('Owner').nextSibling).toHaveTextContent('unknown');
   });
 });

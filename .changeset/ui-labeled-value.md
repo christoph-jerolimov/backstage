@@ -13,4 +13,6 @@ Added the `LabeledValue` component for displaying a value together with a label 
 </LabeledValue>
 ```
 
-**Affected components:** LabeledValue
+The `Header` component now renders its metadata items with `LabeledValue`. The metadata row is rendered as a plain `div` container instead of a `dl` list, and each item is a `LabeledValue` carrying the `bui-HeaderMetaItem` class.
+
+**Affected components:** LabeledValue, Header

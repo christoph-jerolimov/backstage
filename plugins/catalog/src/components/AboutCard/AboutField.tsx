@@ -15,30 +15,10 @@
  */
 
 import { useElementFilter } from '@backstage/core-plugin-api';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import { LabeledValue } from '@backstage/ui';
 import { ReactNode } from 'react';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { catalogTranslationRef } from '../../alpha/translation';
-
-const useStyles = makeStyles(theme => ({
-  value: {
-    fontWeight: 'bold',
-    overflow: 'hidden',
-    lineHeight: '24px',
-    wordBreak: 'break-word',
-  },
-  label: {
-    color: theme.palette.text.secondary,
-    textTransform: 'uppercase',
-    fontSize: '10px',
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    marginBottom: theme.spacing(1),
-  },
-}));
 
 /**
  * Props for {@link AboutField}.
@@ -55,26 +35,17 @@ export interface AboutFieldProps {
 /** @public */
 export function AboutField(props: AboutFieldProps) {
   const { label, value, children, className } = props;
-  const classes = useStyles();
   const { t } = useTranslationRef(catalogTranslationRef);
 
   const childElements = useElementFilter(children, c => c.getElements());
 
   // Content is either children or a string prop `value`
   const content =
-    childElements.length > 0 ? (
-      childElements
-    ) : (
-      <Typography variant="body2" className={classes.value}>
-        {value || t('aboutCard.unknown')}
-      </Typography>
-    );
+    childElements.length > 0 ? childElements : value || t('aboutCard.unknown');
+
   return (
-    <div className={className}>
-      <Typography variant="inherit" component="h2" className={classes.label}>
-        {label}
-      </Typography>
+    <LabeledValue variant="vertical" label={label} className={className}>
       {content}
-    </div>
+    </LabeledValue>
   );
 }

@@ -213,15 +213,4 @@
     flex-wrap: wrap;
     margin: 0;
   }
-
-  .bui-HeaderMetaItem {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: var(--bui-space-2);
-
-    dd {
-      margin: 0;
-    }
-  }
 }

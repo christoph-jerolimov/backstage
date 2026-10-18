@@ -23,7 +23,7 @@
 
     &[data-variant='horizontal'] {
       flex-direction: row;
-      align-items: baseline;
+      align-items: center;
       gap: var(--bui-space-2);
     }
 

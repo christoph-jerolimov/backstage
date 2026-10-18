@@ -16,6 +16,7 @@
 
 import type { HeaderProps } from './types';
 import { Text } from '../Text';
+import { LabeledValue } from '../LabeledValue';
 import { RiArrowRightSLine } from '@remixicon/react';
 import { HeaderNav } from './HeaderNav';
 import { useDefinition } from '../../hooks/useDefinition';
@@ -261,24 +262,17 @@ export const Header = (props: HeaderProps) => {
           </Text>
         )}
         {metadata && metadata.length > 0 && (
-          <dl className={classes.metaRow}>
+          <div className={classes.metaRow}>
             {metadata.map((item, i) => (
-              <div key={`${i}:${item.label}`} className={classes.metaItem}>
-                <dt>
-                  <Text variant="body-medium" color="secondary">
-                    {item.label}
-                  </Text>
-                </dt>
-                <dd>
-                  {typeof item.value === 'string' ? (
-                    <Text variant="body-medium">{item.value}</Text>
-                  ) : (
-                    item.value
-                  )}
-                </dd>
-              </div>
+              <LabeledValue
+                key={`${i}:${item.label}`}
+                className={classes.metaItem}
+                label={item.label}
+              >
+                {item.value}
+              </LabeledValue>
             ))}
-          </dl>
+          </div>
         )}
         {tabs && (
           <div className={classes.tabsWrapper}>
