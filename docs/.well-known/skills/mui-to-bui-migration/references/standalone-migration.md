@@ -47,7 +47,7 @@ Done when: the target has the required dependencies and the app loads BUI styles
 - `Accordion` - Collapsible content panels (`Accordion`, `AccordionTrigger`, `AccordionPanel`, `AccordionGroup`)
 - `Alert` - Alert/notification banners (`status`, `title`, `description`)
 - `Avatar` - User/entity avatars
-- `Badge` - Inline badge/label with optional icon (`size`, `icon`)
+- `Badge` - Inline badge/label with optional icon and status colors (`size`, `icon`, `status`, `isPending`)
 - `Button` - Action buttons (`variant="primary"`, `variant="secondary"`, `variant="tertiary"`, `isDisabled`, `destructive`, `loading`)
 - `ButtonIcon` - Icon-only buttons (`icon`, `onPress`, `variant`)
 - `ButtonLink` - Link styled as button
@@ -604,7 +604,7 @@ Status mapping: `severity="error"` → `status="danger"`, `severity="warning"` �
 `severity="info"` → `status="info"`, `severity="success"` → `status="success"`.
 
 Set `icon` to `true` for automatic status icons, or pass a custom `ReactElement`.
-Use `loading` for a loading spinner, and `customActions` for action buttons.
+Use `isPending` for a loading spinner, and `customActions` for action buttons.
 
 ### 15. Icons: MUI icons to Remix icons
 
@@ -807,6 +807,49 @@ import { Badge } from '@backstage/ui';
 
 <Badge>New</Badge>;
 ```
+
+#### Status indicators to Badge
+
+The `StatusOK`, `StatusWarning`, `StatusError`, `StatusPending`, `StatusRunning`,
+and `StatusAborted` components from `@backstage/core-components` render a colored
+status icon next to a label. Replace them with a BUI `Badge` and the `status` and
+`isPending` props.
+
+**Before (core-components Status):**
+
+```tsx
+import { StatusOK, StatusError, StatusRunning } from '@backstage/core-components';
+
+<StatusOK>Deployed</StatusOK>
+<StatusError>Failed</StatusError>
+<StatusRunning>Deploying</StatusRunning>
+```
+
+**After (BUI Badge):**
+
+```tsx
+import { Badge } from '@backstage/ui';
+
+<Badge status="success">Deployed</Badge>
+<Badge status="danger">Failed</Badge>
+<Badge status="info" isPending>Deploying</Badge>
+```
+
+Status mapping:
+
+| core-components | BUI Badge                        |
+| --------------- | -------------------------------- |
+| `StatusOK`      | `status="success"`               |
+| `StatusWarning` | `status="warning"`               |
+| `StatusError`   | `status="danger"`                |
+| `StatusPending` | `isPending` (no `status`)        |
+| `StatusRunning` | `status="info"` with `isPending` |
+| `StatusAborted` | no `status` (neutral colors)     |
+
+`isPending` shows an animated spinner before the label and replaces the `icon`
+while pending. The Status components set an `aria-label` such as `Status ok`;
+BUI `Badge` does not, so add one when the label text alone does not convey the
+status.
 
 ### 21. Slider
 

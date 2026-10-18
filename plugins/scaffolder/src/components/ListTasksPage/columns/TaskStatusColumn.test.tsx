@@ -15,23 +15,30 @@
  */
 
 import { renderInTestApp } from '@backstage/test-utils';
+import { screen } from '@testing-library/react';
 
 import { TaskStatusColumn } from './TaskStatusColumn';
 
 describe('<TaskStatusColumn />', () => {
-  it.each(['processing', 'error', 'completed'])(
-    'should render the column with the status %s',
-    async status => {
-      const props = {
-        status: status,
-      };
+  it.each([
+    ['open', null, true],
+    ['processing', 'info', true],
+    ['completed', 'success', false],
+    ['cancelled', 'warning', false],
+    ['failed', 'danger', false],
+    ['skipped', null, false],
+    ['unknown', null, false],
+  ])(
+    'should render the status %s as a badge',
+    async (status, badgeStatus, isPending) => {
+      await renderInTestApp(<TaskStatusColumn status={status} />);
 
-      const { getByText } = await renderInTestApp(
-        <TaskStatusColumn {...props} />,
-      );
-
-      const text = getByText(status);
-      expect(text).toBeDefined();
+      const badge = screen.getByText(status);
+      expect(badge).toHaveClass('bui-Badge');
+      expect(badge.getAttribute('data-status')).toBe(badgeStatus);
+      expect(
+        screen.queryByRole('progressbar', { name: 'Loading' }) !== null,
+      ).toBe(isPending);
     },
   );
 });

@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  StatusError,
-  StatusOK,
-  StatusPending,
-} from '@backstage/core-components';
+import { Badge } from '@backstage/ui';
 
 export const TaskStatusColumn = ({ status }: { status: string }) => {
   switch (status) {
+    case 'open':
+      return <Badge isPending>{status}</Badge>;
     case 'processing':
-      return <StatusPending>{status}</StatusPending>;
+      return (
+        <Badge status="info" isPending>
+          {status}
+        </Badge>
+      );
     case 'completed':
-      return <StatusOK>{status}</StatusOK>;
+      return <Badge status="success">{status}</Badge>;
+    case 'cancelled':
+      return <Badge status="warning">{status}</Badge>;
+    case 'failed':
     case 'error':
+      return <Badge status="danger">{status}</Badge>;
+    case 'skipped':
     default:
-      return <StatusError>{status}</StatusError>;
+      return <Badge>{status}</Badge>;
   }
 };
