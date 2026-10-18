@@ -31,6 +31,7 @@ import { Flex } from '../Flex';
 import { Text } from '../Text';
 import { TextField } from '../TextField';
 import { Select } from '../Select';
+import { RiCheckLine, RiCloseLine, RiLoader4Line } from '@remixicon/react';
 
 const meta = preview.meta({
   title: 'Backstage UI/Stepper',
@@ -285,6 +286,37 @@ export const CustomStepContent = meta.story({
         <Review />
       </StepPanel>
       <Navigation />
+    </Stepper>
+  ),
+});
+
+export const StatusIndicators = meta.story({
+  args: {
+    isReadOnly: true,
+  },
+  render: args => (
+    <Stepper {...args} selectedKey="deploy" lastCompletedStep="test">
+      <StepList aria-label="Pipeline">
+        <Step
+          id="build"
+          title="Build"
+          description="2 minutes"
+          indicator={<RiCheckLine />}
+        />
+        <Step
+          id="test"
+          title="Test"
+          description="Failed"
+          indicator={<RiCloseLine />}
+        />
+        <Step
+          id="deploy"
+          title="Deploy"
+          description="Running"
+          indicator={<RiLoader4Line />}
+        />
+        <Step id="verify" title="Verify" />
+      </StepList>
     </Stepper>
   ),
 });

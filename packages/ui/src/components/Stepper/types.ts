@@ -132,6 +132,11 @@ export type StepOwnProps = {
    */
   description?: ReactNode;
   /**
+   * Custom content for the step indicator, for example a status icon. Replaces
+   * the step number and the check mark of completed steps.
+   */
+  indicator?: ReactNode;
+  /**
    * Whether this step can be selected by the user.
    * @defaultValue false
    */

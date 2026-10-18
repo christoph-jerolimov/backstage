@@ -4022,6 +4022,7 @@ export const StepDefinition: {
     readonly id: {};
     readonly title: {};
     readonly description: {};
+    readonly indicator: {};
     readonly isDisabled: {
       readonly default: false;
     };
@@ -4065,6 +4066,7 @@ export type StepOwnProps = {
   id: Key;
   title?: ReactNode;
   description?: ReactNode;
+  indicator?: ReactNode;
   isDisabled?: boolean;
   children?: ReactNode;
   className?: string;

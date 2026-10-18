@@ -75,6 +75,7 @@ export const StepDefinition = defineComponent<StepOwnProps>()({
     id: {},
     title: {},
     description: {},
+    indicator: {},
     isDisabled: { default: false },
     children: {},
     className: {},

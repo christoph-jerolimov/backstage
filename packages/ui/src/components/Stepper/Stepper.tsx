@@ -394,7 +394,8 @@ StepList.displayName = 'StepList';
  */
 export const Step = forwardRef((props: StepProps, ref: Ref<HTMLLIElement>) => {
   const { ownProps, restProps } = useDefinition(StepDefinition, props);
-  const { classes, id, title, description, isDisabled, children } = ownProps;
+  const { classes, id, title, description, indicator, isDisabled, children } =
+    ownProps;
   const index = useContext(StepIndexContext);
   const { baseId } = useStepRegistry('Step');
   const {
@@ -422,10 +423,11 @@ export const Step = forwardRef((props: StepProps, ref: Ref<HTMLLIElement>) => {
     </span>
   );
 
-  const indicator = (
+  const indicatorElement = (
     <>
       <span className={classes.indicator} aria-hidden="true">
-        {isCompleted && !isSelected ? <RiCheckLine /> : index + 1}
+        {indicator ??
+          (isCompleted && !isSelected ? <RiCheckLine /> : index + 1)}
       </span>
       <VisuallyHidden>
         {isCompleted ? `Step ${index + 1}, completed. ` : `Step ${index + 1}. `}
@@ -451,7 +453,7 @@ export const Step = forwardRef((props: StepProps, ref: Ref<HTMLLIElement>) => {
           data-interactive={isSelectable || undefined}
           onPress={() => setSelectedKey(id)}
         >
-          {indicator}
+          {indicatorElement}
           {content}
         </RAButton>
       ) : (
@@ -461,7 +463,7 @@ export const Step = forwardRef((props: StepProps, ref: Ref<HTMLLIElement>) => {
           aria-current={isSelected ? 'step' : undefined}
           data-disabled={isTriggerDisabled || undefined}
         >
-          {indicator}
+          {indicatorElement}
           {content}
         </span>
       )}

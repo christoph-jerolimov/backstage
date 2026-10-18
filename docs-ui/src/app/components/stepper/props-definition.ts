@@ -98,6 +98,12 @@ export const stepPropDefs: Record<string, PropDef> = {
     values: ['ReactNode'],
     description: 'Optional secondary text displayed below the title.',
   },
+  indicator: {
+    type: 'enum',
+    values: ['ReactNode'],
+    description:
+      'Custom content for the step indicator, for example a status icon. Replaces the step number and the check mark of completed steps.',
+  },
   isDisabled: {
     type: 'boolean',
     default: 'false',

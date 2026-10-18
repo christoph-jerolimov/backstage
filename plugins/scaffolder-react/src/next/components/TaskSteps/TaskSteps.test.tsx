@@ -102,11 +102,11 @@ describe('TaskSteps', () => {
     ];
 
     const screen = await renderInTestApp(<TaskSteps steps={steps} />);
-    const stepLabels = await screen.findAllByTestId('step-label');
-    expect(stepLabels.length).toBe(steps.length);
+    const stepItems = await screen.findAllByRole('listitem');
+    expect(stepItems.length).toBe(steps.length);
     for (let i = 0; i < steps.length; i++) {
-      expect(stepLabels[i].textContent?.startsWith(steps[i].name)).toBe(true);
-      expect(stepLabels[i].textContent?.endsWith('seconds')).toBe(
+      expect(stepItems[i]).toHaveTextContent(steps[i].name);
+      expect(stepItems[i].textContent?.endsWith('seconds')).toBe(
         steps[i].status !== 'skipped' && !!steps[i].startedAt,
       );
     }

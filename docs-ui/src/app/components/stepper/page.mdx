@@ -19,6 +19,7 @@ import {
   disabledStepSnippet,
   controlledSnippet,
   customStepContentSnippet,
+  statusIndicatorsSnippet,
 } from './snippets';
 import {
   Default,
@@ -28,6 +29,7 @@ import {
   DisabledStep,
   Controlled,
   CustomStepContent,
+  StatusIndicators,
 } from './components';
 import { PageTitle } from '@/components/PageTitle';
 import { Theming } from '@/components/Theming';
@@ -157,6 +159,18 @@ Control the selected step with `selectedKey` and `onSelectionChange` to validate
   height={320}
   preview={<Controlled />}
   code={controlledSnippet}
+/>
+
+### Status indicators
+
+Use `indicator` to replace the step number with a custom icon, for example to show the status of each step of a long running task. Combine it with `isReadOnly` when the stepper only displays progress.
+
+<Snippet
+  align="center"
+  py={4}
+  height={160}
+  preview={<StatusIndicators />}
+  code={statusIndicatorsSnippet}
 />
 
 ### Custom step content

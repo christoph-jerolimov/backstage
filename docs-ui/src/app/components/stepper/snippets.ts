@@ -159,3 +159,27 @@ export const customStepContentSnippet = `<Stepper>
   </StepList>
   ...
 </Stepper>`;
+
+export const statusIndicatorsSnippet = `<Stepper isReadOnly selectedKey="deploy" lastCompletedStep="test">
+  <StepList aria-label="Pipeline">
+    <Step
+      id="build"
+      title="Build"
+      description="2 minutes"
+      indicator={<RiCheckLine />}
+    />
+    <Step
+      id="test"
+      title="Test"
+      description="Failed"
+      indicator={<RiCloseLine />}
+    />
+    <Step
+      id="deploy"
+      title="Deploy"
+      description="Running"
+      indicator={<RiLoader4Line />}
+    />
+    <Step id="verify" title="Verify" />
+  </StepList>
+</Stepper>`;

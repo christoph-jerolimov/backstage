@@ -15,6 +15,7 @@ import { Button } from '../../../../../packages/ui/src/components/Button/Button'
 import { Flex } from '../../../../../packages/ui/src/components/Flex/Flex';
 import { Text } from '../../../../../packages/ui/src/components/Text/Text';
 import { TextField } from '../../../../../packages/ui/src/components/TextField/TextField';
+import { RiCheckLine, RiCloseLine, RiLoader4Line } from '@remixicon/react';
 
 const DetailsForm = () => (
   <Flex direction="column" gap="4">
@@ -211,6 +212,34 @@ export const CustomStepContent = () => {
       </StepList>
       <Panels />
       <Navigation />
+    </Stepper>
+  );
+};
+
+export const StatusIndicators = () => {
+  return (
+    <Stepper isReadOnly selectedKey="deploy" lastCompletedStep="test">
+      <StepList aria-label="Pipeline">
+        <Step
+          id="build"
+          title="Build"
+          description="2 minutes"
+          indicator={<RiCheckLine />}
+        />
+        <Step
+          id="test"
+          title="Test"
+          description="Failed"
+          indicator={<RiCloseLine />}
+        />
+        <Step
+          id="deploy"
+          title="Deploy"
+          description="Running"
+          indicator={<RiLoader4Line />}
+        />
+        <Step id="verify" title="Verify" />
+      </StepList>
     </Stepper>
   );
 };

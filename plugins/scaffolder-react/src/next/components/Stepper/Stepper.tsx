@@ -23,11 +23,13 @@ import {
   TemplateParameterSchema,
 } from '@backstage/plugin-scaffolder-react';
 import { JsonValue } from '@backstage/types';
-import { Button } from '@backstage/ui';
+import {
+  Button,
+  Step,
+  StepList,
+  Stepper as StepperNavigation,
+} from '@backstage/ui';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import MuiStep from '@material-ui/core/Step';
-import MuiStepLabel from '@material-ui/core/StepLabel';
-import MuiStepper from '@material-ui/core/Stepper';
 import { makeStyles } from '@material-ui/core/styles';
 import { type IChangeEvent } from '@rjsf/core';
 import { ErrorSchema } from '@rjsf/utils';
@@ -260,32 +262,23 @@ export const Stepper = (stepperProps: StepperProps) => {
   return (
     <>
       {isValidating && <LinearProgress variant="indeterminate" />}
-      <MuiStepper
-        activeStep={activeStep}
-        alternativeLabel
-        variant="elevation"
-        style={{ overflowX: 'auto' }}
+      <StepperNavigation
+        selectedKey={activeStep}
+        lastCompletedStep={activeStep - 1}
+        onSelectionChange={key => {
+          const index = Number(key);
+          if (index < activeStep) {
+            setActiveStep(index);
+          }
+        }}
       >
-        {steps.map((step, index) => {
-          const isAllowedLabelClick = activeStep > index;
-          return (
-            <MuiStep key={index}>
-              <MuiStepLabel
-                aria-label={t('stepper.stepIndexLabel', { index: index + 1 })}
-                style={{ cursor: isAllowedLabelClick ? 'pointer' : 'default' }}
-                onClick={() => {
-                  if (isAllowedLabelClick) setActiveStep(index);
-                }}
-              >
-                {step.title}
-              </MuiStepLabel>
-            </MuiStep>
-          );
-        })}
-        <MuiStep>
-          <MuiStepLabel>{reviewLabel}</MuiStepLabel>
-        </MuiStep>
-      </MuiStepper>
+        <StepList>
+          {steps.map((step, index) => (
+            <Step key={index} id={index} title={step.title} />
+          ))}
+          <Step id={steps.length} title={reviewLabel} />
+        </StepList>
+      </StepperNavigation>
       <div className={styles.formWrapper} ref={formWrapperRef}>
         {/* eslint-disable-next-line no-nested-ternary */}
         {activeStep < steps.length ? (

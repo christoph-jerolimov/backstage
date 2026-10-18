@@ -13,18 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MuiStepper from '@material-ui/core/Stepper';
-import MuiStep from '@material-ui/core/Step';
-import MuiStepButton from '@material-ui/core/StepButton';
-import MuiStepLabel from '@material-ui/core/StepLabel';
-import { StepIconProps } from '@material-ui/core/StepIcon';
+import { Step, StepList, Stepper } from '@backstage/ui';
 import Box from '@material-ui/core/Box';
 import Paper from '@material-ui/core/Paper';
+import { makeStyles } from '@material-ui/core/styles';
+import classNames from 'classnames';
 import { TaskStep } from '@backstage/plugin-scaffolder-common';
 import { StepIcon } from './StepIcon';
 import { StepTime } from './StepTime';
 import { TaskBorder } from './TaskBorder';
 import { ScaffolderStep } from '@backstage/plugin-scaffolder-react';
+
+const useStyles = makeStyles(
+  theme => ({
+    completed: {
+      '& .bui-StepIndicator': {
+        color: theme.palette.common.white,
+        backgroundColor: theme.palette.status.ok,
+        borderColor: theme.palette.status.ok,
+      },
+    },
+    error: {
+      '& .bui-StepIndicator': {
+        color: theme.palette.common.white,
+        backgroundColor: theme.palette.status.error,
+        borderColor: theme.palette.status.error,
+      },
+    },
+  }),
+  { name: 'ScaffolderReactTaskSteps' },
+);
 
 /**
  * Props for the TaskSteps component
@@ -44,6 +62,15 @@ export interface TaskStepsProps {
  * @alpha
  */
 export const TaskSteps = (props: TaskStepsProps) => {
+  const classes = useStyles();
+  const { steps, activeStep = 0 } = props;
+
+  // Every step that has started counts as completed for the progress line,
+  // the indicator of each step shows its actual status.
+  const lastStartedStep = [...steps]
+    .reverse()
+    .find(step => step.status !== 'open');
+
   return (
     <Paper style={{ position: 'relative', overflow: 'hidden' }}>
       <TaskBorder
@@ -51,41 +78,32 @@ export const TaskSteps = (props: TaskStepsProps) => {
         isError={props.isError ?? false}
       />
       <Box padding={2}>
-        <MuiStepper
-          activeStep={props.activeStep}
-          alternativeLabel
-          variant="elevation"
-          style={{ overflowX: 'auto' }}
+        <Stepper
+          isReadOnly
+          selectedKey={steps[activeStep]?.id}
+          lastCompletedStep={lastStartedStep?.id ?? null}
         >
-          {props.steps.map(step => {
-            const isCompleted = step.status === 'completed';
-            const isFailed = step.status === 'failed';
-            const isActive = step.status === 'processing';
-            const isSkipped = step.status === 'skipped';
-            const stepIconProps: Partial<StepIconProps & { skipped: boolean }> =
-              {
-                completed: isCompleted,
-                error: isFailed,
-                active: isActive,
-                skipped: isSkipped,
-              };
-
-            return (
-              <MuiStep key={step.id}>
-                <MuiStepButton>
-                  <MuiStepLabel
-                    StepIconProps={stepIconProps}
-                    StepIconComponent={StepIcon}
-                    data-testid="step-label"
-                  >
-                    <Box>{step.name}</Box>
-                    {!isSkipped && <StepTime step={step} />}
-                  </MuiStepLabel>
-                </MuiStepButton>
-              </MuiStep>
-            );
-          })}
-        </MuiStepper>
+          <StepList>
+            {steps.map(step => {
+              const isSkipped = step.status === 'skipped';
+              const isFailed =
+                step.status === 'failed' || step.status === 'cancelled';
+              return (
+                <Step
+                  key={step.id}
+                  id={step.id}
+                  className={classNames({
+                    [classes.completed]: step.status === 'completed',
+                    [classes.error]: isFailed,
+                  })}
+                  indicator={<StepIcon status={step.status} />}
+                  title={step.name}
+                  description={isSkipped ? undefined : <StepTime step={step} />}
+                />
+              );
+            })}
+          </StepList>
+        </Stepper>
       </Box>
     </Paper>
   );
