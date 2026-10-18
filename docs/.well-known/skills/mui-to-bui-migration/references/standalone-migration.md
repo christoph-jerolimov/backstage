@@ -54,6 +54,7 @@ Done when: the target has the required dependencies and the app loads BUI styles
 - `Card` - Content cards (`Card`, `CardHeader`, `CardBody`, `CardFooter`)
 - `Checkbox` - Checkbox input
 - `CheckboxGroup` - Grouped checkboxes with shared label (`label`, `orientation`, `isRequired`)
+- `Collapsible` - Show or hide content behind any trigger, without accordion styling (`Collapsible`, `CollapsibleTrigger`, `CollapsiblePanel`)
 - `DateRangePicker` - Date range input field (`label`, `value`, `onChange`)
 - `Dialog` - Modal dialogs (`DialogTrigger`, `Dialog`, `DialogHeader`, `DialogBody`, `DialogFooter`)
 - `FieldLabel` - Form field label with description and secondary label
@@ -898,6 +899,39 @@ import { CheckboxGroup, Checkbox } from '@backstage/ui';
   <Checkbox value="b">Option B</Checkbox>
 </CheckboxGroup>;
 ```
+
+### 23. Collapse to Collapsible
+
+**Before (MUI Collapse with a toggle button):**
+
+```tsx
+import { Button, Collapse } from '@material-ui/core';
+import { useState } from 'react';
+
+const [open, setOpen] = useState(false);
+
+<>
+  <Button onClick={() => setOpen(!open)}>Show details</Button>
+  <Collapse in={open}>Content goes here</Collapse>
+</>;
+```
+
+**After (BUI Collapsible):**
+
+```tsx
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsiblePanel,
+} from '@backstage/ui';
+
+<Collapsible>
+  <CollapsibleTrigger>Show details</CollapsibleTrigger>
+  <CollapsiblePanel>Content goes here</CollapsiblePanel>
+</Collapsible>;
+```
+
+`Collapsible` manages the expanded state itself, so the `useState` is no longer needed. Use `isExpanded` and `onExpandedChange` when the state must be controlled from outside. Any BUI button can act as the trigger by passing `slot="trigger"`, for example `<Button slot="trigger">`. Use `Accordion` instead when the section needs a styled heading and background.
 
 ## CSS variable reference
 

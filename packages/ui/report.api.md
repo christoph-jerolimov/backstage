@@ -973,6 +973,94 @@ export interface CheckboxProps
     CheckboxOwnProps {}
 
 // @public
+export const Collapsible: ForwardRefExoticComponent<
+  CollapsibleProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const CollapsibleDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-Collapsible';
+  };
+  readonly propDefs: {
+    readonly children: {};
+    readonly className: {};
+  };
+};
+
+// @public
+export type CollapsibleOwnProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+// @public
+export const CollapsiblePanel: ForwardRefExoticComponent<
+  CollapsiblePanelProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const CollapsiblePanelDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-CollapsiblePanel';
+  };
+  readonly propDefs: {
+    readonly className: {};
+  };
+};
+
+// @public
+export type CollapsiblePanelOwnProps = {
+  className?: string;
+};
+
+// @public
+export interface CollapsiblePanelProps
+  extends Omit<DisclosurePanelProps, 'className'>,
+    CollapsiblePanelOwnProps {}
+
+// @public
+export interface CollapsibleProps
+  extends Omit<DisclosureProps, 'children' | 'className'>,
+    CollapsibleOwnProps {}
+
+// @public
+export const CollapsibleTrigger: ForwardRefExoticComponent<
+  CollapsibleTriggerProps & RefAttributes<HTMLButtonElement>
+>;
+
+// @public
+export const CollapsibleTriggerDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-CollapsibleTrigger';
+  };
+  readonly propDefs: {
+    readonly children: {};
+    readonly className: {};
+  };
+};
+
+// @public
+export type CollapsibleTriggerOwnProps = {
+  children?: ReactNode;
+  className?: string;
+};
+
+// @public
+export interface CollapsibleTriggerProps
+  extends Omit<ButtonProps_2, 'children' | 'className' | 'slot'>,
+    CollapsibleTriggerOwnProps {}
+
+// @public
 export const Column: (props: ColumnProps) => JSX_2.Element;
 
 // @public
