@@ -27,10 +27,14 @@ export const SpinnerDefinition = defineComponent<SpinnerOwnProps>()({
   classNames: {
     root: 'bui-Spinner',
     icon: 'bui-SpinnerIcon',
+    track: 'bui-SpinnerTrack',
+    arc: 'bui-SpinnerArc',
+    value: 'bui-SpinnerValue',
   },
   propDefs: {
     size: { dataAttribute: true, default: 'medium' },
     label: { default: 'Loading' },
+    showValueLabel: { default: false },
     className: {},
     style: {},
   },

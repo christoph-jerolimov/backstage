@@ -24,6 +24,7 @@ describe('Spinner', () => {
     const spinner = screen.getByRole('progressbar', { name: 'Loading' });
     expect(spinner).toHaveClass('bui-Spinner');
     expect(spinner).toHaveAttribute('data-size', 'medium');
+    expect(spinner).toHaveAttribute('data-indeterminate', 'true');
     expect(spinner).not.toHaveAttribute('aria-valuenow');
     expect(spinner.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
   });
@@ -59,5 +60,46 @@ describe('Spinner', () => {
     expect(
       screen.getByRole('progressbar', { name: 'Refreshing' }),
     ).toBeTruthy();
+  });
+
+  it('renders a determinate ring when a value is given', () => {
+    const { rerender } = render(
+      <Spinner label="Uploading" value={40} showValueLabel />,
+    );
+
+    const spinner = screen.getByRole('progressbar', { name: 'Uploading' });
+    expect(spinner).toHaveAttribute('data-indeterminate', 'false');
+    expect(spinner).toHaveAttribute('aria-valuenow', '40');
+    expect(spinner).toHaveAttribute('aria-valuemin', '0');
+    expect(spinner).toHaveAttribute('aria-valuemax', '100');
+    expect(spinner).toHaveAttribute('aria-valuetext', '40%');
+    expect(screen.getByText('40%')).toHaveClass('bui-SpinnerValue');
+    const arc = spinner.querySelector('.bui-SpinnerArc');
+    expect(arc).toHaveAttribute('stroke-dashoffset');
+    const circumference = 2 * Math.PI * 10;
+    expect(Number(arc?.getAttribute('stroke-dashoffset'))).toBeCloseTo(
+      circumference * 0.6,
+    );
+
+    rerender(
+      <Spinner
+        label="Steps"
+        value={3}
+        minValue={0}
+        maxValue={10}
+        valueLabel="3 of 10"
+        showValueLabel
+      />,
+    );
+    const steps = screen.getByRole('progressbar', { name: 'Steps' });
+    expect(steps).toHaveAttribute('aria-valuemax', '10');
+    expect(steps).toHaveAttribute('aria-valuetext', '3 of 10');
+    expect(screen.getByText('3 of 10')).toBeInTheDocument();
+
+    rerender(<Spinner value={40} isIndeterminate showValueLabel />);
+    const forced = screen.getByRole('progressbar', { name: 'Loading' });
+    expect(forced).toHaveAttribute('data-indeterminate', 'true');
+    expect(forced).not.toHaveAttribute('aria-valuenow');
+    expect(forced.querySelector('.bui-SpinnerValue')).toBeNull();
   });
 });

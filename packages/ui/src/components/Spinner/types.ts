@@ -32,22 +32,18 @@ export type SpinnerOwnProps = {
    */
   label?: string;
 
+  /**
+   * Whether to render the formatted value, for example "40%", next to the
+   * ring. Ignored while the spinner is indeterminate.
+   * @defaultValue false
+   */
+  showValueLabel?: boolean;
+
   className?: string;
   style?: CSSProperties;
 };
 
 /** @public */
 export interface SpinnerProps
-  extends Omit<
-      ProgressBarProps,
-      | 'children'
-      | 'className'
-      | 'style'
-      | 'isIndeterminate'
-      | 'value'
-      | 'minValue'
-      | 'maxValue'
-      | 'formatOptions'
-      | 'valueLabel'
-    >,
+  extends Omit<ProgressBarProps, 'children' | 'className' | 'style'>,
     SpinnerOwnProps {}

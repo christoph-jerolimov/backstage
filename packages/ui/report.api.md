@@ -4065,6 +4065,9 @@ export const SpinnerDefinition: {
   readonly classNames: {
     readonly root: 'bui-Spinner';
     readonly icon: 'bui-SpinnerIcon';
+    readonly track: 'bui-SpinnerTrack';
+    readonly arc: 'bui-SpinnerArc';
+    readonly value: 'bui-SpinnerValue';
   };
   readonly propDefs: {
     readonly size: {
@@ -4073,6 +4076,9 @@ export const SpinnerDefinition: {
     };
     readonly label: {
       readonly default: 'Loading';
+    };
+    readonly showValueLabel: {
+      readonly default: false;
     };
     readonly className: {};
     readonly style: {};
@@ -4083,24 +4089,14 @@ export const SpinnerDefinition: {
 export type SpinnerOwnProps = {
   size?: 'small' | 'medium' | 'large';
   label?: string;
+  showValueLabel?: boolean;
   className?: string;
   style?: CSSProperties;
 };
 
 // @public (undocumented)
 export interface SpinnerProps
-  extends Omit<
-      ProgressBarProps_2,
-      | 'children'
-      | 'className'
-      | 'style'
-      | 'isIndeterminate'
-      | 'value'
-      | 'minValue'
-      | 'maxValue'
-      | 'formatOptions'
-      | 'valueLabel'
-    >,
+  extends Omit<ProgressBarProps_2, 'children' | 'className' | 'style'>,
     SpinnerOwnProps {}
 
 // @public (undocumented)

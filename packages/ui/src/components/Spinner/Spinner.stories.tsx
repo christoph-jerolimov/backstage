@@ -33,10 +33,17 @@ const meta = preview.meta({
     label: {
       control: 'text',
     },
+    value: {
+      control: { type: 'range', min: 0, max: 100, step: 1 },
+    },
+    showValueLabel: {
+      control: 'boolean',
+    },
   },
   args: {
     size: 'medium',
     label: 'Loading',
+    showValueLabel: false,
   },
 });
 
@@ -52,6 +59,42 @@ export const Sizes = meta.story({
       <Spinner size="large" />
     </Flex>
   ),
+});
+
+export const Determinate = meta.story({
+  args: {
+    label: 'Uploading',
+    value: 40,
+  },
+});
+
+export const DeterminateWithValueLabel = meta.story({
+  args: {
+    label: 'Uploading',
+    value: 40,
+    showValueLabel: true,
+  },
+});
+
+export const DeterminateSizes = meta.story({
+  render: () => (
+    <Flex gap="4" align="center">
+      <Spinner size="small" value={25} />
+      <Spinner size="medium" value={50} />
+      <Spinner size="large" value={75} />
+    </Flex>
+  ),
+});
+
+export const CustomRange = meta.story({
+  args: {
+    label: 'Steps completed',
+    value: 3,
+    minValue: 0,
+    maxValue: 10,
+    valueLabel: '3 of 10',
+    showValueLabel: true,
+  },
 });
 
 export const WithText = meta.story({
