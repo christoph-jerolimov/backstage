@@ -848,8 +848,7 @@ Status mapping:
 
 A `status` shows the matching status icon automatically, like the Status
 components do. Pass a custom `icon` to replace it, or `icon={false}` to hide it.
-`isPending` shows an animated spinner before the label and replaces the `icon`
-while pending. The Status components set an `aria-label` such as `Status ok`;
+`isPending` shows an animated spinner after the label. The Status components set an `aria-label` such as `Status ok`;
 BUI `Badge` does not, so add one when the label text alone does not convey the
 status.
 
