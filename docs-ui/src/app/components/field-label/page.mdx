@@ -1,0 +1,108 @@
+import { PropsTable } from '@/components/PropsTable';
+import { Snippet } from '@/components/Snippet';
+import { CodeBlock } from '@/components/CodeBlock';
+import { fieldLabelPropDefs } from './props-definition';
+import {
+  fieldLabelUsageSnippet,
+  defaultSnippet,
+  withSecondaryLabelSnippet,
+  withDescriptionSnippet,
+  customFieldSnippet,
+  withReactAriaSnippet,
+} from './snippets';
+import {
+  Default,
+  WithSecondaryLabel,
+  WithDescription,
+  CustomField,
+  WithReactAria,
+} from './components';
+import { PageTitle } from '@/components/PageTitle';
+import { Theming } from '@/components/Theming';
+import { FieldLabelDefinition } from '../../../utils/definitions';
+import { ChangelogComponent } from '@/components/ChangelogComponent';
+
+<PageTitle
+  title="FieldLabel"
+  description="A label, optional secondary label, and description for a form field. Use it to build custom input fields that match the built-in ones."
+/>
+
+<Snippet align="center" py={4} preview={<Default />} code={defaultSnippet} />
+
+## Usage
+
+<CodeBlock code={fieldLabelUsageSnippet} />
+
+`FieldLabel` is what `TextField`, `Select`, `Combobox`, and the other form
+field components use internally to render their label, secondary label, and
+description. It is exported so that you can reuse the same layout around your
+own inputs.
+
+The component renders nothing when no `label` is provided.
+
+## API reference
+
+<PropsTable data={fieldLabelPropDefs} />
+
+This component also accepts all standard HTML `div` attributes.
+
+## Examples
+
+### With secondary label
+
+The secondary label is rendered in parentheses after the label. The built-in
+field components use it to display `Required` when `isRequired` is set.
+
+<Snippet
+  align="center"
+  py={4}
+  open
+  preview={<WithSecondaryLabel />}
+  code={withSecondaryLabelSnippet}
+  layout="side-by-side"
+/>
+
+### With description
+
+<Snippet
+  align="center"
+  py={4}
+  open
+  preview={<WithDescription />}
+  code={withDescriptionSnippet}
+  layout="side-by-side"
+/>
+
+### With a custom input
+
+When the label is used with a plain input, connect them with `htmlFor` and
+`id`. Use `descriptionId` together with `aria-describedby` so that screen
+readers also announce the description.
+
+<Snippet
+  align="center"
+  py={4}
+  open
+  preview={<CustomField />}
+  code={customFieldSnippet}
+  layout="side-by-side"
+/>
+
+### With React Aria field components
+
+Inside a React Aria field component such as `TextField`, pass
+`descriptionSlot="description"`. The label and description are then connected
+to the input automatically, without any ids.
+
+<Snippet
+  align="center"
+  py={4}
+  open
+  preview={<WithReactAria />}
+  code={withReactAriaSnippet}
+  layout="side-by-side"
+/>
+
+<Theming definition={FieldLabelDefinition} />
+
+<ChangelogComponent component="field-label" />

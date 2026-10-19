@@ -16,6 +16,7 @@
 import preview from '../../../../../.storybook/preview';
 import { TextField, Input, Form } from 'react-aria-components';
 import { FieldError } from './FieldError';
+import { FieldLabel } from '../FieldLabel';
 
 const meta = preview.meta({
   title: 'Backstage UI/FieldError',
@@ -78,6 +79,34 @@ export const WithRenderProp = meta.story({
           validationErrors.length > 0 ? validationErrors[0] : 'Field is invalid'
         }
       </FieldError>
+    </TextField>
+  ),
+});
+
+// Build a custom field with the same layout as the built-in field components
+export const WithCustomField = meta.story({
+  render: () => (
+    <TextField
+      name="username"
+      validationBehavior="aria"
+      validate={value =>
+        value.length < 3 ? 'Must be at least 3 characters' : null
+      }
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        maxWidth: '300px',
+      }}
+    >
+      <FieldLabel
+        label="Username"
+        secondaryLabel="Required"
+        description="At least 3 characters"
+        descriptionSlot="description"
+      />
+      <Input />
+      <FieldError />
     </TextField>
   ),
 });

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import preview from '../../../../../.storybook/preview';
+import { TextField, Input } from 'react-aria-components';
 import { FieldLabel } from './FieldLabel';
 
 const meta = preview.meta({
@@ -58,4 +59,36 @@ export const WithAllFields = meta.story({
     secondaryLabel: 'Secondary Label',
     description: 'Description',
   },
+});
+
+export const WithCustomInput = meta.story({
+  render: () => (
+    <div>
+      <FieldLabel
+        label="Favorite color"
+        description="Pick the color you like most"
+        htmlFor="favorite-color"
+        descriptionId="favorite-color-description"
+      />
+      <input
+        id="favorite-color"
+        type="color"
+        aria-describedby="favorite-color-description"
+      />
+    </div>
+  ),
+});
+
+export const WithReactAriaField = meta.story({
+  render: () => (
+    <TextField name="url" style={{ maxWidth: '300px' }}>
+      <FieldLabel
+        label="URL"
+        secondaryLabel="Optional"
+        description="The URL of your repository"
+        descriptionSlot="description"
+      />
+      <Input placeholder="https://" />
+    </TextField>
+  ),
 });
