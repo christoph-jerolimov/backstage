@@ -326,10 +326,10 @@ export const Root = ({ children }: PropsWithChildren<{}>) => {
 
 ### 3. Custom search result extension in a custom SearchModal
 
-Assuming you have completely customized your SearchModal, here's an example that renders results with extensions:
+Assuming you have completely customized your SearchModal, here's an example that renders results with extensions. The modal is rendered as a Backstage UI dialog, so the custom content uses the `DialogHeader`, `DialogBody`, and `DialogFooter` components from `@backstage/ui`:
 
 ```tsx title="packages/app/src/components/searchModal.tsx"
-import { DialogContent, DialogTitle, Paper } from '@material-ui/core';
+import { DialogBody, DialogHeader } from '@backstage/ui';
 import BuildIcon from '@material-ui/icons/Build';
 
 import { DocsIcon, CatalogIcon } from '@backstage/core-components';
@@ -345,12 +345,9 @@ import { CatalogSearchResultListItem } from '@internal/plugin-catalog-customized
 
 export const SearchModal = ({ toggleModal }: { toggleModal: () => void }) => (
   <>
-    <DialogTitle>
-      <Paper>
-        <SearchBar />
-      </Paper>
-    </DialogTitle>
-    <DialogContent>
+    <DialogHeader>Search</DialogHeader>
+    <DialogBody>
+      <SearchBar />
       <SearchResult onClick={toggleModal}>
         <CatalogSearchResultListItem icon={<CatalogIcon />} />
         <TechDocsSearchResultListItem icon={<DocsIcon />} />
@@ -359,7 +356,7 @@ export const SearchModal = ({ toggleModal }: { toggleModal: () => void }) => (
         so it must be the last child to render results that do not match the above extensions */}
         <YourSearchResultListItem />
       </SearchResult>
-    </DialogContent>
+    </DialogBody>
   </>
 );
 ```

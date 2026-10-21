@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { createPortal } from 'react-dom';
 import { screen, waitFor } from '@testing-library/react';
 import { renderInTestApp, TestApiRegistry } from '@backstage/test-utils';
 import userEvent from '@testing-library/user-event';
@@ -43,12 +44,13 @@ describe('SearchModal', () => {
     [searchApiRef, searchApiMock],
   );
 
+  const toggleModal = jest.fn();
+
   beforeEach(() => {
     navigate.mockClear();
     searchApiMock.query.mockClear();
+    toggleModal.mockClear();
   });
-
-  const toggleModal = jest.fn();
 
   it('Should render the Modal correctly', async () => {
     await renderInTestApp(
@@ -62,7 +64,7 @@ describe('SearchModal', () => {
       },
     );
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Search' })).toBeInTheDocument();
   });
 
   it('Should use parent search context if defined', async () => {
@@ -106,7 +108,9 @@ describe('SearchModal', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    const input = screen.getByLabelText<HTMLInputElement>('Search');
+    const input = screen.getByRole<HTMLInputElement>('textbox', {
+      name: 'Search',
+    });
     await userEvent.type(input, 'text');
 
     await waitFor(() => {
@@ -155,6 +159,31 @@ describe('SearchModal', () => {
     expect(toggleModal).toHaveBeenCalledTimes(1);
   });
 
+  it('Closes when clicking the backdrop, but not when interacting with content rendered outside of the dialog', async () => {
+    await renderInTestApp(
+      <ApiProvider apis={apiRegistry}>
+        <SearchModal open toggleModal={toggleModal}>
+          {() => createPortal(<button>Portaled content</button>, document.body)}
+        </SearchModal>
+      </ApiProvider>,
+      {
+        mountedRoutes: {
+          '/search': rootRouteRef,
+        },
+      },
+    );
+
+    // Custom modal content may render Material UI menus and popovers outside
+    // of the dialog, interacting with them should not close the modal.
+    await userEvent.click(screen.getByText('Portaled content'));
+    expect(toggleModal).not.toHaveBeenCalled();
+
+    // The dialog is wrapped by the modal container, which is wrapped by the backdrop.
+    const backdrop = screen.getByRole('dialog').parentElement!.parentElement!;
+    await userEvent.click(backdrop);
+    expect(toggleModal).toHaveBeenCalledTimes(1);
+  });
+
   it('should focus on its search bar when opened', async () => {
     await renderInTestApp(
       <ApiProvider apis={apiRegistry}>
@@ -167,7 +196,7 @@ describe('SearchModal', () => {
       },
     );
 
-    expect(screen.getByLabelText('Search')).toHaveFocus();
+    expect(screen.getByRole('textbox', { name: 'Search' })).toHaveFocus();
   });
 
   it("Don't wait query debounce time when enter is pressed", async () => {
@@ -196,7 +225,9 @@ describe('SearchModal', () => {
       { signal: expect.any(AbortSignal) },
     );
 
-    const input = screen.getByLabelText<HTMLInputElement>('Search');
+    const input = screen.getByRole<HTMLInputElement>('textbox', {
+      name: 'Search',
+    });
     await userEvent.clear(input);
     await userEvent.type(input, 'new term{enter}');
 

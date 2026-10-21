@@ -23,16 +23,9 @@ import {
   SearchResultPager,
 } from '@backstage/plugin-search-react';
 import { TestApiProvider, wrapInTestApp } from '@backstage/test-utils';
-import Box from '@material-ui/core/Box';
+import { DialogBody, DialogFooter, DialogHeader } from '@backstage/ui';
 import Button from '@material-ui/core/Button';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
-import { makeStyles } from '@material-ui/core/styles';
-import CloseIcon from '@material-ui/icons/Close';
 import { ComponentType, PropsWithChildren } from 'react';
 import { rootRouteRef } from '../../plugin';
 import { SearchType } from '../SearchType';
@@ -101,20 +94,7 @@ export const Default = () => {
   );
 };
 
-const useStyles = makeStyles(theme => ({
-  titleContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-  },
-  input: {
-    flex: 1,
-  },
-  dialogActionsContainer: { padding: theme.spacing(1, 3) },
-}));
-
 export const CustomModal = () => {
-  const classes = useStyles();
   const { state, toggleModal } = useSearchModal();
 
   return (
@@ -125,63 +105,46 @@ export const CustomModal = () => {
       <SearchModal {...state} toggleModal={toggleModal}>
         {() => (
           <>
-            <DialogTitle>
-              <Box className={classes.titleContainer}>
-                <SearchBar className={classes.input} />
-
-                <IconButton aria-label="close" onClick={toggleModal}>
-                  <CloseIcon />
-                </IconButton>
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <Grid container direction="column">
-                <Grid item>
-                  <SearchType.Tabs
-                    defaultValue=""
-                    types={[
-                      {
-                        value: 'custom-result-item',
-                        name: 'Custom Item',
-                      },
-                      {
-                        value: 'no-custom-result-item',
-                        name: 'No Custom Item',
-                      },
-                    ]}
-                  />
-                </Grid>
-                <Grid item>
-                  <SearchResult>
-                    {({ results }) => (
-                      <List>
-                        {results.map(({ document }) => (
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            key={`${document.location}-btn`}
-                            onClick={toggleModal}
-                            onKeyPress={toggleModal}
-                          >
-                            <DefaultResultListItem
-                              key={document.location}
-                              result={document}
-                            />
-                          </div>
-                        ))}
-                      </List>
-                    )}
-                  </SearchResult>
-                </Grid>
-              </Grid>
-            </DialogContent>
-            <DialogActions className={classes.dialogActionsContainer}>
-              <Grid container direction="row">
-                <Grid item xs={12}>
-                  <SearchResultPager />
-                </Grid>
-              </Grid>
-            </DialogActions>
+            <DialogHeader>Search</DialogHeader>
+            <DialogBody>
+              <SearchBar />
+              <SearchType.Tabs
+                defaultValue=""
+                types={[
+                  {
+                    value: 'custom-result-item',
+                    name: 'Custom Item',
+                  },
+                  {
+                    value: 'no-custom-result-item',
+                    name: 'No Custom Item',
+                  },
+                ]}
+              />
+              <SearchResult>
+                {({ results }) => (
+                  <List>
+                    {results.map(({ document }) => (
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        key={`${document.location}-btn`}
+                        onClick={toggleModal}
+                        onKeyPress={toggleModal}
+                      >
+                        <DefaultResultListItem
+                          key={document.location}
+                          result={document}
+                        />
+                      </div>
+                    ))}
+                  </List>
+                )}
+              </SearchResult>
+            </DialogBody>
+            <DialogFooter>
+              <SearchResultPager />
+            </DialogFooter>
           </>
         )}
       </SearchModal>

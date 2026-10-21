@@ -83,6 +83,7 @@ export { searchPlugin };
 export const searchTranslationRef: TranslationRef<
   'search',
   {
+    readonly 'searchModal.title': 'Search';
     readonly 'searchModal.viewFullResults': 'View Full Results';
     readonly 'searchType.tabs.allTitle': 'All';
     readonly 'searchType.allResults': 'All Results';

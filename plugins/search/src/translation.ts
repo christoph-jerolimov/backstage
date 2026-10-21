@@ -23,6 +23,7 @@ export const searchTranslationRef = createTranslationRef({
   id: 'search',
   messages: {
     searchModal: {
+      title: 'Search',
       viewFullResults: 'View Full Results',
     },
     searchType: {

@@ -20,20 +20,18 @@ import {
   SearchContextProvider,
   SearchResult,
   SearchResultPager,
+  useSearch,
 } from '@backstage/plugin-search-react';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
-import { useTheme } from '@material-ui/core/styles';
-import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import { makeStyles } from '@material-ui/core/styles';
-import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import CloseIcon from '@material-ui/icons/Close';
+import {
+  Button,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  Flex,
+} from '@backstage/ui';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { RiArrowRightLine } from '@remixicon/react';
 import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -91,38 +89,18 @@ export interface SearchModalProps {
   resultItemComponents?: SearchModalChildrenProps['resultItemComponents'];
 }
 
-const useStyles = makeStyles(theme => ({
-  dialogTitle: {
-    gap: theme.spacing(1),
-    display: 'grid',
-    alignItems: 'center',
-    gridTemplateColumns: '1fr auto',
-    '&> button': {
-      marginTop: theme.spacing(1),
-    },
-  },
-  input: {
-    flex: 1,
-  },
-  button: {
-    '&:hover': {
-      background: 'none',
-    },
-  },
-  // Reduces default height of the modal, keeping a gap of 128px between the top and bottom of the page.
-  paperFullWidth: { height: 'calc(100% - 128px)' },
-  dialogActionsContainer: { padding: theme.spacing(1, 3) },
-  viewResultsLink: { verticalAlign: '0.5em' },
-}));
+const useStyles = makeStyles({
+  // Lets the pager span the full width of the footer, so that the previous
+  // and next buttons are placed at opposite ends.
+  footer: { display: 'block' },
+});
 
-export const Modal = ({
-  toggleModal,
-  resultItemComponents,
-}: SearchModalChildrenProps) => {
+export const Modal = ({ resultItemComponents }: SearchModalChildrenProps) => {
   const classes = useStyles();
   const navigate = useNavigate();
   const { transitions } = useTheme();
   const { focusContent } = useContent();
+  const { fetchNextPage, fetchPreviousPage } = useSearch();
   const { t } = useTranslationRef(searchTranslationRef);
 
   const searchRootRoute = useRouteRef(rootRouteRef)();
@@ -146,53 +124,33 @@ export const Modal = ({
 
   return (
     <>
-      <DialogTitle>
-        <Box className={classes.dialogTitle}>
-          <SearchBar
-            className={classes.input}
-            inputProps={{ ref: searchBarRef }}
-            onSubmit={handleSearchBarSubmit}
-          />
-
-          <IconButton aria-label="close" onClick={toggleModal}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <Grid
-          container
-          direction="row-reverse"
-          justifyContent="flex-start"
-          alignItems="center"
-        >
-          <Grid item>
-            <Button
-              className={classes.button}
-              color="primary"
-              endIcon={<ArrowForwardIcon />}
-              onClick={handleSearchBarSubmit}
-              disableRipple
-            >
-              {t('searchModal.viewFullResults')}
-            </Button>
-          </Grid>
-        </Grid>
-        <Divider />
+      <DialogHeader>{t('searchModal.title')}</DialogHeader>
+      <DialogBody>
+        <SearchBar
+          inputProps={{ ref: searchBarRef }}
+          onSubmit={handleSearchBarSubmit}
+        />
+        <Flex justify="end">
+          <Button
+            variant="tertiary"
+            iconEnd={<RiArrowRightLine />}
+            onPress={handleSearchBarSubmit}
+          >
+            {t('searchModal.viewFullResults')}
+          </Button>
+        </Flex>
         <SearchResult
           onClick={handleSearchResultClick}
           onKeyDown={handleSearchResultClick}
         >
           {resultItemComponents}
         </SearchResult>
-      </DialogContent>
-      <DialogActions className={classes.dialogActionsContainer}>
-        <Grid container direction="row">
-          <Grid item xs={12}>
-            <SearchResultPager />
-          </Grid>
-        </Grid>
-      </DialogActions>
+      </DialogBody>
+      {(fetchNextPage || fetchPreviousPage) && (
+        <DialogFooter className={classes.footer}>
+          <SearchResultPager />
+        </DialogFooter>
+      )}
     </>
   );
 };
@@ -209,21 +167,25 @@ export const SearchModal = (props: SearchModalProps) => {
     resultItemComponents,
   } = props;
 
-  const classes = useStyles();
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const isDialogOpen = open && !hidden;
 
   return (
     <Dialog
-      classes={{
-        paperFullWidth: classes.paperFullWidth,
-      }}
-      onClose={toggleModal}
-      aria-label="Search Modal"
-      aria-modal="true"
-      fullWidth
-      maxWidth="lg"
-      open={isDialogOpen}
+      ref={modalRef}
+      isOpen={isDialogOpen}
+      onOpenChange={isOpen => !isOpen && toggleModal()}
+      // Custom modal content may render Material UI menus and popovers, which
+      // are rendered outside of the dialog. Only interactions with the dialog
+      // backdrop should close the modal, so that those keep working.
+      shouldCloseOnInteractOutside={element =>
+        modalRef.current?.parentElement?.contains(element) ?? true
+      }
+      width={1280}
+      // Reduces the default height of the modal, keeping a gap of 64px
+      // between the modal and the top and bottom of the page.
+      height="calc(100vh - 128px)"
     >
       {isDialogOpen && (
         <SearchContextProvider inheritParentContextIfAvailable>
