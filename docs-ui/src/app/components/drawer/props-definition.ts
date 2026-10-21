@@ -69,12 +69,19 @@ export const drawerPropDefs: Record<string, PropDef> = {
     type: 'boolean',
     default: 'true',
     description:
-      'Whether the drawer closes when the user interacts outside of it.',
+      'Whether the user can close the drawer by interacting outside of it, pressing Escape, or swiping it away. When false, the drawer only closes through its own controls.',
   },
-  isKeyboardDismissDisabled: {
-    type: 'boolean',
-    default: 'false',
-    description: 'Whether pressing Escape to close the drawer is disabled.',
+  snapPoints: {
+    type: 'enum',
+    values: ['Array<number | string>'],
+    description:
+      'Positions a modal drawer stops at when swiped, as the amount of the drawer that is visible. Numbers are pixels, percentages are relative to the drawer. The drawer opens at the first snap point.',
+  },
+  swipeDirection: {
+    type: 'enum',
+    values: ['bottom', 'top', 'vertical', 'left', 'right', 'horizontal'],
+    description:
+      'The direction a modal drawer can be swiped to dismiss it. Defaults to the direction of its placement.',
   },
   isOpen: {
     type: 'boolean',

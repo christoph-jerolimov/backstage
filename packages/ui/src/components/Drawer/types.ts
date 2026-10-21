@@ -17,7 +17,7 @@
 import type { ReactNode } from 'react';
 import type {
   DialogTriggerProps as RADialogTriggerProps,
-  ModalOverlayProps as RAModalProps,
+  SheetOverlayProps as RASheetOverlayProps,
   HeadingProps as RAHeadingProps,
 } from 'react-aria-components';
 
@@ -27,6 +27,20 @@ import type {
  */
 export interface DrawerTriggerProps extends RADialogTriggerProps {}
 
+/**
+ * The edge of the viewport a Drawer slides in from. `start` and `end` resolve
+ * to `left` or `right` depending on the text direction of the locale.
+ *
+ * @public
+ */
+export type DrawerPlacement =
+  | 'left'
+  | 'right'
+  | 'top'
+  | 'bottom'
+  | 'start'
+  | 'end';
+
 /** @public */
 export type DrawerOwnProps = {
   children?: ReactNode;
@@ -34,11 +48,12 @@ export type DrawerOwnProps = {
   /**
    * The edge of the viewport the drawer slides in from. A left or right
    * drawer takes the full height of the viewport, a top or bottom drawer
-   * takes its full width.
+   * takes its full width. `start` and `end` are mirrored in right-to-left
+   * locales.
    *
    * @defaultValue 'right'
    */
-  placement?: 'left' | 'right' | 'top' | 'bottom';
+  placement?: DrawerPlacement;
   /**
    * The width of a left or right drawer, in pixels (number) or CSS units
    * (string). The drawer never grows wider than the viewport. Ignored for
@@ -56,9 +71,10 @@ export type DrawerOwnProps = {
   height?: number | string;
   /**
    * Whether the drawer is non-modal. A non-modal drawer has no backdrop, does
-   * not trap focus and does not block scrolling, so the rest of the page stays
-   * interactive while it is open. Combine with `isDismissable={false}` for a
-   * persistent side panel that only closes through its own controls.
+   * not trap focus, does not block scrolling and cannot be swiped away, so the
+   * rest of the page stays interactive while it is open. Combine with
+   * `isDismissable={false}` for a persistent side panel that only closes
+   * through its own controls.
    *
    * @defaultValue false
    */
@@ -72,7 +88,9 @@ export type DrawerOwnProps = {
    */
   hideBackdrop?: boolean;
   /**
-   * Whether the drawer closes when the user interacts outside of it.
+   * Whether the user can close the drawer by interacting outside of it,
+   * pressing Escape, or swiping it away. When `false`, the drawer only closes
+   * through its own controls.
    *
    * @defaultValue true
    */
@@ -82,11 +100,20 @@ export type DrawerOwnProps = {
 
 /**
  * Props for the Drawer component.
+ *
+ * @remarks
+ * A modal drawer additionally accepts the `snapPoints` and `swipeDirection`
+ * props of the React Aria `SheetOverlay`. They have no effect on a non-modal
+ * drawer.
+ *
  * @public
  */
 export interface DrawerProps
   extends DrawerOwnProps,
-    Omit<RAModalProps, keyof DrawerOwnProps> {}
+    Omit<
+      RASheetOverlayProps,
+      keyof DrawerOwnProps | 'position' | 'preventDismissal' | 'render'
+    > {}
 
 /** @public */
 export type DrawerHeaderOwnProps = {

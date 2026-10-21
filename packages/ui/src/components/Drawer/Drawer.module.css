@@ -17,111 +17,95 @@
 @layer tokens, base, components, theme, utilities;
 
 @layer components {
+  /*
+   * A modal drawer is a React Aria Sheet. React Aria positions the overlay,
+   * the backdrop and the swipeable stage that holds the drawer, and drives the
+   * enter, exit and swipe gestures with native scrolling. Only the visuals are
+   * defined here.
+   */
   .bui-DrawerOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: color-mix(in srgb, var(--bui-bg-neutral-2) 80%, transparent);
-    display: flex;
-    align-items: stretch;
-    justify-content: flex-end;
     z-index: 1000;
   }
 
-  [data-theme-mode='dark'] .bui-DrawerOverlay {
+  .bui-DrawerBackdrop {
+    background: color-mix(in srgb, var(--bui-bg-neutral-2) 80%, transparent);
+  }
+
+  [data-theme-mode='dark'] .bui-DrawerBackdrop {
     background: rgba(0, 0, 0, 0.5);
   }
 
-  .bui-DrawerOverlay[data-placement='left'] {
-    justify-content: flex-start;
-  }
-
-  .bui-DrawerOverlay[data-placement='top'] {
-    flex-direction: column;
-    justify-content: flex-start;
-  }
-
-  .bui-DrawerOverlay[data-placement='bottom'] {
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-
-  /* A modal drawer without a backdrop still covers the page, but invisibly. */
-  .bui-DrawerOverlay[data-hidebackdrop='true'] {
-    background: transparent;
-  }
-
   /*
-   * A non-modal drawer does not cover the page. The overlay collapses onto
-   * the drawer itself so that the rest of the page stays interactive.
+   * A non-modal drawer does not cover the page. Its overlay collapses onto the
+   * drawer itself so that the rest of the page stays interactive.
    */
   .bui-DrawerOverlay[data-isnonmodal='true'] {
-    width: auto;
+    position: fixed;
+    display: flex;
+    align-items: stretch;
+  }
+
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-position='right'] {
+    top: 0;
     right: 0;
-    left: auto;
-    background: transparent;
-  }
-
-  .bui-DrawerOverlay[data-isnonmodal='true'][data-placement='left'] {
-    left: 0;
-    right: auto;
-  }
-
-  .bui-DrawerOverlay[data-isnonmodal='true'][data-placement='top'],
-  .bui-DrawerOverlay[data-isnonmodal='true'][data-placement='bottom'] {
-    width: 100%;
-    height: auto;
-    left: 0;
-    right: 0;
-  }
-
-  .bui-DrawerOverlay[data-isnonmodal='true'][data-placement='bottom'] {
-    top: auto;
     bottom: 0;
   }
 
-  .bui-DrawerOverlay[data-entering] {
-    animation: drawer-fade-in 200ms ease-out forwards;
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-position='left'] {
+    top: 0;
+    left: 0;
+    bottom: 0;
   }
 
-  .bui-DrawerOverlay[data-exiting] {
-    animation: drawer-fade-out 150ms ease-out forwards;
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-position='top'] {
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-position='bottom'] {
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
 
   .bui-Drawer {
     background: var(--bui-bg-app);
     box-shadow: var(--bui-shadow);
-    border-left: 1px solid var(--bui-border-1);
     color: var(--bui-fg-primary);
-    position: relative;
     display: flex;
     flex-direction: column;
+    z-index: 1;
+  }
+
+  .bui-DrawerOverlay[data-position='left'] .bui-Drawer,
+  .bui-DrawerOverlay[data-position='right'] .bui-Drawer {
     width: min(var(--bui-drawer-width, 400px), 100vw);
     max-width: 100vw;
     height: 100%;
   }
 
-  .bui-DrawerOverlay[data-placement='left'] .bui-Drawer {
-    border-left: none;
+  .bui-DrawerOverlay[data-position='right'] .bui-Drawer {
+    border-left: 1px solid var(--bui-border-1);
+  }
+
+  .bui-DrawerOverlay[data-position='left'] .bui-Drawer {
     border-right: 1px solid var(--bui-border-1);
   }
 
-  .bui-DrawerOverlay[data-placement='top'] .bui-Drawer,
-  .bui-DrawerOverlay[data-placement='bottom'] .bui-Drawer {
-    border-left: none;
+  .bui-DrawerOverlay[data-position='top'] .bui-Drawer,
+  .bui-DrawerOverlay[data-position='bottom'] .bui-Drawer {
     width: 100%;
     max-width: 100vw;
     height: var(--bui-drawer-height, auto);
     max-height: 100vh;
   }
 
-  .bui-DrawerOverlay[data-placement='top'] .bui-Drawer {
+  .bui-DrawerOverlay[data-position='top'] .bui-Drawer {
     border-bottom: 1px solid var(--bui-border-1);
   }
 
-  .bui-DrawerOverlay[data-placement='bottom'] .bui-Drawer {
+  .bui-DrawerOverlay[data-position='bottom'] .bui-Drawer {
     border-top: 1px solid var(--bui-border-1);
   }
 
@@ -141,37 +125,42 @@
     overflow: hidden;
   }
 
-  /* Drawer entering animation */
-  .bui-DrawerOverlay[data-entering] .bui-Drawer {
+  /* Non-modal enter and exit animations. Modal drawers are animated by React Aria. */
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-entering] .bui-Drawer {
     animation: drawer-enter-right 200ms ease-out forwards;
   }
 
-  .bui-DrawerOverlay[data-entering][data-placement='left'] .bui-Drawer {
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-entering][data-position='left']
+    .bui-Drawer {
     animation-name: drawer-enter-left;
   }
 
-  .bui-DrawerOverlay[data-entering][data-placement='top'] .bui-Drawer {
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-entering][data-position='top']
+    .bui-Drawer {
     animation-name: drawer-enter-top;
   }
 
-  .bui-DrawerOverlay[data-entering][data-placement='bottom'] .bui-Drawer {
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-entering][data-position='bottom']
+    .bui-Drawer {
     animation-name: drawer-enter-bottom;
   }
 
-  /* Drawer exiting animation */
-  .bui-DrawerOverlay[data-exiting] .bui-Drawer {
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-exiting] .bui-Drawer {
     animation: drawer-exit-right 150ms ease-out forwards;
   }
 
-  .bui-DrawerOverlay[data-exiting][data-placement='left'] .bui-Drawer {
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-exiting][data-position='left']
+    .bui-Drawer {
     animation-name: drawer-exit-left;
   }
 
-  .bui-DrawerOverlay[data-exiting][data-placement='top'] .bui-Drawer {
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-exiting][data-position='top']
+    .bui-Drawer {
     animation-name: drawer-exit-top;
   }
 
-  .bui-DrawerOverlay[data-exiting][data-placement='bottom'] .bui-Drawer {
+  .bui-DrawerOverlay[data-isnonmodal='true'][data-exiting][data-position='bottom']
+    .bui-Drawer {
     animation-name: drawer-exit-bottom;
   }
 
@@ -208,22 +197,17 @@
     overflow-y: auto;
   }
 
-  /* Keyframe animations */
-  @keyframes drawer-fade-in {
+  /*
+   * The backdrop of a modal drawer fades in sync with the swipe gesture. React
+   * Aria references the animation by name, so it must not be scoped to this
+   * module.
+   */
+  @keyframes :global(bui-drawer-backdrop) {
     from {
       opacity: 0;
     }
     to {
       opacity: 1;
-    }
-  }
-
-  @keyframes drawer-fade-out {
-    from {
-      opacity: 1;
-    }
-    to {
-      opacity: 0;
     }
   }
 

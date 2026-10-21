@@ -41,7 +41,7 @@ const meta = preview.meta({
     defaultOpen: { control: 'boolean' },
     placement: {
       control: 'select',
-      options: ['left', 'right', 'top', 'bottom'],
+      options: ['left', 'right', 'top', 'bottom', 'start', 'end'],
     },
     width: { control: 'text' },
     height: { control: 'text' },
@@ -116,6 +116,35 @@ export const PlacementBottom = Open.extend({
     placement: 'bottom',
     height: 320,
   },
+});
+
+export const BottomWithSnapPoints = Open.extend({
+  args: {
+    placement: 'bottom',
+    snapPoints: [200, '100%'],
+  },
+  render: args => (
+    <DrawerTrigger>
+      <Button variant="secondary">Open Drawer</Button>
+      <Drawer {...args}>
+        <DrawerHeader>Snap Points</DrawerHeader>
+        <DrawerBody>
+          <Flex direction="column" gap="3">
+            <Text>
+              This drawer opens to its first snap point. On a touch screen, drag
+              it up to reveal everything or down to dismiss it.
+            </Text>
+            {Array.from({ length: 12 }, (_, i) => (
+              <Text key={i}>
+                Line {i + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing
+                elit.
+              </Text>
+            ))}
+          </Flex>
+        </DrawerBody>
+      </Drawer>
+    </DrawerTrigger>
+  ),
 });
 
 export const FixedWidth = Open.extend({

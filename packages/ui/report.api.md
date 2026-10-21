@@ -53,6 +53,7 @@ import type { SearchFieldProps as SearchFieldProps_2 } from 'react-aria-componen
 import { Selection as Selection_2 } from 'react-aria-components';
 import type { SelectProps as SelectProps_2 } from 'react-aria-components';
 import type { SeparatorProps } from 'react-aria-components';
+import type { SheetOverlayProps } from 'react-aria-components';
 import type { SliderProps as SliderProps_2 } from 'react-aria-components';
 import type { SortDescriptor as SortDescriptor_2 } from 'react-stately';
 import { SortDirection } from 'react-aria-components';
@@ -1975,6 +1976,7 @@ export const DrawerDefinition: {
   };
   readonly classNames: {
     readonly root: 'bui-DrawerOverlay';
+    readonly backdrop: 'bui-DrawerBackdrop';
     readonly container: 'bui-Drawer';
     readonly inner: 'bui-DrawerInner';
     readonly content: 'bui-DrawerContent';
@@ -1983,7 +1985,6 @@ export const DrawerDefinition: {
     readonly children: {};
     readonly className: {};
     readonly placement: {
-      readonly dataAttribute: true;
       readonly default: 'right';
     };
     readonly width: {};
@@ -1993,7 +1994,6 @@ export const DrawerDefinition: {
       readonly default: false;
     };
     readonly hideBackdrop: {
-      readonly dataAttribute: true;
       readonly default: false;
     };
     readonly isDismissable: {
@@ -2068,7 +2068,7 @@ export interface DrawerHeaderProps
 export type DrawerOwnProps = {
   children?: ReactNode;
   className?: string;
-  placement?: 'left' | 'right' | 'top' | 'bottom';
+  placement?: DrawerPlacement;
   width?: number | string;
   height?: number | string;
   isNonModal?: boolean;
@@ -2078,9 +2078,21 @@ export type DrawerOwnProps = {
 };
 
 // @public
+export type DrawerPlacement =
+  | 'left'
+  | 'right'
+  | 'top'
+  | 'bottom'
+  | 'start'
+  | 'end';
+
+// @public
 export interface DrawerProps
   extends DrawerOwnProps,
-    Omit<ModalOverlayProps, keyof DrawerOwnProps> {}
+    Omit<
+      SheetOverlayProps,
+      keyof DrawerOwnProps | 'position' | 'preventDismissal' | 'render'
+    > {}
 
 // @public
 export const DrawerTrigger: (props: DrawerTriggerProps) => JSX_2.Element;

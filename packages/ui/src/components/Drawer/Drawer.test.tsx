@@ -35,6 +35,9 @@ const drawerContent = (
   </>
 );
 
+const overlay = () => document.querySelector('.bui-DrawerOverlay');
+const container = () => document.querySelector('.bui-Drawer');
+
 describe('Drawer', () => {
   it('opens from a trigger as a modal drawer and closes through its controls', async () => {
     render(
@@ -52,14 +55,10 @@ describe('Drawer', () => {
       name: 'Example Drawer',
     });
     expect(dialog).toHaveTextContent('Drawer content');
-
-    const overlay = document.querySelector('.bui-DrawerOverlay');
-    expect(overlay).toHaveAttribute('data-placement', 'right');
-    expect(overlay).toHaveAttribute('data-isnonmodal', 'false');
-    expect(overlay).toHaveAttribute('data-hidebackdrop', 'false');
-    expect(document.querySelector('.bui-Drawer')).toHaveStyle({
-      '--bui-drawer-width': '400px',
-    });
+    expect(overlay()).toHaveAttribute('data-position', 'right');
+    expect(overlay()).toHaveAttribute('data-isnonmodal', 'false');
+    expect(document.querySelector('.bui-DrawerBackdrop')).toBeInTheDocument();
+    expect(container()).toHaveStyle({ '--bui-drawer-width': '400px' });
 
     // The modal drawer hides the rest of the page from assistive technology.
     expect(
@@ -77,20 +76,34 @@ describe('Drawer', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('applies placement, width and backdrop options', async () => {
-    render(
-      <Drawer isOpen placement="left" width="50%" hideBackdrop>
+  it('applies placement, width, backdrop and dismiss options', async () => {
+    const { rerender } = render(
+      <Drawer defaultOpen placement="left" width="50%" hideBackdrop>
         {drawerContent}
       </Drawer>,
     );
 
-    await screen.findByRole('dialog');
-    const overlay = document.querySelector('.bui-DrawerOverlay');
-    expect(overlay).toHaveAttribute('data-placement', 'left');
-    expect(overlay).toHaveAttribute('data-hidebackdrop', 'true');
-    expect(document.querySelector('.bui-Drawer')).toHaveStyle({
-      '--bui-drawer-width': '50%',
-    });
+    const dialog = await screen.findByRole('dialog');
+    expect(overlay()).toHaveAttribute('data-position', 'left');
+    expect(
+      document.querySelector('.bui-DrawerBackdrop'),
+    ).not.toBeInTheDocument();
+    expect(container()).toHaveStyle({ '--bui-drawer-width': '50%' });
+
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    fireEvent.keyUp(dialog, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    rerender(
+      <Drawer isOpen placement="end" isDismissable={false}>
+        {drawerContent}
+      </Drawer>,
+    );
+    const persistent = await screen.findByRole('dialog');
+    expect(overlay()).toHaveAttribute('data-position', 'right');
+    fireEvent.keyDown(persistent, { key: 'Escape' });
+    fireEvent.keyUp(persistent, { key: 'Escape' });
+    expect(persistent).toBeInTheDocument();
   });
 
   it('supports top and bottom placements sized by height', async () => {
@@ -101,26 +114,16 @@ describe('Drawer', () => {
     );
 
     await screen.findByRole('dialog');
-    expect(document.querySelector('.bui-DrawerOverlay')).toHaveAttribute(
-      'data-placement',
-      'bottom',
-    );
-    expect(document.querySelector('.bui-Drawer')).toHaveStyle({
-      '--bui-drawer-height': '320px',
-    });
+    expect(overlay()).toHaveAttribute('data-position', 'bottom');
+    expect(container()).toHaveStyle({ '--bui-drawer-height': '320px' });
 
     rerender(
       <Drawer isOpen placement="top" height="40vh">
         {drawerContent}
       </Drawer>,
     );
-    expect(document.querySelector('.bui-DrawerOverlay')).toHaveAttribute(
-      'data-placement',
-      'top',
-    );
-    expect(document.querySelector('.bui-Drawer')).toHaveStyle({
-      '--bui-drawer-height': '40vh',
-    });
+    expect(overlay()).toHaveAttribute('data-position', 'top');
+    expect(container()).toHaveStyle({ '--bui-drawer-height': '40vh' });
   });
 
   it('keeps the page interactive when non-modal and respects isDismissable', async () => {
@@ -142,8 +145,11 @@ describe('Drawer', () => {
     const dialog = await screen.findByRole('dialog', {
       name: 'Example Drawer',
     });
-    const overlay = document.querySelector('.bui-DrawerOverlay');
-    expect(overlay).toHaveAttribute('data-isnonmodal', 'true');
+    expect(overlay()).toHaveAttribute('data-isnonmodal', 'true');
+    expect(overlay()).toHaveAttribute('data-position', 'right');
+    expect(
+      document.querySelector('.bui-DrawerBackdrop'),
+    ).not.toBeInTheDocument();
 
     // Page content is neither hidden from assistive technology nor blocked.
     const pageInput = screen.getByLabelText('Page input');
@@ -164,7 +170,7 @@ describe('Drawer', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('does not close a non-dismissable non-modal drawer on outside interaction', async () => {
+  it('only closes a non-dismissable non-modal drawer through its own controls', async () => {
     render(
       <>
         <input aria-label="Page input" />
@@ -182,6 +188,9 @@ describe('Drawer', () => {
 
     fireEvent.keyDown(dialog, { key: 'Escape' });
     fireEvent.keyUp(dialog, { key: 'Escape' });
+    expect(dialog).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

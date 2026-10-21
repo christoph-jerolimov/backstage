@@ -20,16 +20,19 @@ import {
   FocusScope,
   Overlay,
   mergeProps,
+  useLocale,
   useObjectRef,
   useOverlay,
 } from 'react-aria';
 import {
   Dialog as RADialog,
   DialogTrigger as RADialogTrigger,
-  Modal,
-  ModalOverlay,
-  OverlayTriggerStateContext,
   Heading,
+  OverlayTriggerStateContext,
+  Sheet,
+  SheetBackdrop,
+  SheetContent,
+  SheetOverlay,
 } from 'react-aria-components';
 import { useOverlayTriggerState } from 'react-stately';
 import type {
@@ -38,6 +41,7 @@ import type {
   DrawerProps,
   DrawerBodyProps,
   DrawerFooterProps,
+  DrawerPlacement,
 } from './types';
 import { RiCloseLine } from '@remixicon/react';
 import { Button } from '../Button';
@@ -60,6 +64,25 @@ import { Flex } from '../Flex';
  */
 export const DrawerTrigger = (props: DrawerTriggerProps) => {
   return <RADialogTrigger {...props} />;
+};
+
+type DrawerPosition = 'left' | 'right' | 'top' | 'bottom';
+
+/**
+ * Resolves the `start` and `end` placements to a physical edge, the same way
+ * React Aria does for a modal sheet.
+ */
+const resolvePosition = (
+  placement: DrawerPlacement,
+  direction: 'ltr' | 'rtl',
+): DrawerPosition => {
+  if (placement === 'start') {
+    return direction === 'rtl' ? 'right' : 'left';
+  }
+  if (placement === 'end') {
+    return direction === 'rtl' ? 'left' : 'right';
+  }
+  return placement;
 };
 
 type DrawerPhase = 'entering' | 'open' | 'exiting' | 'closed';
@@ -135,11 +158,13 @@ const toCssSize = (value: number | string | undefined) =>
  * drawer takes the full viewport height and is sized with `width`; a top or
  * bottom drawer takes the full viewport width and is sized with `height`.
  *
- * By default the drawer is modal: it shows a backdrop, traps focus, and closes
- * when the user clicks outside of it or presses Escape. Set `hideBackdrop` to
- * keep the drawer modal without a visible backdrop. Set `isNonModal` to keep
- * the rest of the page interactive while the drawer is open, and
- * `isDismissable={false}` to only close the drawer through its own controls.
+ * By default the drawer is modal and built on the React Aria `Sheet`: it
+ * shows a backdrop, traps focus, can be swiped away on touch screens, and
+ * closes when the user clicks outside of it or presses Escape. Set
+ * `hideBackdrop` to keep the drawer modal without a visible backdrop. Set
+ * `isNonModal` to keep the rest of the page interactive while the drawer is
+ * open, and `isDismissable={false}` to only close the drawer through its own
+ * controls.
  *
  * @example
  * Basic usage with DrawerTrigger:
@@ -167,88 +192,98 @@ const toCssSize = (value: number | string | undefined) =>
  *
  * @public
  */
-export const Drawer = forwardRef<React.ElementRef<typeof Modal>, DrawerProps>(
-  (props, ref) => {
-    const { ownProps, restProps, dataAttributes } = useDefinition(
-      DrawerDefinition,
-      props,
-      { classNameTarget: 'container' },
-    );
-    const {
-      classes,
-      children,
-      width,
-      height,
-      isNonModal,
-      isDismissable,
-      style,
-    } = ownProps;
+export const Drawer = forwardRef<HTMLDivElement, DrawerProps>((props, ref) => {
+  const { ownProps, restProps, dataAttributes } = useDefinition(
+    DrawerDefinition,
+    props,
+    { classNameTarget: 'container' },
+  );
+  const {
+    classes,
+    children,
+    placement,
+    width,
+    height,
+    isNonModal,
+    hideBackdrop,
+    isDismissable,
+    style,
+  } = ownProps;
 
-    const containerStyle = {
-      ['--bui-drawer-width' as keyof React.CSSProperties]:
-        toCssSize(width) || '400px',
-      ...(height
-        ? {
-            ['--bui-drawer-height' as keyof React.CSSProperties]:
-              toCssSize(height),
-          }
-        : {}),
-      ...style,
-    };
+  const containerStyle = {
+    ['--bui-drawer-width' as keyof React.CSSProperties]:
+      toCssSize(width) || '400px',
+    ...(height
+      ? {
+          ['--bui-drawer-height' as keyof React.CSSProperties]:
+            toCssSize(height),
+        }
+      : {}),
+    ...style,
+  };
 
-    const content = (
-      <RADialog className={classes.inner}>
-        <BgReset>
-          <Box bg="neutral" className={classes.content}>
-            {children}
-          </Box>
-        </BgReset>
-      </RADialog>
-    );
+  const content = (
+    <BgReset>
+      <Box bg="neutral" className={classes.content}>
+        {children}
+      </Box>
+    </BgReset>
+  );
 
-    if (isNonModal) {
-      return (
-        <NonModalDrawer
-          {...restProps}
-          ref={ref}
-          classes={classes}
-          dataAttributes={dataAttributes}
-          isDismissable={isDismissable}
-          style={containerStyle}
-        >
-          {content}
-        </NonModalDrawer>
-      );
-    }
-
+  if (isNonModal) {
     return (
-      <ModalOverlay
-        className={classes.root}
-        isDismissable={isDismissable}
-        isKeyboardDismissDisabled={false}
-        {...dataAttributes}
+      <NonModalDrawer
         {...restProps}
+        ref={ref}
+        classes={classes}
+        dataAttributes={dataAttributes}
+        placement={placement}
+        isDismissable={isDismissable}
+        style={containerStyle}
       >
-        <Modal ref={ref} className={classes.container} style={containerStyle}>
-          {content}
-        </Modal>
-      </ModalOverlay>
+        <RADialog className={classes.inner}>{content}</RADialog>
+      </NonModalDrawer>
     );
-  },
-);
+  }
+
+  return (
+    <SheetOverlay
+      className={classes.root}
+      position={placement}
+      preventDismissal={!isDismissable}
+      {...dataAttributes}
+      {...restProps}
+    >
+      {!hideBackdrop && (
+        <SheetBackdrop
+          className={classes.backdrop}
+          swipeAnimation="bui-drawer-backdrop"
+        />
+      )}
+      <Sheet ref={ref} className={classes.container} style={containerStyle}>
+        <SheetContent className={classes.inner}>{content}</SheetContent>
+      </Sheet>
+    </SheetOverlay>
+  );
+});
 
 Drawer.displayName = 'Drawer';
 
 type NonModalDrawerProps = Omit<DrawerProps, 'children' | 'className'> & {
-  classes: Record<'root' | 'container' | 'inner' | 'content', string>;
+  classes: Record<
+    'root' | 'backdrop' | 'container' | 'inner' | 'content',
+    string
+  >;
   dataAttributes: Record<string, string | undefined>;
+  placement: DrawerPlacement;
   children: React.ReactNode;
 };
 
 /**
  * Renders a drawer that does not block the rest of the page. React Aria's
- * Modal always traps focus and hides the page from assistive technology, so
- * the non-modal variant is composed from the lower level overlay primitives.
+ * Sheet is always modal: it traps focus and hides the page from assistive
+ * technology, so the non-modal variant is composed from the lower level
+ * overlay primitives instead.
  */
 const NonModalDrawer = forwardRef<HTMLDivElement, NonModalDrawerProps>(
   (props, forwardedRef) => {
@@ -256,23 +291,24 @@ const NonModalDrawer = forwardRef<HTMLDivElement, NonModalDrawerProps>(
       classes,
       dataAttributes,
       children,
+      placement,
       style,
       isOpen,
       defaultOpen,
       onOpenChange,
       isDismissable,
-      isKeyboardDismissDisabled,
       shouldCloseOnInteractOutside,
       UNSTABLE_portalContainer,
-      // Modal-only props that have no equivalent for a non-modal drawer.
-      isEntering: _isEntering,
-      isExiting: _isExiting,
-      onEnter: _onEnter,
-      onExit: _onExit,
+      // Sheet-only props that have no equivalent for a non-modal drawer.
+      swipeDirection: _swipeDirection,
+      snapPoints: _snapPoints,
       UNSTABLE_deferUntilEntered: _deferUntilEntered,
       slot: _slot,
       ...domProps
     } = props;
+
+    const { direction } = useLocale();
+    const position = resolvePosition(placement, direction);
 
     const contextState = useContext(OverlayTriggerStateContext);
     const localState = useOverlayTriggerState({
@@ -297,7 +333,7 @@ const NonModalDrawer = forwardRef<HTMLDivElement, NonModalDrawerProps>(
         isOpen: state.isOpen,
         onClose: state.close,
         isDismissable,
-        isKeyboardDismissDisabled,
+        isKeyboardDismissDisabled: !isDismissable,
         shouldCloseOnInteractOutside,
       },
       ref,
@@ -317,6 +353,7 @@ const NonModalDrawer = forwardRef<HTMLDivElement, NonModalDrawerProps>(
           ref={rootRef}
           className={classes.root}
           {...dataAttributes}
+          data-position={position}
           data-entering={isEntering || undefined}
           data-exiting={isExiting || undefined}
         >
@@ -325,6 +362,7 @@ const NonModalDrawer = forwardRef<HTMLDivElement, NonModalDrawerProps>(
               {...mergeProps(domProps, overlayProps)}
               ref={ref}
               className={classes.container}
+              data-position={position}
               style={style}
             >
               <OverlayTriggerStateContext.Provider value={state}>

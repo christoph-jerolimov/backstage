@@ -33,7 +33,7 @@ import { ReactAriaLink } from '@/components/ReactAriaLink';
 
 export const reactAriaUrls = {
   dialogTrigger: 'https://react-aria.adobe.com/Modal#dialogtrigger',
-  modal: 'https://react-aria.adobe.com/Modal',
+  sheet: 'https://react-aria.adobe.com/Sheet',
 };
 
 <PageTitle
@@ -64,12 +64,12 @@ Wraps a trigger element and the drawer content to handle open/close state.
 
 ### Drawer
 
-The main drawer container. By default it renders as a modal overlay that
-covers the full height of the viewport on one side.
+The main drawer container. By default it renders as a modal sheet that
+covers one edge of the viewport and can be swiped away on touch screens.
 
 <PropsTable data={drawerPropDefs} />
 
-<ReactAriaLink component="Modal" href={reactAriaUrls.modal} />
+<ReactAriaLink component="Sheet" href={reactAriaUrls.sheet} />
 
 ### DrawerHeader
 
@@ -137,9 +137,9 @@ The page stays blocked until the drawer closes.
 ### Non-modal drawer
 
 Set `isNonModal` to keep the page interactive while the drawer is open. A
-non-modal drawer has no backdrop, does not trap focus, and does not block
-scrolling. Combine it with `isDismissable={false}` to build a persistent side
-panel that only closes through its own controls or the Escape key.
+non-modal drawer has no backdrop, does not trap focus, does not block
+scrolling, and cannot be swiped away. Combine it with `isDismissable={false}`
+to build a persistent side panel that only closes through its own controls.
 
 <Snippet
   align="center"

@@ -55,6 +55,31 @@ class FixedJSDOMEnvironment extends JSDOMEnvironment {
     // any of the native APIs above. Without this, the JSDOM `Error` is what the test
     // code will use for comparison with `e`, which fails the instanceof check.
     this.global.Error = Error;
+
+    // JSDOM does not implement IntersectionObserver or element scrolling. Provide
+    // inert implementations so that components relying on them can be rendered.
+    if (!this.global.IntersectionObserver) {
+      this.global.IntersectionObserver = class IntersectionObserver {
+        constructor(callback, options = {}) {
+          this.callback = callback;
+          this.root = options.root ?? null;
+          this.rootMargin = options.rootMargin ?? '0px';
+          this.thresholds = [].concat(options.threshold ?? 0);
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
+          return [];
+        }
+      };
+    }
+    const elementPrototype = this.global.Element.prototype;
+    for (const method of ['scroll', 'scrollTo', 'scrollBy']) {
+      if (!elementPrototype[method]) {
+        elementPrototype[method] = () => {};
+      }
+    }
   }
 }
 

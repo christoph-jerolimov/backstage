@@ -31,6 +31,7 @@ export const DrawerDefinition = defineComponent<DrawerOwnProps>()({
   styles,
   classNames: {
     root: 'bui-DrawerOverlay',
+    backdrop: 'bui-DrawerBackdrop',
     container: 'bui-Drawer',
     inner: 'bui-DrawerInner',
     content: 'bui-DrawerContent',
@@ -38,11 +39,11 @@ export const DrawerDefinition = defineComponent<DrawerOwnProps>()({
   propDefs: {
     children: {},
     className: {},
-    placement: { dataAttribute: true, default: 'right' },
+    placement: { default: 'right' },
     width: {},
     height: {},
     isNonModal: { dataAttribute: true, default: false },
-    hideBackdrop: { dataAttribute: true, default: false },
+    hideBackdrop: { default: false },
     isDismissable: { default: true },
     style: {},
   },
