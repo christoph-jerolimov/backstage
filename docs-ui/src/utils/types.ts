@@ -67,6 +67,12 @@ export type Component =
   | 'select-item'
   | 'skeleton'
   | 'slider'
+  | 'step'
+  | 'step-list'
+  | 'step-panel'
+  | 'stepper'
+  | 'stepper-next-button'
+  | 'stepper-previous-button'
   | 'submenu-trigger'
   | 'switch'
   | 'tab'
@@ -89,7 +95,7 @@ export type Component =
   | 'use-table'
   | 'visually-hidden';
 
-export type Hook = 'use-breakpoint';
+export type Hook = 'use-breakpoint' | 'use-stepper';
 
 export type Version = `${number}.${number}.${number}`;
 

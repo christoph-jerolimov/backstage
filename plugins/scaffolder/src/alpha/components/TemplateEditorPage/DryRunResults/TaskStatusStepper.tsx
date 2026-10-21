@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
-import { memo } from 'react';
-import Step from '@material-ui/core/Step';
-import StepLabel from '@material-ui/core/StepLabel';
-import Stepper from '@material-ui/core/Stepper';
+import { Step, StepList, Stepper } from '@backstage/ui';
 import { ScaffolderTaskStatus } from '@backstage/plugin-scaffolder-react';
-import StepButton from '@material-ui/core/StepButton';
-import { StepIconProps } from '@material-ui/core/StepIcon';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Cancel from '@material-ui/icons/Cancel';
-import Check from '@material-ui/icons/Check';
-import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import Typography from '@material-ui/core/Typography';
+import {
+  RiCheckLine,
+  RiCloseLine,
+  RiLoader4Line,
+  RiSubtractLine,
+} from '@remixicon/react';
 import { DateTime, Interval } from 'luxon';
 import useInterval from 'react-use/esm/useInterval';
 import humanizeDuration from 'humanize-duration';
@@ -39,24 +36,26 @@ const useStyles = makeStyles((theme: Theme) =>
     root: {
       width: '100%',
     },
-    button: {
-      marginBottom: theme.spacing(2),
-      marginLeft: theme.spacing(2),
+    completed: {
+      '& .bui-StepIndicator': {
+        color: theme.palette.common.white,
+        backgroundColor: theme.palette.status.ok,
+        borderColor: theme.palette.status.ok,
+      },
     },
-    actionsContainer: {
-      marginBottom: theme.spacing(2),
+    error: {
+      '& .bui-StepIndicator': {
+        color: theme.palette.common.white,
+        backgroundColor: theme.palette.status.error,
+        borderColor: theme.palette.status.error,
+      },
     },
-    resetContainer: {
-      padding: theme.spacing(3),
+    '@keyframes spin': {
+      from: { transform: 'rotate(0deg)' },
+      to: { transform: 'rotate(360deg)' },
     },
-    labelWrapper: {
-      display: 'flex',
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    stepWrapper: {
-      width: '100%',
+    spinner: {
+      animation: '$spin 1s linear infinite',
     },
   }),
 );
@@ -68,23 +67,6 @@ type TaskStep = {
   startedAt?: string;
   endedAt?: string;
 };
-
-const useStepIconStyles = makeStyles(theme =>
-  createStyles({
-    root: {
-      color: theme.palette.text.disabled,
-      display: 'flex',
-      height: 22,
-      alignItems: 'center',
-    },
-    completed: {
-      color: theme.palette.status.ok,
-    },
-    error: {
-      color: theme.palette.status.error,
-    },
-  }),
-);
 
 const StepTimeTicker = ({ step }: { step: TaskStep }) => {
   const [time, setTime] = useState('');
@@ -110,33 +92,22 @@ const StepTimeTicker = ({ step }: { step: TaskStep }) => {
   return <Typography variant="caption">{time}</Typography>;
 };
 
-function TaskStepIconComponent(props: StepIconProps) {
-  const classes = useStepIconStyles();
-  const { active, completed, error } = props;
+function TaskStepIcon(props: { status: ScaffolderTaskStatus }) {
+  const classes = useStyles();
 
-  const getMiddle = () => {
-    if (active) {
-      return <CircularProgress size="24px" />;
-    }
-    if (completed) {
-      return <Check />;
-    }
-    if (error) {
-      return <Cancel />;
-    }
-    return <FiberManualRecordIcon />;
-  };
-
-  return (
-    <div
-      className={classNames(classes.root, {
-        [classes.completed]: completed,
-        [classes.error]: error,
-      })}
-    >
-      {getMiddle()}
-    </div>
-  );
+  switch (props.status) {
+    case 'processing':
+      return <RiLoader4Line className={classes.spinner} />;
+    case 'completed':
+      return <RiCheckLine />;
+    case 'failed':
+    case 'cancelled':
+      return <RiCloseLine />;
+    case 'skipped':
+      return <RiSubtractLine />;
+    default:
+      return null;
+  }
 }
 
 export const TaskStatusStepper = memo(
@@ -152,51 +123,53 @@ export const TaskStatusStepper = memo(
     const classes = useStyles(props);
     const { t } = useTranslationRef(scaffolderTranslationRef);
 
+    // Every step that has started counts as completed for the progress line,
+    // the indicator of each step shows its actual status.
+    const lastStartedStep = [...steps]
+      .reverse()
+      .find(step => step.status !== 'open');
+
     return (
-      <div className={classes.root}>
-        <Stepper
-          activeStep={steps.findIndex(s => s.id === currentStepId)}
-          orientation="vertical"
-          nonLinear
-        >
-          {steps.map((step, index) => {
-            const isCancelled = step.status === 'cancelled';
-            const isActive = step.status === 'processing';
-            const isCompleted = step.status === 'completed';
-            const isFailed = step.status === 'failed';
+      <Stepper
+        orientation="vertical"
+        className={classes.root}
+        allowsSkipping
+        selectedKey={currentStepId}
+        lastCompletedStep={lastStartedStep?.id ?? null}
+        onSelectionChange={key => onUserStepChange(String(key))}
+      >
+        <StepList>
+          {steps.map(step => {
+            const isFailed =
+              step.status === 'failed' || step.status === 'cancelled';
             const isSkipped = step.status === 'skipped';
 
             return (
-              <Step key={String(index)} expanded>
-                <StepButton onClick={() => onUserStepChange(step.id)}>
-                  <StepLabel
-                    StepIconProps={{
-                      completed: isCompleted,
-                      error: isFailed || isCancelled,
-                      active: isActive,
-                    }}
-                    StepIconComponent={TaskStepIconComponent}
-                    className={classes.stepWrapper}
-                  >
-                    <div className={classes.labelWrapper}>
-                      <Typography variant="subtitle2">{step.name}</Typography>
-                      {isSkipped ? (
-                        <Typography variant="caption">
-                          {t(
-                            'templateEditorPage.taskStatusStepper.skippedStepTitle',
-                          )}
-                        </Typography>
-                      ) : (
-                        <StepTimeTicker step={step} />
+              <Step
+                key={step.id}
+                id={step.id}
+                className={classNames({
+                  [classes.completed]: step.status === 'completed',
+                  [classes.error]: isFailed,
+                })}
+                indicator={<TaskStepIcon status={step.status} />}
+                title={step.name}
+                description={
+                  isSkipped ? (
+                    <Typography variant="caption">
+                      {t(
+                        'templateEditorPage.taskStatusStepper.skippedStepTitle',
                       )}
-                    </div>
-                  </StepLabel>
-                </StepButton>
-              </Step>
+                    </Typography>
+                  ) : (
+                    <StepTimeTicker step={step} />
+                  )
+                }
+              />
             );
           })}
-        </Stepper>
-      </div>
+        </StepList>
+      </Stepper>
     );
   },
 );

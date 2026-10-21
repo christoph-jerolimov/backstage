@@ -3999,6 +3999,258 @@ export type Space =
 // @public (undocumented)
 export interface SpaceProps extends MarginProps, PaddingProps {}
 
+// @public
+export const Step: ForwardRefExoticComponent<
+  StepProps & RefAttributes<HTMLLIElement>
+>;
+
+// @public
+export const StepDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-Step';
+    readonly trigger: 'bui-StepTrigger';
+    readonly indicator: 'bui-StepIndicator';
+    readonly content: 'bui-StepContent';
+    readonly title: 'bui-StepTitle';
+    readonly description: 'bui-StepDescription';
+    readonly connector: 'bui-StepConnector';
+  };
+  readonly propDefs: {
+    readonly id: {};
+    readonly title: {};
+    readonly description: {};
+    readonly indicator: {};
+    readonly isDisabled: {
+      readonly default: false;
+    };
+    readonly children: {};
+    readonly className: {};
+  };
+};
+
+// @public
+export const StepList: ForwardRefExoticComponent<
+  StepListProps & RefAttributes<HTMLOListElement>
+>;
+
+// @public
+export const StepListDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-StepList';
+  };
+  readonly propDefs: {
+    readonly className: {};
+    readonly children: {};
+  };
+};
+
+// @public
+export type StepListOwnProps = {
+  className?: string;
+  children?: ReactNode;
+};
+
+// @public
+export interface StepListProps
+  extends StepListOwnProps,
+    Omit<HTMLAttributes<HTMLOListElement>, keyof StepListOwnProps> {}
+
+// @public
+export type StepOwnProps = {
+  id: Key;
+  title?: ReactNode;
+  description?: ReactNode;
+  indicator?: ReactNode;
+  isDisabled?: boolean;
+  children?: ReactNode;
+  className?: string;
+};
+
+// @public
+export const StepPanel: ForwardRefExoticComponent<
+  StepPanelProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const StepPanelDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-StepPanel';
+  };
+  readonly propDefs: {
+    readonly id: {};
+    readonly shouldForceMount: {
+      readonly default: false;
+    };
+    readonly className: {};
+    readonly children: {};
+  };
+};
+
+// @public
+export type StepPanelOwnProps = {
+  id: Key;
+  shouldForceMount?: boolean;
+  className?: string;
+  children?: ReactNode;
+};
+
+// @public
+export interface StepPanelProps
+  extends StepPanelOwnProps,
+    Omit<HTMLAttributes<HTMLDivElement>, keyof StepPanelOwnProps> {}
+
+// @public
+export const Stepper: ForwardRefExoticComponent<
+  StepperProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const StepperDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-Stepper';
+  };
+  readonly propDefs: {
+    readonly orientation: {
+      readonly dataAttribute: true;
+      readonly default: 'horizontal';
+    };
+    readonly placement: {
+      readonly dataAttribute: true;
+      readonly default: 'aside';
+    };
+    readonly className: {};
+    readonly children: {};
+  };
+};
+
+// @public
+export const StepperNextButton: ForwardRefExoticComponent<
+  StepperNextButtonProps & RefAttributes<HTMLButtonElement>
+>;
+
+// @public
+export const StepperNextButtonDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-StepperNextButton';
+  };
+  readonly propDefs: {
+    readonly className: {};
+    readonly children: {};
+  };
+};
+
+// @public
+export type StepperNextButtonOwnProps = {
+  className?: string;
+  children?: ReactNode;
+};
+
+// @public
+export interface StepperNextButtonProps
+  extends StepperNextButtonOwnProps,
+    Omit<ButtonProps, keyof StepperNextButtonOwnProps> {}
+
+// @public
+export type StepperOrientation = 'horizontal' | 'vertical';
+
+// @public
+export type StepperOwnProps = {
+  orientation?: StepperOrientation;
+  placement?: StepperPlacement;
+  className?: string;
+  children?: ReactNode;
+};
+
+// @public
+export type StepperPlacement = 'aside' | 'below';
+
+// @public
+export const StepperPreviousButton: ForwardRefExoticComponent<
+  StepperPreviousButtonProps & RefAttributes<HTMLButtonElement>
+>;
+
+// @public
+export const StepperPreviousButtonDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-StepperPreviousButton';
+  };
+  readonly propDefs: {
+    readonly className: {};
+    readonly children: {};
+  };
+};
+
+// @public
+export type StepperPreviousButtonOwnProps = {
+  className?: string;
+  children?: ReactNode;
+};
+
+// @public
+export interface StepperPreviousButtonProps
+  extends StepperPreviousButtonOwnProps,
+    Omit<ButtonProps, keyof StepperPreviousButtonOwnProps> {}
+
+// @public
+export interface StepperProps
+  extends StepperOwnProps,
+    Omit<
+      HTMLAttributes<HTMLDivElement>,
+      keyof StepperOwnProps | 'defaultValue'
+    > {
+  allowsSkipping?: boolean;
+  defaultLastCompletedStep?: Key;
+  defaultSelectedKey?: Key;
+  isDisabled?: boolean;
+  isReadOnly?: boolean;
+  lastCompletedStep?: Key | null;
+  onLastCompletedStepChange?: (key: Key | null) => void;
+  onSelectionChange?: (key: Key) => void;
+  selectedKey?: Key | null;
+}
+
+// @public
+export interface StepperState {
+  allowsSkipping: boolean;
+  isDisabled: boolean;
+  isFirstStep: boolean;
+  isLastStep: boolean;
+  isReadOnly: boolean;
+  isStepCompleted: (key: Key) => boolean;
+  isStepSelectable: (key: Key) => boolean;
+  lastCompletedStep: Key | null;
+  selectedIndex: number;
+  selectedKey: Key | null;
+  selectNextStep: () => void;
+  selectPreviousStep: () => void;
+  setLastCompletedStep: (key: Key | null) => void;
+  setSelectedKey: (key: Key) => void;
+  stepKeys: Key[];
+}
+
+// @public
+export interface StepProps
+  extends StepOwnProps,
+    Omit<HTMLAttributes<HTMLLIElement>, keyof StepOwnProps> {}
+
 // @public (undocumented)
 export const SubmenuTrigger: (props: SubmenuTriggerProps) => JSX_2.Element;
 
@@ -4671,6 +4923,9 @@ export const useBreakpoint: () => {
   up: (key: Breakpoint) => boolean;
   down: (key: Breakpoint) => boolean;
 };
+
+// @public
+export function useStepper(): StepperState;
 
 // @public
 export function useTable<T extends TableItem, TFilter = unknown>(

@@ -1,0 +1,228 @@
+import { PropsTable } from '@/components/PropsTable';
+import { Snippet } from '@/components/Snippet';
+import { CodeBlock } from '@/components/CodeBlock';
+import {
+  stepperPropDefs,
+  stepListPropDefs,
+  stepPropDefs,
+  stepPanelPropDefs,
+  stepperPreviousButtonPropDefs,
+  stepperNextButtonPropDefs,
+  useStepperPropDefs,
+} from './props-definition';
+import {
+  stepperUsageSnippet,
+  defaultSnippet,
+  withDescriptionsSnippet,
+  verticalSnippet,
+  textBelowSnippet,
+  allowsSkippingSnippet,
+  readOnlySnippet,
+  disabledStepSnippet,
+  controlledSnippet,
+  customStepContentSnippet,
+  statusIndicatorsSnippet,
+} from './snippets';
+import {
+  Default,
+  WithDescriptions,
+  Vertical,
+  TextBelow,
+  AllowsSkipping,
+  ReadOnly,
+  DisabledStep,
+  Controlled,
+  CustomStepContent,
+  StatusIndicators,
+} from './components';
+import { PageTitle } from '@/components/PageTitle';
+import { Theming } from '@/components/Theming';
+import { StepperDefinition } from '../../../utils/definitions';
+import { ChangelogComponent } from '@/components/ChangelogComponent';
+
+<PageTitle
+  title="Stepper"
+  description="Splits a multi step flow, such as a long form, into separate steps that the user walks through one at a time."
+/>
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<Default />}
+  code={defaultSnippet}
+/>
+
+## Usage
+
+<CodeBlock code={stepperUsageSnippet} />
+
+A stepper is made of a `StepList` that shows the progress, one `StepPanel` per step with the content of that step, and the `StepperPreviousButton` and `StepperNextButton` to move between steps. Steps are completed in order: the user can go back to any completed step from the step list, but can only move forward with the next button, unless `allowsSkipping` is set.
+
+## API reference
+
+### Stepper
+
+Root container that holds the state of the flow. Renders a `<div>` element. Pass `orientation="vertical"` to show the step list next to the content instead of above it.
+
+<PropsTable data={stepperPropDefs} />
+
+### StepList
+
+The ordered list of steps. Renders an `<ol>` element, so pass an `aria-label` that describes the flow. Steps must be direct children of the list.
+
+<PropsTable data={stepListPropDefs} />
+
+### Step
+
+A single step. Shows the step number, or a check mark once the step is completed, next to the title and description. Renders an `<li>` element with a `<button>` inside, or a plain `<span>` when the stepper is read-only.
+
+<PropsTable data={stepPropDefs} />
+
+### StepPanel
+
+The content of a single step. Only the panel of the selected step is rendered, unless `shouldForceMount` is set. Renders a `<div>` element.
+
+<PropsTable data={stepPanelPropDefs} />
+
+### StepperPreviousButton
+
+A `Button` that selects the previous step. It is disabled on the first step and accepts all `Button` props.
+
+<PropsTable data={stepperPreviousButtonPropDefs} />
+
+### StepperNextButton
+
+A `Button` that selects the next step. It is disabled on the last step and accepts all `Button` props.
+
+<PropsTable data={stepperNextButtonPropDefs} />
+
+### useStepper
+
+A hook that returns the state and actions of the surrounding `Stepper`. Use it to render a custom submit button on the last step or to show the current progress.
+
+<PropsTable data={useStepperPropDefs} />
+
+## Examples
+
+### With descriptions
+
+Each step can show a short description below its title.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<WithDescriptions />}
+  code={withDescriptionsSnippet}
+/>
+
+### Vertical
+
+With `orientation="vertical"` the step list is shown next to the content.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<Vertical />}
+  code={verticalSnippet}
+/>
+
+### Text below the indicator
+
+With `placement="below"` the title and description are centered below the indicator, and all steps share the available width equally. By default the text is shown aside the indicator, on the right in left-to-right languages and on the left in right-to-left languages.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<TextBelow />}
+  code={textBelowSnippet}
+/>
+
+### Allow skipping
+
+By default the user can only go back to completed steps and forward with the next button. With `allowsSkipping` every step can be selected from the step list, and skipped steps are not marked as completed.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<AllowsSkipping />}
+  code={allowsSkippingSnippet}
+/>
+
+### Read only
+
+With `isReadOnly` the steps in the list cannot be selected. The user moves between steps with the navigation buttons only.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<ReadOnly />}
+  code={readOnlySnippet}
+/>
+
+### Disabled step
+
+A disabled step cannot be selected from the step list, but the next button still moves through it.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<DisabledStep />}
+  code={disabledStepSnippet}
+/>
+
+### Controlled with validation
+
+Control the selected step with `selectedKey` and `onSelectionChange` to validate a step before the user leaves it. The `useStepper` hook gives access to the state, for example to swap the next button for a submit button on the last step. Panels with `shouldForceMount` keep their form state while another step is selected.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<Controlled />}
+  code={controlledSnippet}
+/>
+
+### Status indicators
+
+Use `indicator` to replace the step number with a custom icon, for example to show the status of each step of a long running task. Combine it with `isReadOnly` when the stepper only displays progress.
+
+<Snippet
+  align="center"
+  py={4}
+  height={160}
+  preview={<StatusIndicators />}
+  code={statusIndicatorsSnippet}
+/>
+
+### Custom step content
+
+Pass children to a `Step` to render custom content instead of the title and description.
+
+<Snippet
+  align="center"
+  py={4}
+  height={320}
+  preview={<CustomStepContent />}
+  code={customStepContentSnippet}
+/>
+
+<Theming definition={StepperDefinition} />
+
+<ChangelogComponent
+  component={[
+    'stepper',
+    'step-list',
+    'step',
+    'step-panel',
+    'stepper-previous-button',
+    'stepper-next-button',
+  ]}
+  hook="use-stepper"
+/>

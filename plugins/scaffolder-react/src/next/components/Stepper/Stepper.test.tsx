@@ -146,7 +146,7 @@ describe('Stepper', () => {
       title: 'React JSON Schema Form Test',
     };
 
-    const { getByRole, getByLabelText } = await renderInTestApp(
+    const { getByRole } = await renderInTestApp(
       <SecretsContextProvider>
         <Stepper manifest={manifest} extensions={[]} onCreate={jest.fn()} />
       </SecretsContextProvider>,
@@ -160,7 +160,7 @@ describe('Stepper', () => {
     });
 
     await act(async () => {
-      fireEvent.click(getByLabelText('Step 1'));
+      fireEvent.click(getByRole('button', { name: /Step 1/ }));
     });
 
     expect(getByRole('textbox', { name: 'name' })).toHaveValue(

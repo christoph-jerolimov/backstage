@@ -9,7 +9,7 @@ component while preserving its behavior and accessibility:
 
 - Badge overlays (no safe 1:1 BUI mapping)
 - `CircularProgress` / `LinearProgress` (no auto-map to Skeleton)
-- `Drawer`, `Snackbar`, `Stepper`, and `Timeline`
+- `Drawer`, `Snackbar`, and `Timeline`
 - `@material-table/core` / material-table and broader table-system migrations
 - Theme parity, dark-mode polish, and final design-token tuning after source-level migration
 - Custom wrapper abstractions that hide MUI behind project-specific APIs:

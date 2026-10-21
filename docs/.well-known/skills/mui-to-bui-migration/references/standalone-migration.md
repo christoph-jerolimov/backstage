@@ -70,6 +70,7 @@ Done when: the target has the required dependencies and the app loads BUI styles
 - `Select` - Dropdown select (single and multiple selection modes)
 - `Skeleton` - Loading skeleton
 - `Slider` - Range slider input (`label`, `minValue`, `maxValue`, `step`)
+- `Stepper` - Multi step flows (`Stepper`, `StepList`, `Step`, `StepPanel`, `StepperPreviousButton`, `StepperNextButton`, with `useStepper` hook for custom navigation)
 - `Switch` - Toggle switch
 - `Table` - Data tables (with `useTable` hook for data management)
 - `TablePagination` - Standalone pagination component

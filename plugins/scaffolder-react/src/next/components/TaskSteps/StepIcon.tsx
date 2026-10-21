@@ -14,58 +14,47 @@
  * limitations under the License.
  */
 
-import CircularProgress from '@material-ui/core/CircularProgress';
-import { StepIconProps } from '@material-ui/core/StepIcon';
 import { makeStyles } from '@material-ui/core/styles';
-import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
-import PanoramaFishEyeIcon from '@material-ui/icons/PanoramaFishEye';
-import classNames from 'classnames';
-import CheckCircleOutline from '@material-ui/icons/CheckCircleOutline';
-import ErrorOutline from '@material-ui/icons/ErrorOutline';
+import {
+  RiCheckLine,
+  RiCloseLine,
+  RiLoader4Line,
+  RiSubtractLine,
+} from '@remixicon/react';
+import type { ScaffolderTaskStatus } from '../../../api';
 
-const useStepIconStyles = makeStyles(theme => ({
-  root: {
-    color: theme.palette.text.disabled,
+const useStyles = makeStyles(
+  {
+    '@keyframes spin': {
+      from: { transform: 'rotate(0deg)' },
+      to: { transform: 'rotate(360deg)' },
+    },
+    spinner: {
+      animation: '$spin 1s linear infinite',
+    },
   },
-  completed: {
-    color: theme.palette.status.ok,
-  },
-  error: {
-    color: theme.palette.status.error,
-  },
-}));
+  { name: 'ScaffolderReactStepIcon' },
+);
 
-export const StepIcon = (props: StepIconProps & { skipped: boolean }) => {
-  const classes = useStepIconStyles();
-  const { active, completed, error, skipped } = props;
+/**
+ * The indicator shown for a task step, based on the status of the step.
+ * Returns `null` for steps that have not started yet, so that the step number
+ * is shown instead.
+ */
+export const StepIcon = (props: { status: ScaffolderTaskStatus }) => {
+  const classes = useStyles();
 
-  const getMiddle = () => {
-    if (active) {
-      return <CircularProgress size="20px" />;
-    }
-    if (completed) {
-      return <CheckCircleOutline />;
-    }
-
-    if (error) {
-      return <ErrorOutline />;
-    }
-
-    if (skipped) {
-      return <RemoveCircleOutline />;
-    }
-
-    return <PanoramaFishEyeIcon />;
-  };
-
-  return (
-    <div
-      className={classNames(classes.root, {
-        [classes.completed]: completed,
-        [classes.error]: error,
-      })}
-    >
-      {getMiddle()}
-    </div>
-  );
+  switch (props.status) {
+    case 'processing':
+      return <RiLoader4Line className={classes.spinner} />;
+    case 'completed':
+      return <RiCheckLine />;
+    case 'failed':
+    case 'cancelled':
+      return <RiCloseLine />;
+    case 'skipped':
+      return <RiSubtractLine />;
+    default:
+      return null;
+  }
 };
