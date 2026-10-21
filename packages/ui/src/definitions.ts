@@ -82,6 +82,7 @@ export {
   SelectItemProfileDefinition,
   SelectItemTextDefinition,
 } from './components/Select/definition';
+export { SeparatorDefinition } from './components/Separator/definition';
 export { SkeletonDefinition } from './components/Skeleton/definition';
 export { SliderDefinition } from './components/Slider/definition';
 export { SwitchDefinition } from './components/Switch/definition';

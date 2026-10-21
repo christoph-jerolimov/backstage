@@ -65,6 +65,7 @@ export type Component =
   | 'searchfield'
   | 'select'
   | 'select-item'
+  | 'separator'
   | 'skeleton'
   | 'slider'
   | 'submenu-trigger'

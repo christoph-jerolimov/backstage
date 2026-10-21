@@ -1,0 +1,78 @@
+import { PropsTable } from '@/components/PropsTable';
+import { Snippet } from '@/components/Snippet';
+import { CodeBlock } from '@/components/CodeBlock';
+import { separatorPropDefs } from './props-definition';
+import {
+  separatorUsageSnippet,
+  defaultSnippet,
+  verticalSnippet,
+  betweenActionsSnippet,
+  spacingSnippet,
+} from './snippets';
+import { Default, Vertical, BetweenActions, Spacing } from './components';
+import { PageTitle } from '@/components/PageTitle';
+import { Theming } from '@/components/Theming';
+import { ChangelogComponent } from '@/components/ChangelogComponent';
+import { SeparatorDefinition } from '../../../utils/definitions';
+
+<PageTitle
+  title="Separator"
+  description="A thin line that visually and semantically separates content."
+/>
+
+<Snippet align="center" py={4} preview={<Default />} code={defaultSnippet} />
+
+## Usage
+
+<CodeBlock code={separatorUsageSnippet} />
+
+## API reference
+
+<PropsTable data={separatorPropDefs} />
+
+A horizontal separator renders as an `hr` element. A vertical separator renders
+as a `div` with the `separator` role and `aria-orientation` set, so assistive
+technologies announce both the same way. This component also accepts all
+standard HTML attributes of the rendered element.
+
+## Examples
+
+### Vertical
+
+Use a vertical separator between items placed side by side. It stretches to
+the height of its flex container, so no explicit height is needed.
+
+<Snippet
+  layout="side-by-side"
+  open
+  preview={<Vertical />}
+  code={verticalSnippet}
+/>
+
+### Between actions
+
+Separate a destructive action from the others in a toolbar. Margin props
+shorten a vertical separator inside a taller row.
+
+<Snippet
+  layout="side-by-side"
+  open
+  preview={<BetweenActions />}
+  code={betweenActionsSnippet}
+/>
+
+### Spacing
+
+The separator has no margin of its own. Use the margin props to add space
+around it when the surrounding layout does not already provide it.
+
+<Snippet
+  layout="side-by-side"
+  open
+  preview={<Spacing />}
+  code={spacingSnippet}
+/>
+
+<Theming definition={SeparatorDefinition} />
+
+<ChangelogComponent component="separator" />
