@@ -1,0 +1,167 @@
+import { PropsTable } from '@/components/PropsTable';
+import { Snippet } from '@/components/Snippet';
+import { CodeBlock } from '@/components/CodeBlock';
+import {
+  Default,
+  PreviewPlacement,
+  PreviewBottom,
+  PreviewHiddenBackdrop,
+  PreviewNonModal,
+} from './components';
+import {
+  drawerPropDefs,
+  drawerTriggerPropDefs,
+  drawerHeaderPropDefs,
+  drawerBodyPropDefs,
+  drawerFooterPropDefs,
+} from './props-definition';
+import {
+  drawerUsageSnippet,
+  drawerDefaultSnippet,
+  drawerPlacementSnippet,
+  drawerBottomSnippet,
+  drawerHiddenBackdropSnippet,
+  drawerNonModalSnippet,
+  drawerWithNoTriggerSnippet,
+  drawerCloseSnippet,
+} from './snippets';
+import { PageTitle } from '@/components/PageTitle';
+import { Theming } from '@/components/Theming';
+import { DrawerDefinition } from '../../../utils/definitions';
+import { ChangelogComponent } from '@/components/ChangelogComponent';
+import { ReactAriaLink } from '@/components/ReactAriaLink';
+
+export const reactAriaUrls = {
+  dialogTrigger: 'https://react-aria.adobe.com/Modal#dialogtrigger',
+  sheet: 'https://react-aria.adobe.com/Sheet',
+};
+
+<PageTitle
+  title="Drawer"
+  description="A panel that slides in from an edge of the viewport, with header, body, and footer sections."
+/>
+
+<Snippet
+  align="center"
+  py={4}
+  preview={<Default />}
+  code={drawerDefaultSnippet}
+/>
+
+## Usage
+
+<CodeBlock code={drawerUsageSnippet} />
+
+## API reference
+
+### DrawerTrigger
+
+Wraps a trigger element and the drawer content to handle open/close state.
+
+<PropsTable data={drawerTriggerPropDefs} />
+
+<ReactAriaLink component="DialogTrigger" href={reactAriaUrls.dialogTrigger} />
+
+### Drawer
+
+The main drawer container. By default it renders as a modal sheet that
+covers one edge of the viewport and can be swiped away on touch screens.
+
+<PropsTable data={drawerPropDefs} />
+
+<ReactAriaLink component="Sheet" href={reactAriaUrls.sheet} />
+
+### DrawerHeader
+
+Displays the drawer title with a built-in close button.
+
+<PropsTable data={drawerHeaderPropDefs} />
+
+<ReactAriaLink
+  component="Heading"
+  href="https://react-aria.adobe.com/Heading"
+/>
+
+### DrawerBody
+
+The main content area of the drawer with optional scrolling.
+
+<PropsTable data={drawerBodyPropDefs} />
+
+### DrawerFooter
+
+Contains action buttons or other footer content.
+
+<PropsTable data={drawerFooterPropDefs} />
+
+If you want to close the drawer while pressing a button, you can use the `slot="close"` prop on the button.
+
+<CodeBlock code={drawerCloseSnippet} />
+
+## Examples
+
+### Placement and size
+
+Use `placement` to pick the edge the drawer slides in from. A left or right
+drawer takes the full height of the viewport and is sized with `width`.
+
+<Snippet
+  align="center"
+  py={4}
+  preview={<PreviewPlacement />}
+  code={drawerPlacementSnippet}
+/>
+
+A top or bottom drawer takes the full width of the viewport and is sized with
+`height`. Without a `height` it grows with its content.
+
+<Snippet
+  align="center"
+  py={4}
+  preview={<PreviewBottom />}
+  code={drawerBottomSnippet}
+/>
+
+### Hidden backdrop
+
+Set `hideBackdrop` to keep the drawer modal without dimming the page behind it.
+The page stays blocked until the drawer closes.
+
+<Snippet
+  align="center"
+  py={4}
+  preview={<PreviewHiddenBackdrop />}
+  code={drawerHiddenBackdropSnippet}
+/>
+
+### Non-modal drawer
+
+Set `isNonModal` to keep the page interactive while the drawer is open. A
+non-modal drawer has no backdrop, does not trap focus, does not block
+scrolling, and cannot be swiped away. Combine it with `isDismissable={false}`
+to build a persistent side panel that only closes through its own controls.
+
+<Snippet
+  align="center"
+  py={4}
+  preview={<PreviewNonModal />}
+  code={drawerNonModalSnippet}
+/>
+
+### Drawer with no trigger and controlled by props
+
+You can also control the drawer using your own states.
+
+<CodeBlock code={drawerWithNoTriggerSnippet} />
+
+<Theming definition={DrawerDefinition} />
+
+<ChangelogComponent
+  component={[
+    'drawer',
+    'drawer-trigger',
+    'drawer-header',
+    'drawer-body',
+    'drawer-footer',
+  ]}
+/>

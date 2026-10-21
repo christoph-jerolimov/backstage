@@ -630,7 +630,6 @@ export const kubernetesReactTranslationRef: TranslationRef<
     readonly 'podExecTerminal.titleTemplate': '{{podName}} - {{containerName}} terminal shell on cluster {{clusterName}}';
     readonly 'podExecTerminal.buttonAriaLabel': 'open terminal';
     readonly 'kubernetesDrawer.yaml': 'YAML';
-    readonly 'kubernetesDrawer.closeDrawer': 'Close the drawer';
     readonly 'kubernetesDrawer.managedFields': 'Managed Fields';
     readonly 'kubernetesDrawer.unknownName': 'unknown name';
     readonly 'linkErrorPanel.message': "Could not format the link to the dashboard of your cluster named '{{clusterName}}'. Its dashboardApp property has been set to '{{dashboardApp}}.'";

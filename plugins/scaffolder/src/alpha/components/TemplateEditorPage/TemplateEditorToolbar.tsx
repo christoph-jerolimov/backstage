@@ -22,7 +22,6 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Button from '@material-ui/core/Button';
-import Drawer from '@material-ui/core/Drawer';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -34,25 +33,22 @@ import FunctionsIcon from '@material-ui/icons/Functions';
 
 import { useTranslationRef } from '@backstage/frontend-plugin-api';
 import { FieldExtensionOptions } from '@backstage/plugin-scaffolder-react';
+import { Drawer, DrawerBody, DrawerHeader } from '@backstage/ui';
 
 import { ActionPageContent } from '../../../components/ActionsPage/ActionsPage';
 import { scaffolderTranslationRef } from '../../../translation';
 import { CustomFieldPlayground } from './CustomFieldPlayground';
 import { TemplatingExtensionsPageContent } from '../../../components/TemplatingExtensionsPage/TemplatingExtensionsPage';
 
+/**
+ * Material UI renders menus, popovers and dialogs in portals outside of the
+ * drawer. Interacting with them must not dismiss the drawer.
+ */
+const isOutsideMaterialUiPopup = (element: Element) =>
+  !element.closest('[role="presentation"]');
+
 const useStyles = makeStyles(
   theme => ({
-    paper: {
-      width: '90%',
-      padding: theme.spacing(2),
-      backgroundColor: theme.palette.background.default,
-      [theme.breakpoints.up('sm')]: {
-        width: '70%',
-      },
-      [theme.breakpoints.up('md')]: {
-        width: '50%',
-      },
-    },
     appbar: {
       zIndex: 1,
     },
@@ -123,28 +119,48 @@ export function TemplateEditorToolbar(props: {
           </Button>
         </ButtonGroup>
         <Drawer
-          classes={{ paper: classes.paper }}
-          anchor="right"
-          open={showFieldsDrawer}
-          onClose={() => setShowFieldsDrawer(false)}
+          isOpen={showFieldsDrawer}
+          onOpenChange={setShowFieldsDrawer}
+          width="max(50%, 360px)"
+          isNonModal
+          shouldCloseOnInteractOutside={isOutsideMaterialUiPopup}
         >
-          <CustomFieldPlayground fieldExtensions={fieldExtensions} />
+          <DrawerHeader>
+            {t('templateEditorToolbar.customFieldExplorerTooltip')}
+          </DrawerHeader>
+          <DrawerBody>
+            <CustomFieldPlayground fieldExtensions={fieldExtensions} />
+          </DrawerBody>
         </Drawer>
         <Drawer
-          classes={{ paper: classes.paper }}
-          anchor="right"
-          open={showActionsDrawer}
-          onClose={() => setShowActionsDrawer(false)}
+          isOpen={showActionsDrawer}
+          onOpenChange={setShowActionsDrawer}
+          width="max(50%, 360px)"
+          isNonModal
+          shouldCloseOnInteractOutside={isOutsideMaterialUiPopup}
         >
-          <ActionPageContent />
+          <DrawerHeader>
+            {t('templateEditorToolbar.installedActionsDocumentationTooltip')}
+          </DrawerHeader>
+          <DrawerBody>
+            <ActionPageContent />
+          </DrawerBody>
         </Drawer>
         <Drawer
-          classes={{ paper: classes.paper }}
-          anchor="right"
-          open={showExtensionsDrawer}
-          onClose={() => setShowExtensionsDrawer(false)}
+          isOpen={showExtensionsDrawer}
+          onOpenChange={setShowExtensionsDrawer}
+          width="max(50%, 360px)"
+          isNonModal
+          shouldCloseOnInteractOutside={isOutsideMaterialUiPopup}
         >
-          <TemplatingExtensionsPageContent />
+          <DrawerHeader>
+            {t(
+              'templateEditorToolbar.templatingExtensionsDocumentationTooltip',
+            )}
+          </DrawerHeader>
+          <DrawerBody>
+            <TemplatingExtensionsPageContent />
+          </DrawerBody>
         </Drawer>
         <Dialog
           onClose={() => setShowPublishModal(false)}

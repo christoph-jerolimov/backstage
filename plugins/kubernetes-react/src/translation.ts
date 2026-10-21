@@ -126,7 +126,6 @@ export const kubernetesReactTranslationRef = createTranslationRef({
       firstEvent: 'First event {{timeAgo}} (count: {{count}})',
     },
     kubernetesDrawer: {
-      closeDrawer: 'Close the drawer',
       yaml: 'YAML',
       managedFields: 'Managed Fields',
       unknownName: 'unknown name',

@@ -37,6 +37,7 @@ export * from './components/Card';
 export * from './components/DatePicker';
 export * from './components/DateRangePicker';
 export * from './components/Dialog';
+export * from './components/Drawer';
 export * from './components/FieldLabel';
 export * from './components/PluginHeader';
 export * from './components/Header';

@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-import { ReactNode, ChangeEvent, useContext, useState } from 'react';
+import { ReactNode, useContext, useState } from 'react';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import Drawer from '@material-ui/core/Drawer';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
-import Close from '@material-ui/icons/Close';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+import { Drawer, DrawerBody, DrawerHeader } from '@backstage/ui';
 import type { V1ObjectMeta } from '@kubernetes/client-node';
 import { withStyles } from '@material-ui/core/styles';
 import {
@@ -35,29 +32,15 @@ import {
 import { ClusterContext } from '../../hooks';
 import { ClusterAttributes } from '@backstage/plugin-kubernetes-common';
 import { ManifestYaml } from './ManifestYaml';
+import { isOutsideMaterialUiPopup } from './isOutsideMaterialUiPopup';
 import { useApi } from '@backstage/core-plugin-api';
 import { kubernetesClusterLinkFormatterApiRef } from '../../api';
 import useAsync from 'react-use/esm/useAsync';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { kubernetesReactTranslationRef } from '../../translation';
 
-const useDrawerStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    paper: {
-      width: '50%',
-      justifyContent: 'space-between',
-      padding: theme.spacing(2.5),
-    },
-  }),
-);
-
 const useDrawerContentStyles = makeStyles((_: Theme) =>
   createStyles({
-    header: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
     errorMessage: {
       marginTop: '1em',
       marginBottom: '1em',
@@ -66,9 +49,6 @@ const useDrawerContentStyles = makeStyles((_: Theme) =>
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
-    },
-    icon: {
-      fontSize: 20,
     },
     content: {
       height: '80%',
@@ -135,7 +115,6 @@ export interface KubernetesDrawerable {
 interface KubernetesStructuredMetadataTableDrawerContentProps<
   T extends KubernetesDrawerable,
 > {
-  toggleDrawer: (e: ChangeEvent<{}>, isOpen: boolean) => void;
   object: T;
   renderObject: (obj: T) => object;
   kind: string;
@@ -153,7 +132,6 @@ function replaceNullsWithUndefined(someObj: any) {
 const KubernetesStructuredMetadataTableDrawerContent = <
   T extends KubernetesDrawerable,
 >({
-  toggleDrawer,
   object,
   renderObject,
   kind,
@@ -178,76 +156,60 @@ const KubernetesStructuredMetadataTableDrawerContent = <
 
   return (
     <>
-      <div className={classes.header}>
-        <Grid container justifyContent="flex-start" alignItems="flex-start">
-          <Grid item xs={11}>
-            <Typography variant="h5">
-              {object.metadata?.name ?? t('kubernetesDrawer.unknownName')}
-            </Typography>
-          </Grid>
-          <Grid item xs={1}>
-            <IconButton
-              key="dismiss"
-              title={t('kubernetesDrawer.closeDrawer')}
-              onClick={e => toggleDrawer(e, false)}
-              color="inherit"
-            >
-              <Close className={classes.icon} />
-            </IconButton>
-          </Grid>
-          <Grid item xs={11}>
-            <Typography color="textSecondary" variant="body1">
-              {kind}
-            </Typography>
-          </Grid>
-          <Grid item xs={11}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isYaml}
-                  onChange={event => {
-                    setIsYaml(event.target.checked);
-                  }}
-                  name={t('kubernetesDrawer.yaml')}
-                />
-              }
-              label={t('kubernetesDrawer.yaml')}
-            />
-          </Grid>
-        </Grid>
-      </div>
-      {error && (
-        <div className={classes.errorMessage}>
-          <LinkErrorPanel
-            cluster={cluster}
-            errorMessage={error.message || error.toString()}
+      <DrawerHeader>
+        {object.metadata?.name ?? t('kubernetesDrawer.unknownName')}
+      </DrawerHeader>
+      <DrawerBody>
+        <Typography color="textSecondary" variant="body1">
+          {kind}
+        </Typography>
+        <div>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isYaml}
+                onChange={event => {
+                  setIsYaml(event.target.checked);
+                }}
+                name={t('kubernetesDrawer.yaml')}
+              />
+            }
+            label={t('kubernetesDrawer.yaml')}
           />
         </div>
-      )}
-      <div className={classes.options}>
-        <div>
-          {clusterLink && (
-            <BackstageButton
-              variant="outlined"
-              color="primary"
-              size="small"
-              to={clusterLink}
-              endIcon={<OpenInNewIcon />}
-            >
-              Open Kubernetes Dashboard
-            </BackstageButton>
+        {error && (
+          <div className={classes.errorMessage}>
+            <LinkErrorPanel
+              cluster={cluster}
+              errorMessage={error.message || error.toString()}
+            />
+          </div>
+        )}
+        <div className={classes.options}>
+          <div>
+            {clusterLink && (
+              <BackstageButton
+                variant="outlined"
+                color="primary"
+                size="small"
+                to={clusterLink}
+                endIcon={<OpenInNewIcon />}
+              >
+                Open Kubernetes Dashboard
+              </BackstageButton>
+            )}
+          </div>
+        </div>
+        <div className={classes.content}>
+          {isYaml && <ManifestYaml object={object} />}
+          {!isYaml && (
+            <StructuredMetadataTable
+              metadata={renderObject(replaceNullsWithUndefined(object))}
+              options={{ nestedValuesAsYaml: true }}
+            />
           )}
         </div>
-      </div>
-      <div className={classes.content}>
-        {isYaml && <ManifestYaml object={object} />}
-        {!isYaml && (
-          <StructuredMetadataTable
-            metadata={renderObject(replaceNullsWithUndefined(object))}
-            options={{ nestedValuesAsYaml: true }}
-          />
-        )}
-      </div>
+      </DrawerBody>
     </>
   );
 };
@@ -282,17 +244,14 @@ export const KubernetesStructuredMetadataTableDrawer = <
   children,
 }: KubernetesStructuredMetadataTableDrawerProps<T>) => {
   const [isOpen, setIsOpen] = useState(expanded);
-  const classes = useDrawerStyles();
-
-  const toggleDrawer = (e: ChangeEvent<{}>, newValue: boolean) => {
-    e.stopPropagation();
-    setIsOpen(newValue);
-  };
 
   return (
     <>
       <PodDrawerButton
-        onClick={e => toggleDrawer(e, true)}
+        onClick={e => {
+          e.stopPropagation();
+          setIsOpen(true);
+        }}
         onFocus={event => event.stopPropagation()}
       >
         {children === undefined ? (
@@ -304,17 +263,17 @@ export const KubernetesStructuredMetadataTableDrawer = <
         )}
       </PodDrawerButton>
       <Drawer
-        classes={{
-          paper: classes.paper,
-        }}
-        anchor="right"
-        open={isOpen}
-        onClose={(e: any) => toggleDrawer(e, false)}
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        width="50%"
+        isNonModal
+        shouldCloseOnInteractOutside={isOutsideMaterialUiPopup}
+        // The drawer is rendered within an accordion, which must not toggle
+        // when interacting with the drawer.
         onClick={event => event.stopPropagation()}
       >
         <KubernetesStructuredMetadataTableDrawerContent
           kind={kind}
-          toggleDrawer={toggleDrawer}
           object={object}
           renderObject={renderObject}
         />

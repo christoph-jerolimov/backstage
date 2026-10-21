@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ReactNode, ChangeEvent, useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import type { IObjectMeta } from '@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta';
-import Drawer from '@material-ui/core/Drawer';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
 import Switch from '@material-ui/core/Switch';
-import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import {
@@ -29,23 +25,16 @@ import {
   Theme,
   withStyles,
 } from '@material-ui/core/styles';
-import CloseIcon from '@material-ui/icons/Close';
+import { Drawer, DrawerBody, DrawerHeader } from '@backstage/ui';
 import { ManifestYaml } from './ManifestYaml';
+import { isOutsideMaterialUiPopup } from './isOutsideMaterialUiPopup';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { kubernetesReactTranslationRef } from '../../translation';
 
 const useDrawerContentStyles = makeStyles((_theme: Theme) =>
   createStyles({
-    header: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
     content: {
       height: '80%',
-    },
-    icon: {
-      fontSize: 20,
     },
   }),
 );
@@ -61,7 +50,6 @@ export interface KubernetesObject {
 }
 
 interface KubernetesDrawerContentProps {
-  close: () => void;
   kubernetesObject: KubernetesObject;
   header?: ReactNode;
   children?: ReactNode;
@@ -71,7 +59,6 @@ const KubernetesDrawerContent = ({
   children,
   header,
   kubernetesObject,
-  close,
 }: KubernetesDrawerContentProps) => {
   const classes = useDrawerContentStyles();
   const { t } = useTranslationRef(kubernetesReactTranslationRef);
@@ -79,46 +66,28 @@ const KubernetesDrawerContent = ({
 
   return (
     <>
-      <div className={classes.header}>
-        <Grid container justifyContent="flex-start" alignItems="flex-start">
-          <Grid item xs={11}>
-            <Typography variant="h5">
-              {kubernetesObject.metadata?.name}
-            </Typography>
-          </Grid>
-          <Grid item xs={1}>
-            <IconButton
-              key="dismiss"
-              title={t('kubernetesDrawer.closeDrawer')}
-              onClick={() => close()}
-              color="inherit"
-            >
-              <CloseIcon className={classes.icon} />
-            </IconButton>
-          </Grid>
-          <Grid item xs={12}>
-            {header}
-          </Grid>
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isYaml}
-                  onChange={event => {
-                    setIsYaml(event.target.checked);
-                  }}
-                  name={t('kubernetesDrawer.yaml')}
-                />
-              }
-              label={t('kubernetesDrawer.yaml')}
-            />
-          </Grid>
-        </Grid>
-      </div>
-      <div className={classes.content}>
-        {isYaml && <ManifestYaml object={kubernetesObject} />}
-        {!isYaml && children}
-      </div>
+      <DrawerHeader>{kubernetesObject.metadata?.name}</DrawerHeader>
+      <DrawerBody>
+        {header}
+        <div>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isYaml}
+                onChange={event => {
+                  setIsYaml(event.target.checked);
+                }}
+                name={t('kubernetesDrawer.yaml')}
+              />
+            }
+            label={t('kubernetesDrawer.yaml')}
+          />
+        </div>
+        <div className={classes.content}>
+          {isYaml && <ManifestYaml object={kubernetesObject} />}
+          {!isYaml && children}
+        </div>
+      </DrawerBody>
     </>
   );
 };
@@ -135,16 +104,6 @@ export interface KubernetesDrawerProps {
   drawerContentsHeader?: ReactNode;
   children?: ReactNode;
 }
-
-const useDrawerStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    paper: {
-      width: '50%',
-      justifyContent: 'space-between',
-      padding: theme.spacing(2.5),
-    },
-  }),
-);
 
 const DrawerButton = withStyles({
   root: {
@@ -167,34 +126,26 @@ export const KubernetesDrawer = ({
   kubernetesObject,
   children,
 }: KubernetesDrawerProps) => {
-  const classes = useDrawerStyles();
   const [isOpen, setIsOpen] = useState<boolean>(open ?? false);
-
-  const toggleDrawer = (e: ChangeEvent<{}>, newValue: boolean) => {
-    e.stopPropagation();
-    setIsOpen(newValue);
-  };
 
   return (
     <>
       <DrawerButton onClick={() => setIsOpen(true)}>{label}</DrawerButton>
       <Drawer
-        classes={{
-          paper: classes.paper,
-        }}
-        anchor="right"
-        open={isOpen}
-        onClose={(e: any) => toggleDrawer(e, false)}
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        width="50%"
+        isNonModal
+        shouldCloseOnInteractOutside={isOutsideMaterialUiPopup}
+        // The drawer is rendered within an accordion, which must not toggle
+        // when interacting with the drawer.
         onClick={event => event.stopPropagation()}
       >
-        {isOpen && (
-          <KubernetesDrawerContent
-            header={drawerContentsHeader}
-            kubernetesObject={kubernetesObject}
-            children={children}
-            close={() => setIsOpen(false)}
-          />
-        )}
+        <KubernetesDrawerContent
+          header={drawerContentsHeader}
+          kubernetesObject={kubernetesObject}
+          children={children}
+        />
       </Drawer>
     </>
   );
