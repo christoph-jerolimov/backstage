@@ -25,7 +25,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import Grid from '@material-ui/core/Grid';
 import { useTheme } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
@@ -178,7 +178,7 @@ export const Modal = ({
             </Button>
           </Grid>
         </Grid>
-        <Divider />
+        <Separator />
         <SearchResult
           onClick={handleSearchResultClick}
           onKeyDown={handleSearchResultClick}

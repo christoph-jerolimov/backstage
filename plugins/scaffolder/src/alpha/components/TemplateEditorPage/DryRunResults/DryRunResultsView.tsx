@@ -18,7 +18,7 @@ import { LogViewer } from '@backstage/core-components';
 import { StreamLanguage } from '@codemirror/language';
 import { yaml as yamlSupport } from '@codemirror/legacy-modes/mode/yaml';
 import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import { makeStyles } from '@material-ui/core/styles';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -193,7 +193,7 @@ export function DryRunResultsView() {
           label={t('templateEditorPage.dryRunResultsView.tab.output')}
         />
       </Tabs>
-      <Divider />
+      <Separator />
 
       <div className={classes.contentWrapper}>
         <div className={classes.content}>

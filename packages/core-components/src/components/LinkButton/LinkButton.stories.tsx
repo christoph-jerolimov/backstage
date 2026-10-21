@@ -17,7 +17,7 @@ import { ComponentType, PropsWithChildren } from 'react';
 import { LinkButton } from './LinkButton';
 import { useLocation } from 'react-router-dom';
 import { createRouteRef, useRouteRef } from '@backstage/core-plugin-api';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -51,7 +51,7 @@ export default {
             , but include an opinionated set that align to the Backstage design.
           </Typography>
 
-          <Divider />
+          <Separator />
 
           <div>
             <div>

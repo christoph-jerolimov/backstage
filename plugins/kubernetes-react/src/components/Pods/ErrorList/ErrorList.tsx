@@ -18,7 +18,7 @@ import { Fragment } from 'react';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
@@ -65,7 +65,7 @@ export const ErrorList = ({ podAndErrors }: ErrorListProps) => {
                     onlyPodWithErrors.pod.metadata?.name ?? 'unknown'
                   }-eli-${i}`}
                 >
-                  {i > 0 && <Divider key={`error-divider${i}`} />}
+                  {i > 0 && <Separator key={`error-divider${i}`} />}
                   <ListItem>
                     <Grid container>
                       <Grid item xs={9}>

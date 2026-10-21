@@ -17,7 +17,7 @@
 import { JsonValue } from '@backstage/types';
 import Box from '@material-ui/core/Box';
 import Chip from '@material-ui/core/Chip';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -255,7 +255,7 @@ function ChildView({
 
   return (
     <Box paddingBottom={lastChild ? 4 : 8} display="flex" flexDirection="row">
-      <Divider orientation="vertical" flexItem />
+      <Separator orientation="vertical" />
       <Box paddingLeft={2} flex={1}>
         <Box
           display="flex"

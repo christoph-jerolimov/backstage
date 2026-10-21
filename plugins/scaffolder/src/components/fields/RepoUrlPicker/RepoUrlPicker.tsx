@@ -20,7 +20,6 @@ import {
 } from '@backstage/integration-react';
 import { useTemplateSecrets } from '@backstage/plugin-scaffolder-react';
 import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
 import Typography from '@material-ui/core/Typography';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useDebounce from 'react-use/esm/useDebounce';
@@ -37,7 +36,7 @@ import { RepoUrlPickerState } from './types';
 import { parseRepoPickerUrl, serializeRepoPickerUrl } from './utils';
 import { MarkdownContent } from '@backstage/core-components';
 import { useScaffolderTheme } from '@backstage/plugin-scaffolder-react/alpha';
-import { Flex, Text } from '@backstage/ui';
+import { Flex, Separator, Text } from '@backstage/ui';
 
 export { RepoUrlPickerSchema } from './schema';
 
@@ -306,7 +305,7 @@ export const RepoUrlPicker = (
       {schema.title && (
         <Box my={1}>
           <Typography variant="h5">{schema.title}</Typography>
-          <Divider />
+          <Separator />
         </Box>
       )}
       {description && (

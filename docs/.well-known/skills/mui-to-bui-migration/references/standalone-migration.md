@@ -68,6 +68,7 @@ Done when: the target has the required dependencies and the app loads BUI styles
 - `SearchAutocomplete` - Search input with autocomplete popover (`SearchAutocomplete`, `SearchAutocompleteItem`)
 - `SearchField` - Search input
 - `Select` - Dropdown select (single and multiple selection modes)
+- `Separator` - Horizontal or vertical divider line (`orientation`, replaces MUI Divider)
 - `Skeleton` - Loading skeleton
 - `Slider` - Range slider input (`label`, `minValue`, `maxValue`, `step`)
 - `Switch` - Toggle switch
@@ -841,7 +842,31 @@ import { Slider } from '@backstage/ui';
 
 Note: BUI `Slider` `onChange` receives the new value directly. Use `minValue`/`maxValue` instead of `min`/`max`.
 
-### 22. CheckboxGroup
+### 22. Divider to Separator
+
+**Before (MUI Divider):**
+
+```tsx
+import { Divider } from '@material-ui/core';
+
+<Divider />;
+<Divider orientation="vertical" flexItem />;
+```
+
+**After (BUI Separator):**
+
+```tsx
+import { Separator } from '@backstage/ui';
+
+<Separator />;
+<Separator orientation="vertical" />;
+```
+
+A vertical `Separator` stretches to the height of its flex container, so the MUI
+`flexItem` prop has no equivalent and can be dropped. Use margin utility props
+such as `my="4"` instead of the MUI `className` or `style` spacing.
+
+### 23. CheckboxGroup
 
 **Before (MUI FormGroup with Checkboxes):**
 

@@ -15,7 +15,7 @@
  */
 
 import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import ArrowIcon from '@material-ui/icons/ArrowForward';
@@ -61,7 +61,7 @@ export function BottomLink(props: BottomLinkProps) {
 
   return (
     <Box>
-      <Divider />
+      <Separator />
       <Link to={link} onClick={onClick} underline="none">
         <Box display="flex" alignItems="center" className={classes.root}>
           <Box className={classes.boxTitle} fontWeight="fontWeightBold" m={1}>

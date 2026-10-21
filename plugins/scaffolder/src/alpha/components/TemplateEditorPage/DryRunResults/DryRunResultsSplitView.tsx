@@ -15,7 +15,7 @@
  */
 
 import { makeStyles } from '@material-ui/core/styles';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import { Children, ReactNode } from 'react';
 import classNames from 'classnames';
 
@@ -48,7 +48,7 @@ export function DryRunResultsSplitView(props: { children: ReactNode }) {
       <div className={classNames(classes.child, classes.firstChild)}>
         {childArray[0]}
       </div>
-      <Divider orientation="horizontal" />
+      <Separator />
       <div className={classes.child}>{childArray[1]}</div>
     </div>
   );

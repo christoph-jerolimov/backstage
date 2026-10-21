@@ -127,6 +127,11 @@ export const components: Page[] = [
     slug: 'select',
   },
   {
+    title: 'Separator',
+    slug: 'separator',
+    status: 'new',
+  },
+  {
     title: 'Skeleton',
     slug: 'skeleton',
   },

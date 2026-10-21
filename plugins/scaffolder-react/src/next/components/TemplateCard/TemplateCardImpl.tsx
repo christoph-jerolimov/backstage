@@ -21,7 +21,7 @@ import { TemplateEntityV1beta3 } from '@backstage/plugin-scaffolder-common';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
-import Divider from '@material-ui/core/Divider';
+import { Separator } from '@backstage/ui';
 import Grid from '@material-ui/core/Grid';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { useCallback } from 'react';
@@ -97,7 +97,7 @@ export const TemplateCardImpl = (props: TemplateCardComponentProps) => {
           <TemplateCardContent template={template} />
           {displayDefaultDivider && (
             <Grid item xs={12}>
-              <Divider data-testid="template-card-separator" />
+              <Separator data-testid="template-card-separator" />
             </Grid>
           )}
           {hasTags && <TemplateCardTags template={template} />}
