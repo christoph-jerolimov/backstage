@@ -84,8 +84,9 @@
     background-color: var(--bui-fg-primary);
     border-radius: 4px;
     opacity: var(--active-tab-opacity);
-    transition: left var(--active-transition-duration) ease-out,
-      width var(--active-transition-duration) ease-out, opacity 0.15s;
+    transition: left var(--active-transition-duration) var(--bui-ease-out),
+      width var(--active-transition-duration) var(--bui-ease-out),
+      opacity var(--bui-duration-2);
   }
 
   .bui-HeaderNavHovered {
@@ -98,21 +99,15 @@
     background-color: var(--bui-bg-neutral-2);
     border-radius: 4px;
     opacity: var(--hovered-tab-opacity);
-    transition: left var(--hovered-transition-duration) ease-out,
-      top var(--hovered-transition-duration) ease-out,
-      width var(--hovered-transition-duration) ease-out,
-      height var(--hovered-transition-duration) ease-out, opacity 0.15s;
+    transition: left var(--hovered-transition-duration) var(--bui-ease-out),
+      top var(--hovered-transition-duration) var(--bui-ease-out),
+      width var(--hovered-transition-duration) var(--bui-ease-out),
+      height var(--hovered-transition-duration) var(--bui-ease-out),
+      opacity var(--bui-duration-2);
 
     [data-focus-visible] & {
       outline: 2px solid var(--bui-ring);
       outline-offset: -2px;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .bui-HeaderNavActive,
-    .bui-HeaderNavHovered {
-      transition: none;
     }
   }
 }

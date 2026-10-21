@@ -50,7 +50,7 @@
       pointer-events: none;
       z-index: 3;
       opacity: 0;
-      transition: opacity 200ms ease-in-out;
+      transition: opacity var(--bui-duration-3) var(--bui-ease-in-out);
     }
 
     &:hover::after {

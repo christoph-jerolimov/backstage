@@ -18,7 +18,7 @@
 
 @layer components {
   .bui-ButtonIcon {
-    --loading-duration: 200ms;
+    --loading-duration: var(--bui-duration-3);
     --bg: transparent;
     --bg-hover: transparent;
     --bg-active: transparent;
@@ -34,8 +34,8 @@
     cursor: pointer;
     border-radius: var(--bui-radius-2);
     flex-shrink: 0;
-    transition: background-color var(--loading-duration) ease-out,
-      box-shadow var(--loading-duration) ease-out;
+    transition: background-color var(--loading-duration) var(--bui-ease-out),
+      box-shadow var(--loading-duration) var(--bui-ease-out);
 
     /* Apply variables */
     color: var(--fg);
@@ -43,7 +43,7 @@
 
     &:hover {
       background-color: var(--bg-hover);
-      transition: background-color 150ms ease;
+      transition: background-color var(--bui-duration-2) var(--bui-ease-out);
     }
 
     &:active {
@@ -177,7 +177,7 @@
     justify-content: center;
     height: 100%;
     width: 100%;
-    transition: opacity var(--loading-duration) ease-out;
+    transition: opacity var(--loading-duration) var(--bui-ease-out);
 
     .bui-ButtonIcon[data-ispending='true'] & {
       opacity: 0;
@@ -191,7 +191,7 @@
     transform: translate(-50%, -50%);
     display: flex;
     opacity: 0;
-    transition: opacity var(--loading-duration) ease-in;
+    transition: opacity var(--loading-duration) var(--bui-ease-in-out);
 
     .bui-ButtonIcon[data-ispending='true'] & {
       opacity: 1;
@@ -203,18 +203,6 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .bui-ButtonIcon {
-      transition-duration: 50ms;
-    }
-
-    .bui-ButtonIconContent {
-      transition-duration: 50ms;
-    }
-
-    .bui-ButtonIconSpinner {
-      transition-duration: 50ms;
-    }
-
     .bui-ButtonIconSpinner svg {
       animation: none;
     }

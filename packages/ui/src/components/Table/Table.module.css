@@ -43,7 +43,7 @@
     caption-side: bottom;
     border-collapse: collapse;
     table-layout: fixed;
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity var(--bui-duration-3) var(--bui-ease-in-out);
 
     &[data-stale='true'],
     &[data-ispending='true'] {
@@ -53,7 +53,7 @@
 
   .bui-TableHeader {
     border-bottom: 1px solid var(--bui-border-2);
-    transition: color 0.2s ease-in-out;
+    transition: color var(--bui-duration-3) var(--bui-ease-in-out);
   }
 
   .bui-TableHead {
@@ -89,7 +89,7 @@
     align-items: center;
     gap: var(--bui-space-1);
     opacity: 0;
-    transition: opacity 0.1s ease-in-out;
+    transition: opacity var(--bui-duration-1) var(--bui-ease-in-out);
     color: var(--bui-fg-secondary);
 
     .bui-TableHead:hover &,
@@ -99,7 +99,7 @@
     }
 
     & svg {
-      transition: transform 0.1s ease-in-out;
+      transition: transform var(--bui-duration-1) var(--bui-ease-in-out);
     }
     [data-sort-direction='descending'] & svg {
       transform: rotate(180deg);
@@ -112,7 +112,7 @@
 
   .bui-TableRow {
     border-bottom: 1px solid var(--bui-border-2);
-    transition: color 0.2s ease-in-out;
+    transition: color var(--bui-duration-3) var(--bui-ease-in-out);
     cursor: default;
 
     &:hover {

@@ -74,7 +74,7 @@
     flex-shrink: 0;
     pointer-events: none;
     /* To animate the icon when the input is collapsed */
-    transition: left 0.2s ease-in-out;
+    transition: left var(--bui-duration-3) var(--bui-ease-in-out);
 
     &[data-size='small'],
     &[data-size='small'] svg {
@@ -101,7 +101,7 @@
     font-weight: var(--bui-font-weight-regular);
     line-height: 1.15;
     color: var(--bui-fg-primary);
-    transition: box-shadow 0.2s ease-in-out;
+    transition: box-shadow var(--bui-duration-3) var(--bui-ease-in-out);
     width: 100%;
     height: 100%;
     cursor: inherit;

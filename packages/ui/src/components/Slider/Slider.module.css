@@ -90,7 +90,7 @@
     border: 2px solid var(--bui-bg-solid);
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     cursor: grab;
-    transition: transform 200ms;
+    transition: transform var(--bui-duration-3);
 
     /* Fix: Ensure thumb is vertically centered on track */
     top: 50%;

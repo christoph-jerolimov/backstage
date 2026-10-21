@@ -35,7 +35,8 @@
     border-radius: var(--bui-radius-2);
     flex-shrink: 0;
     text-decoration: none;
-    transition: background-color 200ms ease-out, box-shadow 200ms ease-out;
+    transition: background-color var(--bui-duration-3) var(--bui-ease-out),
+      box-shadow var(--bui-duration-3) var(--bui-ease-out);
 
     /* Apply variables */
     color: var(--fg);
@@ -43,7 +44,7 @@
 
     &:hover {
       background-color: var(--bg-hover);
-      transition: background-color 150ms ease;
+      transition: background-color var(--bui-duration-2) var(--bui-ease-out);
     }
 
     &:active {
@@ -173,11 +174,5 @@
     gap: var(--bui-space-1_5);
     height: 100%;
     width: 100%;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .bui-ButtonLink {
-      transition-duration: 50ms;
-    }
   }
 }

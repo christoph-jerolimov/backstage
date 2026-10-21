@@ -275,6 +275,21 @@ We use a radius system to make sure that the components have a consistent look a
 | `--bui-radius-6`    | The radius of the component. Default value is `1.25rem`.  |
 | `--bui-radius-full` | The radius of the component. Default value is `9999px`.   |
 
+#### Motion
+
+Transitions and animations in Backstage UI components use a shared set of duration and easing tokens. Override them to speed up, slow down, or change the feel of motion across every component at once.
+
+| Token Name          | Description                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
+| `--bui-duration-1`  | Micro feedback such as sort icons and pressed states. Default value is `100ms`.                         |
+| `--bui-duration-2`  | Hover and focus feedback. Default value is `150ms`.                                                     |
+| `--bui-duration-3`  | The default duration for overlays, toggles, and color changes. Default value is `200ms`.                |
+| `--bui-duration-4`  | Larger movement such as tab indicators and collapsing fields. Default value is `300ms`.                 |
+| `--bui-ease-out`    | The easing for motion that settles into place, such as hover feedback. Default value is `ease-out`.     |
+| `--bui-ease-in-out` | The easing for motion that changes between two states, such as toggles. Default value is `ease-in-out`. |
+
+When the user enables reduced motion in their operating system, Backstage UI sets every `--bui-duration-*` token to `0ms`, so transitions and animations complete instantly. If you override a duration token in your theme, wrap the override in `@media (prefers-reduced-motion: no-preference)` to keep that behavior.
+
 </details>
 
 ### Component class names

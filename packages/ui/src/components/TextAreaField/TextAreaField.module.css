@@ -36,7 +36,7 @@
     font-weight: var(--bui-font-weight-regular);
     line-height: 140%;
     color: var(--bui-fg-primary);
-    transition: box-shadow 0.2s ease-in-out;
+    transition: box-shadow var(--bui-duration-3) var(--bui-ease-in-out);
     width: 100%;
     /* Keep the manual resize handle so users can expand the field. */
     resize: vertical;

@@ -52,7 +52,7 @@
     border: none;
     outline: none;
     background-color: var(--bui-bg-neutral-1);
-    transition: box-shadow 0.2s ease-in-out;
+    transition: box-shadow var(--bui-duration-3) var(--bui-ease-in-out);
 
     &[data-on-bg='neutral-1'] {
       background-color: var(--bui-bg-neutral-2);
@@ -147,7 +147,7 @@
   .bui-SelectList {
     padding-block: var(--bui-space-1);
     padding-inline: var(--bui-space-1);
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity var(--bui-duration-3) var(--bui-ease-in-out);
 
     &[data-stale] {
       opacity: 0.6;
@@ -206,7 +206,7 @@
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity var(--bui-duration-3) var(--bui-ease-in-out);
   }
 
   .bui-SelectItemLabel {
@@ -312,7 +312,7 @@
     margin: 0;
     cursor: pointer;
     color: var(--bui-fg-secondary);
-    transition: color 0.2s ease-in-out;
+    transition: color var(--bui-duration-3) var(--bui-ease-in-out);
     width: var(--select-item-height);
     height: var(--select-item-height);
 

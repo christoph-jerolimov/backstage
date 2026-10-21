@@ -34,8 +34,8 @@
     line-height: 1.15;
     gap: var(--bui-space-1);
     transition-property: background-color, box-shadow, color;
-    transition-duration: 0.2s;
-    transition-timing-function: ease-in-out;
+    transition-duration: var(--bui-duration-3);
+    transition-timing-function: var(--bui-ease-in-out);
     box-sizing: border-box;
   }
 
@@ -85,7 +85,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s ease-in-out;
+    transition: color var(--bui-duration-3) var(--bui-ease-in-out);
 
     svg {
       width: 1rem;

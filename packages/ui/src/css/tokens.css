@@ -67,7 +67,13 @@
     --bui-radius-6: calc(1.25rem);
     --bui-radius-full: 9999px;
 
-    /* Animations */
+    /* Motion */
+    --bui-duration-1: 100ms; /* Micro feedback: sort icons, pressed scale */
+    --bui-duration-2: 150ms; /* Hover and focus feedback */
+    --bui-duration-3: 200ms; /* Default: overlays, toggles, color changes */
+    --bui-duration-4: 300ms; /* Large movement: indicators, collapsing fields */
+    --bui-ease-out: ease-out;
+    --bui-ease-in-out: ease-in-out;
     --bui-animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
     /* Base Colors */
@@ -328,5 +334,17 @@
     --bui-border-warning: #e36d05;
     --bui-border-success: #53db83;
     --bui-shadow: none;
+  }
+
+  /* Reduced motion: collapse every token-driven transition and animation. */
+  @media (prefers-reduced-motion: reduce) {
+    :root,
+    [data-theme-mode='light'],
+    [data-theme-mode='dark'] {
+      --bui-duration-1: 0ms;
+      --bui-duration-2: 0ms;
+      --bui-duration-3: 0ms;
+      --bui-duration-4: 0ms;
+    }
   }
 }

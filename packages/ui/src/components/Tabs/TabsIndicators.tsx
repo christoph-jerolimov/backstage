@@ -69,7 +69,7 @@ export const TabsIndicators = (props: TabsIndicatorsProps) => {
                 if (tabsRef.current) {
                   tabsRef.current.style.setProperty(
                     '--active-transition-duration',
-                    '0.25s',
+                    'var(--bui-duration-4)',
                   );
                 }
               });
@@ -78,7 +78,7 @@ export const TabsIndicators = (props: TabsIndicatorsProps) => {
             // Switching between tabs: full transitions
             tabsRef.current.style.setProperty(
               '--active-transition-duration',
-              '0.25s',
+              'var(--bui-duration-4)',
             );
           }
 
@@ -165,7 +165,7 @@ export const TabsIndicators = (props: TabsIndicatorsProps) => {
                 if (tabsRef.current) {
                   tabsRef.current.style.setProperty(
                     '--hovered-transition-duration',
-                    '0.2s',
+                    'var(--bui-duration-3)',
                   );
                 }
               });
@@ -174,7 +174,7 @@ export const TabsIndicators = (props: TabsIndicatorsProps) => {
             // Moving between tabs in same session: full transitions
             tabsRef.current.style.setProperty(
               '--hovered-transition-duration',
-              '0.2s',
+              'var(--bui-duration-3)',
             );
           }
 

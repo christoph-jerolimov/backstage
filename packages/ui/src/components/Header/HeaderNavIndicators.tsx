@@ -52,11 +52,14 @@ export function HeaderNavIndicators(props: HeaderNavIndicatorsProps) {
           requestAnimationFrame(() => {
             container.style.setProperty(
               '--active-transition-duration',
-              '0.25s',
+              'var(--bui-duration-4)',
             );
           });
         } else {
-          container.style.setProperty('--active-transition-duration', '0.25s');
+          container.style.setProperty(
+            '--active-transition-duration',
+            'var(--bui-duration-4)',
+          );
         }
 
         container.style.setProperty('--active-tab-left', `${relativeLeft}px`);
@@ -88,11 +91,14 @@ export function HeaderNavIndicators(props: HeaderNavIndicatorsProps) {
           requestAnimationFrame(() => {
             container.style.setProperty(
               '--hovered-transition-duration',
-              '0.2s',
+              'var(--bui-duration-3)',
             );
           });
         } else {
-          container.style.setProperty('--hovered-transition-duration', '0.2s');
+          container.style.setProperty(
+            '--hovered-transition-duration',
+            'var(--bui-duration-3)',
+          );
         }
 
         container.style.setProperty('--hovered-tab-left', `${relativeLeft}px`);

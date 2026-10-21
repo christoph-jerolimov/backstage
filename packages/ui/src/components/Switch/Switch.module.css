@@ -96,7 +96,7 @@
     border: 2px;
     background: var(--switch-indicator-bg);
     border-radius: 1.143rem;
-    transition: all 200ms;
+    transition: all var(--bui-duration-3);
 
     &:before {
       content: '';
@@ -106,7 +106,7 @@
       height: 0.857rem;
       background: var(--switch-thumb-bg, var(--bui-accent-fg));
       border-radius: 16px;
-      transition: all 200ms;
+      transition: all var(--bui-duration-3);
     }
   }
 }

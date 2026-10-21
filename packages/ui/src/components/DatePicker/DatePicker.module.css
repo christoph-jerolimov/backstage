@@ -43,7 +43,7 @@
     min-width: 200px;
     max-width: 100%;
     overflow: clip;
-    transition: box-shadow 0.2s ease-in-out;
+    transition: box-shadow var(--bui-duration-3) var(--bui-ease-in-out);
     cursor: text;
 
     /* bg consumer — auto-increment background based on parent context */
@@ -170,7 +170,7 @@
     color: var(--bui-fg-secondary);
     cursor: pointer;
     margin-left: auto;
-    transition: color 0.15s ease-in-out;
+    transition: color var(--bui-duration-2) var(--bui-ease-in-out);
     outline: none;
 
     &[data-hovered] {
@@ -224,7 +224,8 @@
     border-radius: var(--bui-radius-2);
     color: var(--bui-fg-secondary);
     cursor: pointer;
-    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+    transition: background-color var(--bui-duration-2) var(--bui-ease-in-out),
+      color var(--bui-duration-2) var(--bui-ease-in-out);
 
     &[data-hovered] {
       background-color: var(--bui-bg-neutral-2);

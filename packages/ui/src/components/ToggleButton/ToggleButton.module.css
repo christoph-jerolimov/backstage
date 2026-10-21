@@ -32,8 +32,10 @@
     line-height: 1.15;
     padding: 0 var(--bui-space-2);
     cursor: pointer;
-    transition: background-color 150ms ease, box-shadow 150ms ease,
-      color 150ms ease, transform 100ms ease;
+    transition: background-color var(--bui-duration-2) var(--bui-ease-out),
+      box-shadow var(--bui-duration-2) var(--bui-ease-out),
+      color var(--bui-duration-2) var(--bui-ease-out),
+      transform var(--bui-duration-1) var(--bui-ease-out);
 
     &[data-selected],
     &[data-pressed] {

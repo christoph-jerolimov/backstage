@@ -55,7 +55,7 @@
       border: 0.125rem solid var(--bui-border-2);
       background: var(--bui-bg-neutral-1);
       border-radius: var(--bui-radius-full);
-      transition: all 200ms;
+      transition: all var(--bui-duration-3);
       flex-shrink: 0;
       flex-grow: 0;
     }

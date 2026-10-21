@@ -35,11 +35,11 @@
   }
 
   .bui-DialogOverlay[data-entering] {
-    animation: fade-in 200ms ease-out forwards;
+    animation: fade-in var(--bui-duration-3) var(--bui-ease-out) forwards;
   }
 
   .bui-DialogOverlay[data-exiting] {
-    animation: fade-out 150ms ease-out forwards;
+    animation: fade-out var(--bui-duration-2) var(--bui-ease-out) forwards;
   }
 
   .bui-Dialog {
@@ -77,12 +77,12 @@
 
   /* Dialog entering animation */
   .bui-DialogOverlay[data-entering] .bui-Dialog {
-    animation: dialog-enter 150ms ease-out forwards;
+    animation: dialog-enter var(--bui-duration-2) var(--bui-ease-out) forwards;
   }
 
   /* Dialog exiting animation */
   .bui-DialogOverlay[data-exiting] .bui-Dialog {
-    animation: dialog-exit 150ms ease-out forwards;
+    animation: dialog-exit var(--bui-duration-2) var(--bui-ease-out) forwards;
   }
 
   .bui-DialogHeader {

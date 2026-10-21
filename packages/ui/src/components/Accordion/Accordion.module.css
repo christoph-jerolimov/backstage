@@ -73,7 +73,7 @@
   }
 
   .bui-AccordionTriggerIcon {
-    transition: transform 150ms ease-out;
+    transition: transform var(--bui-duration-2) var(--bui-ease-out);
     flex-shrink: 0;
     width: 1rem;
     height: 1rem;

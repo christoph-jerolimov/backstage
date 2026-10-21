@@ -51,8 +51,9 @@
     }
 
     &[data-startcollapsed='true'] {
-      transition: flex-basis 0.3s ease-in-out, width 0.3s ease-in-out,
-        max-width 0.3s ease-in-out;
+      transition: flex-basis var(--bui-duration-4) var(--bui-ease-in-out),
+        width var(--bui-duration-4) var(--bui-ease-in-out),
+        max-width var(--bui-duration-4) var(--bui-ease-in-out);
       padding: 0;
       flex: 0 1 auto;
 
@@ -105,7 +106,7 @@
     align-items: center;
     border-radius: var(--bui-radius-2);
     background-color: var(--bui-bg-neutral-1);
-    transition: box-shadow 0.2s ease-in-out;
+    transition: box-shadow var(--bui-duration-3) var(--bui-ease-in-out);
 
     &:has([data-focused]) {
       box-shadow: inset 0 0 0 1px var(--bui-ring);
@@ -138,7 +139,7 @@
     width: var(--search-field-item-height);
     height: var(--search-field-item-height);
     /* To animate the icon when the input is collapsed */
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity var(--bui-duration-3) var(--bui-ease-in-out);
 
     & svg {
       .bui-SearchField[data-size='small'] & {
@@ -165,7 +166,7 @@
     font-weight: var(--bui-font-weight-regular);
     line-height: 1.15;
     color: var(--bui-fg-primary);
-    transition: padding 0.3s ease-in-out;
+    transition: padding var(--bui-duration-4) var(--bui-ease-in-out);
     width: 100%;
     height: 100%;
     outline: none;
@@ -205,7 +206,7 @@
     margin: 0;
     cursor: pointer;
     color: var(--bui-fg-secondary);
-    transition: color 0.2s ease-in-out;
+    transition: color var(--bui-duration-3) var(--bui-ease-in-out);
     width: var(--search-field-item-height);
     height: var(--search-field-item-height);
 
