@@ -60,6 +60,7 @@
     "@backstage/errors": "workspace:^",
     "@backstage/plugin-kubernetes-common": "workspace:^",
     "@backstage/types": "workspace:^",
+    "@backstage/ui": "workspace:^",
     "@kubernetes-models/apimachinery": "^2.0.0",
     "@kubernetes-models/base": "^5.0.0",
     "@kubernetes/client-node": "1.4.0",

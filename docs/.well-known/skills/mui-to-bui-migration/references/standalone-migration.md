@@ -64,6 +64,8 @@ Done when: the target has the required dependencies and the app loads BUI styles
 - `PasswordField` - Password input field
 - `PluginHeader` - Plugin-level header with icon, title, tabs, and actions
 - `Popover` - Popover overlays
+- `ProgressBar` - Linear progress indicator (`value`, `isIndeterminate`, `label`; replaces MUI LinearProgress)
+- `ProgressCircle` - Circular loading indicator, indeterminate or with a `value` (`size`, `label`; replaces MUI CircularProgress)
 - `RadioGroup` - Radio button groups (`RadioGroup`, `Radio`)
 - `SearchAutocomplete` - Search input with autocomplete popover (`SearchAutocomplete`, `SearchAutocompleteItem`)
 - `SearchField` - Search input

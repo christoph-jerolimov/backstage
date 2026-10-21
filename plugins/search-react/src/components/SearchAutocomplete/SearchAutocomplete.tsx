@@ -16,7 +16,7 @@
 
 import { ChangeEvent, useCallback, useMemo } from 'react';
 
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { ProgressCircle } from '@backstage/ui';
 import { makeStyles } from '@material-ui/core/styles';
 import Autocomplete, {
   AutocompleteProps,
@@ -73,11 +73,10 @@ const withContext = (
 const SearchAutocompleteLoadingAdornment = () => {
   const classes = useStyles();
   return (
-    <CircularProgress
+    <ProgressCircle
       className={classes.loading}
       data-testid="search-autocomplete-progressbar"
-      color="inherit"
-      size={20}
+      size="medium"
     />
   );
 };

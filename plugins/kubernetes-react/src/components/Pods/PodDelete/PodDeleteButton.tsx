@@ -20,7 +20,7 @@ import Typography from '@material-ui/core/Typography';
 import CardActions from '@material-ui/core/CardActions';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Close';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { ProgressCircle } from '@backstage/ui';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { kubernetesReactTranslationRef } from '../../../translation';
 
@@ -70,7 +70,7 @@ export const PodDeleteButton = ({ podScope }: PodDeleteButtonProps) => {
             component="label"
             onClick={handleDeleteClick}
             startIcon={
-              isLoading ? <CircularProgress size={18} /> : <DeleteIcon />
+              isLoading ? <ProgressCircle size="small" /> : <DeleteIcon />
             }
             disabled={isLoading}
           >

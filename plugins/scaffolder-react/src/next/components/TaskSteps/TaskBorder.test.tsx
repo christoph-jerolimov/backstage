@@ -14,26 +14,33 @@
  * limitations under the License.
  */
 import { TaskBorder } from './TaskBorder';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 describe('TaskBorder', () => {
-  it('should render a pending linear progress if the task is not complete', () => {
-    const { getByRole } = render(
-      <TaskBorder isComplete={false} isError={false} />,
-    );
+  it('should render an indeterminate progress bar if the task is not complete', () => {
+    render(<TaskBorder isComplete={false} isError={false} />);
 
-    const progressBar = getByRole('progressbar');
+    const progressBar = screen.getByRole('progressbar', {
+      name: 'Task in progress',
+    });
 
     expect(progressBar).toBeInTheDocument();
-    expect(progressBar).toHaveClass('MuiLinearProgress-indeterminate');
+    expect(progressBar).not.toHaveAttribute('aria-valuenow');
   });
 
-  it('should render a determinate progress bar if the task is complete', () => {
-    const { getByRole } = render(<TaskBorder isComplete isError />);
+  it('should render a full progress bar in the outcome color if the task is complete', () => {
+    const { rerender } = render(<TaskBorder isComplete isError />);
 
-    const progressBar = getByRole('progressbar');
+    const failed = screen.getByRole('progressbar', { name: 'Task failed' });
+    expect(failed).toHaveAttribute('aria-valuenow', '100');
+    expect(failed).toHaveAttribute('data-color', 'danger');
 
-    expect(progressBar).toBeInTheDocument();
-    expect(progressBar).toHaveClass('MuiLinearProgress-determinate');
+    rerender(<TaskBorder isComplete isError={false} />);
+
+    const completed = screen.getByRole('progressbar', {
+      name: 'Task completed',
+    });
+    expect(completed).toHaveAttribute('aria-valuenow', '100');
+    expect(completed).toHaveAttribute('data-color', 'success');
   });
 });

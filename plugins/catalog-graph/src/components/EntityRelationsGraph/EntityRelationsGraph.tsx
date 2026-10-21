@@ -24,7 +24,7 @@ import {
   DependencyGraphTypes,
 } from '@backstage/core-components';
 import { errorApiRef, useApi } from '@backstage/core-plugin-api';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { ProgressCircle } from '@backstage/ui';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import { MouseEvent, useEffect, useMemo } from 'react';
@@ -43,8 +43,7 @@ const useStyles = makeStyles(
       position: 'absolute',
       left: '50%',
       top: '50%',
-      marginLeft: '-20px',
-      marginTop: '-20px',
+      transform: 'translate(-50%, -50%)',
     },
     container: {
       position: 'relative',
@@ -153,7 +152,7 @@ export const EntityRelationsGraph = (props: EntityRelationsGraphProps) => {
 
   return (
     <div className={classNames(classes.container, className)}>
-      {loading && <CircularProgress className={classes.progress} />}
+      {loading && <ProgressCircle size="large" className={classes.progress} />}
       {nodes && edges && (
         <DependencyGraph
           nodes={nodes}
