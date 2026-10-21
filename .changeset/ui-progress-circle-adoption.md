@@ -11,4 +11,4 @@
 '@backstage/plugin-techdocs': patch
 ---
 
-Replaced the Material UI circular progress spinner with the Backstage UI `Spinner` component for loading indicators. The spinner now inherits the color of the surrounding text instead of using the Material UI primary color.
+Replaced the Material UI circular progress spinner with the Backstage UI `ProgressCircle` component for loading indicators. The progress circle now inherits the color of the surrounding text instead of using the Material UI primary color.

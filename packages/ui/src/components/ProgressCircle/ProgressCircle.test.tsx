@@ -15,14 +15,14 @@
  */
 
 import { render, screen } from '@testing-library/react';
-import { Spinner } from './Spinner';
+import { ProgressCircle } from './ProgressCircle';
 
-describe('Spinner', () => {
+describe('ProgressCircle', () => {
   it('renders an indeterminate progress bar with a default label and size', () => {
-    render(<Spinner />);
+    render(<ProgressCircle />);
 
     const spinner = screen.getByRole('progressbar', { name: 'Loading' });
-    expect(spinner).toHaveClass('bui-Spinner');
+    expect(spinner).toHaveClass('bui-ProgressCircle');
     expect(spinner).toHaveAttribute('data-size', 'medium');
     expect(spinner).toHaveAttribute('data-indeterminate', 'true');
     expect(spinner).not.toHaveAttribute('aria-valuenow');
@@ -31,12 +31,12 @@ describe('Spinner', () => {
 
   it('supports custom labels, sizes, className, style and data attributes', () => {
     const { rerender } = render(
-      <Spinner
+      <ProgressCircle
         size="large"
         label="Loading entities"
         className="custom"
         style={{ margin: 4 }}
-        data-testid="my-spinner"
+        data-testid="my-progress-circle"
       />,
     );
 
@@ -44,17 +44,17 @@ describe('Spinner', () => {
       name: 'Loading entities',
     });
     expect(spinner).toHaveAttribute('data-size', 'large');
-    expect(spinner).toHaveClass('bui-Spinner', 'custom');
+    expect(spinner).toHaveClass('bui-ProgressCircle', 'custom');
     expect(spinner).toHaveStyle({ margin: '4px' });
-    expect(spinner).toHaveAttribute('data-testid', 'my-spinner');
+    expect(spinner).toHaveAttribute('data-testid', 'my-progress-circle');
 
-    rerender(<Spinner aria-label="Saving" />);
+    rerender(<ProgressCircle aria-label="Saving" />);
     expect(screen.getByRole('progressbar', { name: 'Saving' })).toBeTruthy();
 
     rerender(
       <>
         <span id="status-text">Refreshing</span>
-        <Spinner aria-labelledby="status-text" />
+        <ProgressCircle aria-labelledby="status-text" />
       </>,
     );
     expect(
@@ -64,7 +64,7 @@ describe('Spinner', () => {
 
   it('renders a determinate ring when a value is given', () => {
     const { rerender } = render(
-      <Spinner label="Uploading" value={40} showValueLabel />,
+      <ProgressCircle label="Uploading" value={40} showValueLabel />,
     );
 
     const spinner = screen.getByRole('progressbar', { name: 'Uploading' });
@@ -73,8 +73,8 @@ describe('Spinner', () => {
     expect(spinner).toHaveAttribute('aria-valuemin', '0');
     expect(spinner).toHaveAttribute('aria-valuemax', '100');
     expect(spinner).toHaveAttribute('aria-valuetext', '40%');
-    expect(screen.getByText('40%')).toHaveClass('bui-SpinnerValue');
-    const arc = spinner.querySelector('.bui-SpinnerArc');
+    expect(screen.getByText('40%')).toHaveClass('bui-ProgressCircleValue');
+    const arc = spinner.querySelector('.bui-ProgressCircleArc');
     expect(arc).toHaveAttribute('stroke-dashoffset');
     const circumference = 2 * Math.PI * 10;
     expect(Number(arc?.getAttribute('stroke-dashoffset'))).toBeCloseTo(
@@ -82,7 +82,7 @@ describe('Spinner', () => {
     );
 
     rerender(
-      <Spinner
+      <ProgressCircle
         label="Steps"
         value={3}
         minValue={0}
@@ -96,10 +96,10 @@ describe('Spinner', () => {
     expect(steps).toHaveAttribute('aria-valuetext', '3 of 10');
     expect(screen.getByText('3 of 10')).toBeInTheDocument();
 
-    rerender(<Spinner value={40} isIndeterminate showValueLabel />);
+    rerender(<ProgressCircle value={40} isIndeterminate showValueLabel />);
     const forced = screen.getByRole('progressbar', { name: 'Loading' });
     expect(forced).toHaveAttribute('data-indeterminate', 'true');
     expect(forced).not.toHaveAttribute('aria-valuenow');
-    expect(forced.querySelector('.bui-SpinnerValue')).toBeNull();
+    expect(forced.querySelector('.bui-ProgressCircleValue')).toBeNull();
   });
 });

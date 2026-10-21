@@ -3172,6 +3172,53 @@ export interface ProgressBarProps
     ProgressBarOwnProps {}
 
 // @public
+export const ProgressCircle: ForwardRefExoticComponent<
+  ProgressCircleProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const ProgressCircleDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-ProgressCircle';
+    readonly indicator: 'bui-ProgressCircleIndicator';
+    readonly track: 'bui-ProgressCircleTrack';
+    readonly arc: 'bui-ProgressCircleArc';
+    readonly value: 'bui-ProgressCircleValue';
+  };
+  readonly propDefs: {
+    readonly size: {
+      readonly dataAttribute: true;
+      readonly default: 'medium';
+    };
+    readonly label: {
+      readonly default: 'Loading';
+    };
+    readonly showValueLabel: {
+      readonly default: false;
+    };
+    readonly className: {};
+    readonly style: {};
+  };
+};
+
+// @public (undocumented)
+export type ProgressCircleOwnProps = {
+  size?: 'small' | 'medium' | 'large';
+  label?: string;
+  showValueLabel?: boolean;
+  className?: string;
+  style?: CSSProperties;
+};
+
+// @public (undocumented)
+export interface ProgressCircleProps
+  extends Omit<ProgressBarProps_2, 'children' | 'className' | 'style'>,
+    ProgressCircleOwnProps {}
+
+// @public
 export type ProviderBg = 'neutral' | 'danger' | 'warning' | 'success';
 
 // @public (undocumented)
@@ -4051,53 +4098,6 @@ export type Space =
 
 // @public (undocumented)
 export interface SpaceProps extends MarginProps, PaddingProps {}
-
-// @public
-export const Spinner: ForwardRefExoticComponent<
-  SpinnerProps & RefAttributes<HTMLDivElement>
->;
-
-// @public
-export const SpinnerDefinition: {
-  readonly styles: {
-    readonly [key: string]: string;
-  };
-  readonly classNames: {
-    readonly root: 'bui-Spinner';
-    readonly icon: 'bui-SpinnerIcon';
-    readonly track: 'bui-SpinnerTrack';
-    readonly arc: 'bui-SpinnerArc';
-    readonly value: 'bui-SpinnerValue';
-  };
-  readonly propDefs: {
-    readonly size: {
-      readonly dataAttribute: true;
-      readonly default: 'medium';
-    };
-    readonly label: {
-      readonly default: 'Loading';
-    };
-    readonly showValueLabel: {
-      readonly default: false;
-    };
-    readonly className: {};
-    readonly style: {};
-  };
-};
-
-// @public (undocumented)
-export type SpinnerOwnProps = {
-  size?: 'small' | 'medium' | 'large';
-  label?: string;
-  showValueLabel?: boolean;
-  className?: string;
-  style?: CSSProperties;
-};
-
-// @public (undocumented)
-export interface SpinnerProps
-  extends Omit<ProgressBarProps_2, 'children' | 'className' | 'style'>,
-    SpinnerOwnProps {}
 
 // @public (undocumented)
 export const SubmenuTrigger: (props: SubmenuTriggerProps) => JSX_2.Element;

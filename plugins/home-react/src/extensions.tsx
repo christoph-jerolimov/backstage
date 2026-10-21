@@ -15,7 +15,7 @@
  */
 
 import { useState, Suspense } from 'react';
-import { Spinner } from '@backstage/ui';
+import { ProgressCircle } from '@backstage/ui';
 import IconButton from '@material-ui/core/IconButton';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { InfoCard } from '@backstage/core-components';
@@ -139,7 +139,7 @@ function CardExtensionWithCustomRenderer<T>(
   } = props;
 
   return (
-    <Suspense fallback={<Spinner size="large" />}>
+    <Suspense fallback={<ProgressCircle size="large" />}>
       <Renderer
         {...(title && { title })}
         {...{

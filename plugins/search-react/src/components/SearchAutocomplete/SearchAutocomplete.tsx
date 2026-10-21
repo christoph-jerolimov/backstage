@@ -16,7 +16,7 @@
 
 import { ChangeEvent, useCallback, useMemo } from 'react';
 
-import { Spinner } from '@backstage/ui';
+import { ProgressCircle } from '@backstage/ui';
 import { makeStyles } from '@material-ui/core/styles';
 import Autocomplete, {
   AutocompleteProps,
@@ -73,7 +73,7 @@ const withContext = (
 const SearchAutocompleteLoadingAdornment = () => {
   const classes = useStyles();
   return (
-    <Spinner
+    <ProgressCircle
       className={classes.loading}
       data-testid="search-autocomplete-progressbar"
       size="medium"

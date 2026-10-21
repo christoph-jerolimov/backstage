@@ -24,7 +24,7 @@ import {
   DependencyGraphTypes,
 } from '@backstage/core-components';
 import { errorApiRef, useApi } from '@backstage/core-plugin-api';
-import { Spinner } from '@backstage/ui';
+import { ProgressCircle } from '@backstage/ui';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import { MouseEvent, useEffect, useMemo } from 'react';
@@ -152,7 +152,7 @@ export const EntityRelationsGraph = (props: EntityRelationsGraphProps) => {
 
   return (
     <div className={classNames(classes.container, className)}>
-      {loading && <Spinner size="large" className={classes.progress} />}
+      {loading && <ProgressCircle size="large" className={classes.progress} />}
       {nodes && edges && (
         <DependencyGraph
           nodes={nodes}

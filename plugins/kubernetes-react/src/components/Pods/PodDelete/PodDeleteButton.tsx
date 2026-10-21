@@ -20,7 +20,7 @@ import Typography from '@material-ui/core/Typography';
 import CardActions from '@material-ui/core/CardActions';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Close';
-import { Spinner } from '@backstage/ui';
+import { ProgressCircle } from '@backstage/ui';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { kubernetesReactTranslationRef } from '../../../translation';
 
@@ -69,7 +69,9 @@ export const PodDeleteButton = ({ podScope }: PodDeleteButtonProps) => {
             aria-label={buttonText}
             component="label"
             onClick={handleDeleteClick}
-            startIcon={isLoading ? <Spinner size="small" /> : <DeleteIcon />}
+            startIcon={
+              isLoading ? <ProgressCircle size="small" /> : <DeleteIcon />
+            }
             disabled={isLoading}
           >
             {buttonText}

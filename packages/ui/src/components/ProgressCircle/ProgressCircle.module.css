@@ -17,34 +17,49 @@
 @layer tokens, base, components, theme, utilities;
 
 @layer components {
-  .bui-Spinner {
+  .bui-ProgressCircle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: var(--bui-space-2);
     flex-shrink: 0;
     vertical-align: middle;
-    gap: var(--bui-space-2);
     color: inherit;
     line-height: 0;
   }
 
-  .bui-SpinnerIcon {
+  .bui-ProgressCircleIndicator {
     width: 1.25rem;
     height: 1.25rem;
     flex-shrink: 0;
   }
 
-  .bui-Spinner[data-indeterminate='true'] .bui-SpinnerIcon {
-    animation: bui-spinner-spin 1s linear infinite;
+  .bui-ProgressCircle[data-size='small'] .bui-ProgressCircleIndicator {
+    width: 1rem;
+    height: 1rem;
   }
 
-  .bui-SpinnerTrack {
+  .bui-ProgressCircle[data-size='medium'] .bui-ProgressCircleIndicator {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .bui-ProgressCircle[data-size='large'] .bui-ProgressCircleIndicator {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .bui-ProgressCircle[data-indeterminate='true'] .bui-ProgressCircleIndicator {
+    animation: bui-progress-circle-spin 1s linear infinite;
+  }
+
+  .bui-ProgressCircleTrack {
     stroke: currentColor;
     stroke-width: 2.5;
     opacity: 0.2;
   }
 
-  .bui-SpinnerArc {
+  .bui-ProgressCircleArc {
     stroke: currentColor;
     stroke-width: 2.5;
     stroke-linecap: round;
@@ -53,39 +68,29 @@
     transition: stroke-dashoffset 200ms ease-out;
   }
 
-  .bui-SpinnerValue {
+  .bui-ProgressCircle[data-indeterminate='true'] .bui-ProgressCircleArc {
+    transition: none;
+  }
+
+  .bui-ProgressCircleValue {
     font-size: var(--bui-font-size-2);
     font-weight: var(--bui-font-weight-medium);
     line-height: 1.15;
     white-space: nowrap;
   }
 
-  .bui-Spinner[data-size='small'] .bui-SpinnerIcon {
-    width: 1rem;
-    height: 1rem;
-  }
-
-  .bui-Spinner[data-size='medium'] .bui-SpinnerIcon {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-
-  .bui-Spinner[data-size='large'] .bui-SpinnerIcon {
-    width: 2rem;
-    height: 2rem;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .bui-Spinner[data-indeterminate='true'] .bui-SpinnerIcon {
+    .bui-ProgressCircle[data-indeterminate='true']
+      .bui-ProgressCircleIndicator {
       animation: none;
     }
 
-    .bui-SpinnerArc {
+    .bui-ProgressCircleArc {
       transition: none;
     }
   }
 
-  @keyframes bui-spinner-spin {
+  @keyframes bui-progress-circle-spin {
     from {
       transform: rotate(0deg);
     }

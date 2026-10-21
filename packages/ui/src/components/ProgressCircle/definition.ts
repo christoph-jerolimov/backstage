@@ -15,27 +15,28 @@
  */
 
 import { defineComponent } from '../../hooks/useDefinition';
-import type { SpinnerOwnProps } from './types';
-import styles from './Spinner.module.css';
+import type { ProgressCircleOwnProps } from './types';
+import styles from './ProgressCircle.module.css';
 
 /**
- * Component definition for Spinner
+ * Component definition for ProgressCircle
  * @public
  */
-export const SpinnerDefinition = defineComponent<SpinnerOwnProps>()({
-  styles,
-  classNames: {
-    root: 'bui-Spinner',
-    icon: 'bui-SpinnerIcon',
-    track: 'bui-SpinnerTrack',
-    arc: 'bui-SpinnerArc',
-    value: 'bui-SpinnerValue',
-  },
-  propDefs: {
-    size: { dataAttribute: true, default: 'medium' },
-    label: { default: 'Loading' },
-    showValueLabel: { default: false },
-    className: {},
-    style: {},
-  },
-});
+export const ProgressCircleDefinition =
+  defineComponent<ProgressCircleOwnProps>()({
+    styles,
+    classNames: {
+      root: 'bui-ProgressCircle',
+      indicator: 'bui-ProgressCircleIndicator',
+      track: 'bui-ProgressCircleTrack',
+      arc: 'bui-ProgressCircleArc',
+      value: 'bui-ProgressCircleValue',
+    },
+    propDefs: {
+      size: { dataAttribute: true, default: 'medium' },
+      label: { default: 'Loading' },
+      showValueLabel: { default: false },
+      className: {},
+      style: {},
+    },
+  });

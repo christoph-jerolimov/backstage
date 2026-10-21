@@ -8,7 +8,7 @@ Check the target's installed BUI APIs. Retain MUI where needed, or redesign the
 component while preserving its behavior and accessibility:
 
 - Badge overlays (no safe 1:1 BUI mapping)
-- `CircularProgress` / `LinearProgress` (no auto-map; migrate `CircularProgress` to `Spinner` and `LinearProgress` to `ProgressBar` by hand)
+- `CircularProgress` / `LinearProgress` (no auto-map; migrate `CircularProgress` to `ProgressCircle` and `LinearProgress` to `ProgressBar` by hand)
 - `Drawer`, `Snackbar`, `Stepper`, and `Timeline`
 - `@material-table/core` / material-table and broader table-system migrations
 - Theme parity, dark-mode polish, and final design-token tuning after source-level migration

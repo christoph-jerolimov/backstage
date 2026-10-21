@@ -16,22 +16,22 @@
 
 import { forwardRef } from 'react';
 import { ProgressBar } from 'react-aria-components';
-import { RiLoader4Line } from '@remixicon/react';
-import type { SpinnerProps } from './types';
+import type { ProgressCircleProps } from './types';
 import { useDefinition } from '../../hooks/useDefinition';
-import { SpinnerDefinition } from './definition';
+import { ProgressCircleDefinition } from './definition';
 
 const RING_RADIUS = 10;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+const INDETERMINATE_ARC = 0.25;
 
 /**
- * A circular loading indicator for an operation of unknown duration, or a ring that fills up as a known amount of work completes.
+ * A circular progress indicator for an operation of unknown duration, or a ring that fills up as a known amount of work completes.
  *
  * @remarks
- * Without a `value` the spinner is indeterminate and rotates continuously.
+ * Without a `value` the circle is indeterminate and rotates continuously.
  * Pass `value` for a determinate ring, together with `minValue` and
  * `maxValue` when the range is not 0 to 100, and `showValueLabel` to print
- * the formatted value next to it. The spinner is exposed to assistive
+ * the formatted value next to it. The circle is exposed to assistive
  * technologies as a progress bar and is announced with the `label` prop,
  * which defaults to "Loading". Its color is inherited from the surrounding
  * text, so it adapts to any container. For users that prefer reduced motion,
@@ -40,27 +40,27 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
  * @example
  * Basic usage:
  * ```tsx
- * <Spinner />
+ * <ProgressCircle />
  * ```
  *
  * @example
  * With a custom size and label:
  * ```tsx
- * <Spinner size="large" label="Loading entities" />
+ * <ProgressCircle size="large" label="Loading entities" />
  * ```
  *
  * @example
  * Determinate progress with a value label:
  * ```tsx
- * <Spinner label="Uploading" value={40} showValueLabel />
+ * <ProgressCircle label="Uploading" value={40} showValueLabel />
  * ```
  *
  * @public
  */
-export const Spinner = forwardRef<HTMLDivElement, SpinnerProps>(
+export const ProgressCircle = forwardRef<HTMLDivElement, ProgressCircleProps>(
   (props, ref) => {
     const { ownProps, restProps, dataAttributes } = useDefinition(
-      SpinnerDefinition,
+      ProgressCircleDefinition,
       props,
     );
     const { classes, label, showValueLabel, style } = ownProps;
@@ -83,13 +83,15 @@ export const Spinner = forwardRef<HTMLDivElement, SpinnerProps>(
         {...restProps}
         isIndeterminate={isIndeterminate}
       >
-        {({ percentage, valueText }) => (
-          <>
-            {isIndeterminate ? (
-              <RiLoader4Line className={classes.icon} aria-hidden="true" />
-            ) : (
+        {({ percentage, valueText }) => {
+          const fraction = isIndeterminate
+            ? INDETERMINATE_ARC
+            : (percentage ?? 0) / 100;
+
+          return (
+            <>
               <svg
-                className={classes.icon}
+                className={classes.indicator}
                 viewBox="0 0 24 24"
                 fill="none"
                 aria-hidden="true"
@@ -106,20 +108,18 @@ export const Spinner = forwardRef<HTMLDivElement, SpinnerProps>(
                   cy="12"
                   r={RING_RADIUS}
                   strokeDasharray={RING_CIRCUMFERENCE}
-                  strokeDashoffset={
-                    RING_CIRCUMFERENCE * (1 - (percentage ?? 0) / 100)
-                  }
+                  strokeDashoffset={RING_CIRCUMFERENCE * (1 - fraction)}
                 />
               </svg>
-            )}
-            {showValueLabel && !isIndeterminate && (
-              <span className={classes.value}>{valueText}</span>
-            )}
-          </>
-        )}
+              {showValueLabel && !isIndeterminate && (
+                <span className={classes.value}>{valueText}</span>
+              )}
+            </>
+          );
+        }}
       </ProgressBar>
     );
   },
 );
 
-Spinner.displayName = 'Spinner';
+ProgressCircle.displayName = 'ProgressCircle';

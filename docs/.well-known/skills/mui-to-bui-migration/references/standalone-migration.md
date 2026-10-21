@@ -65,13 +65,13 @@ Done when: the target has the required dependencies and the app loads BUI styles
 - `PluginHeader` - Plugin-level header with icon, title, tabs, and actions
 - `Popover` - Popover overlays
 - `ProgressBar` - Linear progress indicator (`value`, `isIndeterminate`, `label`; replaces MUI LinearProgress)
+- `ProgressCircle` - Circular loading indicator, indeterminate or with a `value` (`size`, `label`; replaces MUI CircularProgress)
 - `RadioGroup` - Radio button groups (`RadioGroup`, `Radio`)
 - `SearchAutocomplete` - Search input with autocomplete popover (`SearchAutocomplete`, `SearchAutocompleteItem`)
 - `SearchField` - Search input
 - `Select` - Dropdown select (single and multiple selection modes)
 - `Skeleton` - Loading skeleton
 - `Slider` - Range slider input (`label`, `minValue`, `maxValue`, `step`)
-- `Spinner` - Circular loading indicator, indeterminate or with a `value` (`size`, `label`; replaces MUI CircularProgress)
 - `Switch` - Toggle switch
 - `Table` - Data tables (with `useTable` hook for data management)
 - `TablePagination` - Standalone pagination component

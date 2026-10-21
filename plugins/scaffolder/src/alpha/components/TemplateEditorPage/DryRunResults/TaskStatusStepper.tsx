@@ -22,7 +22,7 @@ import Stepper from '@material-ui/core/Stepper';
 import { ScaffolderTaskStatus } from '@backstage/plugin-scaffolder-react';
 import StepButton from '@material-ui/core/StepButton';
 import { StepIconProps } from '@material-ui/core/StepIcon';
-import { Spinner } from '@backstage/ui';
+import { ProgressCircle } from '@backstage/ui';
 import Cancel from '@material-ui/icons/Cancel';
 import Check from '@material-ui/icons/Check';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
@@ -116,7 +116,7 @@ function TaskStepIconComponent(props: StepIconProps) {
 
   const getMiddle = () => {
     if (active) {
-      return <Spinner size="medium" />;
+      return <ProgressCircle size="medium" />;
     }
     if (completed) {
       return <Check />;

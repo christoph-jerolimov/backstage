@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Spinner } from '@backstage/ui';
+import { ProgressCircle } from '@backstage/ui';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 import Alert from '@material-ui/lab/Alert';
@@ -51,7 +51,7 @@ export const TechDocsStateIndicator = () => {
         classes={{ root: classes.root }}
         variant="outlined"
         severity="info"
-        icon={<Spinner size="medium" />}
+        icon={<ProgressCircle size="medium" />}
         action={<TechDocsBuildLogs buildLog={buildLog} />}
       >
         {t('stateIndicator.initialBuild.message')}
@@ -64,7 +64,7 @@ export const TechDocsStateIndicator = () => {
       <Alert
         variant="outlined"
         severity="info"
-        icon={<Spinner size="medium" />}
+        icon={<ProgressCircle size="medium" />}
         action={<TechDocsBuildLogs buildLog={buildLog} />}
         classes={{ root: classes.root }}
       >

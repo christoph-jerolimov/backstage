@@ -36,7 +36,7 @@ import {
   useStarredEntities,
   type EntityPresentationApi,
 } from '@backstage/plugin-catalog-react';
-import { Spinner } from '@backstage/ui';
+import { ProgressCircle } from '@backstage/ui';
 import Typography from '@material-ui/core/Typography';
 import { visuallyHidden } from '@mui/utils';
 import Edit from '@material-ui/icons/Edit';
@@ -232,7 +232,7 @@ export const CatalogTable = (props: CatalogTableProps) => {
       {titleBase}
       {currentCount}
       {somethingIsLoading && !isLoading && (
-        <Spinner size="small" data-testid="loading-indicator" />
+        <ProgressCircle size="small" data-testid="loading-indicator" />
       )}
     </span>
   );

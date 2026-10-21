@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-export { Spinner } from './Spinner';
-export type { SpinnerOwnProps, SpinnerProps } from './types';
-export { SpinnerDefinition } from './definition';
+export { ProgressCircle } from './ProgressCircle';
+export type { ProgressCircleOwnProps, ProgressCircleProps } from './types';
+export { ProgressCircleDefinition } from './definition';

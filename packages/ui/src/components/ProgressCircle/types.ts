@@ -18,15 +18,15 @@ import type { CSSProperties } from 'react';
 import type { ProgressBarProps } from 'react-aria-components';
 
 /** @public */
-export type SpinnerOwnProps = {
+export type ProgressCircleOwnProps = {
   /**
-   * Size of the spinner
+   * Size of the progress circle
    * @defaultValue 'medium'
    */
   size?: 'small' | 'medium' | 'large';
 
   /**
-   * Accessible label announced to assistive technologies while the spinner is shown.
+   * Accessible label announced to assistive technologies while the progress circle is shown.
    * Only used when no `aria-label` or `aria-labelledby` is passed.
    * @defaultValue 'Loading'
    */
@@ -34,7 +34,7 @@ export type SpinnerOwnProps = {
 
   /**
    * Whether to render the formatted value, for example "40%", next to the
-   * ring. Ignored while the spinner is indeterminate.
+   * ring. Ignored while the progress circle is indeterminate.
    * @defaultValue false
    */
   showValueLabel?: boolean;
@@ -44,6 +44,6 @@ export type SpinnerOwnProps = {
 };
 
 /** @public */
-export interface SpinnerProps
+export interface ProgressCircleProps
   extends Omit<ProgressBarProps, 'children' | 'className' | 'style'>,
-    SpinnerOwnProps {}
+    ProgressCircleOwnProps {}

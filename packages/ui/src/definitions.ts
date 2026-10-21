@@ -71,6 +71,7 @@ export { NumberFieldDefinition } from './components/NumberField/definition';
 export { PasswordFieldDefinition } from './components/PasswordField/definition';
 export { PopoverDefinition } from './components/Popover/definition';
 export { ProgressBarDefinition } from './components/ProgressBar/definition';
+export { ProgressCircleDefinition } from './components/ProgressCircle/definition';
 export { RadioGroupDefinition } from './components/RadioGroup/definition';
 export {
   SearchAutocompleteDefinition,
@@ -84,7 +85,6 @@ export {
   SelectItemTextDefinition,
 } from './components/Select/definition';
 export { SkeletonDefinition } from './components/Skeleton/definition';
-export { SpinnerDefinition } from './components/Spinner/definition';
 export { SliderDefinition } from './components/Slider/definition';
 export { SwitchDefinition } from './components/Switch/definition';
 export { ToggleButtonDefinition } from './components/ToggleButton/definition';

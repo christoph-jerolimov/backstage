@@ -15,7 +15,7 @@
  */
 
 import preview from '../../../../../.storybook/preview';
-import { Spinner } from './Spinner';
+import { ProgressCircle } from './ProgressCircle';
 import { Box } from '../Box';
 import { Button } from '../Button';
 import { Card, CardBody, CardHeader } from '../Card';
@@ -23,8 +23,8 @@ import { Flex } from '../Flex';
 import { Text } from '../Text';
 
 const meta = preview.meta({
-  title: 'Backstage UI/Spinner',
-  component: Spinner,
+  title: 'Backstage UI/ProgressCircle',
+  component: ProgressCircle,
   argTypes: {
     size: {
       control: 'select',
@@ -54,9 +54,9 @@ export const Default = meta.story({
 export const Sizes = meta.story({
   render: () => (
     <Flex gap="4" align="center">
-      <Spinner size="small" />
-      <Spinner size="medium" />
-      <Spinner size="large" />
+      <ProgressCircle size="small" />
+      <ProgressCircle size="medium" />
+      <ProgressCircle size="large" />
     </Flex>
   ),
 });
@@ -79,9 +79,9 @@ export const DeterminateWithValueLabel = meta.story({
 export const DeterminateSizes = meta.story({
   render: () => (
     <Flex gap="4" align="center">
-      <Spinner size="small" value={25} />
-      <Spinner size="medium" value={50} />
-      <Spinner size="large" value={75} />
+      <ProgressCircle size="small" value={25} />
+      <ProgressCircle size="medium" value={50} />
+      <ProgressCircle size="large" value={75} />
     </Flex>
   ),
 });
@@ -100,7 +100,7 @@ export const CustomRange = meta.story({
 export const WithText = meta.story({
   render: () => (
     <Flex gap="2" align="center">
-      <Spinner size="small" />
+      <ProgressCircle size="small" />
       <Text>Loading entities…</Text>
     </Flex>
   ),
@@ -110,13 +110,13 @@ export const InheritsColor = meta.story({
   render: () => (
     <Flex gap="4" align="center">
       <Text color="secondary">
-        <Spinner />
+        <ProgressCircle />
       </Text>
       <Text color="danger">
-        <Spinner />
+        <ProgressCircle />
       </Text>
       <Box style={{ color: 'var(--bui-fg-positive)' }}>
-        <Spinner />
+        <ProgressCircle />
       </Box>
     </Flex>
   ),
@@ -132,7 +132,7 @@ export const InCard = meta.story({
       </CardHeader>
       <CardBody>
         <Flex justify="center" align="center" style={{ height: 120 }}>
-          <Spinner size="large" label="Loading deployments" />
+          <ProgressCircle size="large" label="Loading deployments" />
         </Flex>
       </CardBody>
     </Card>
@@ -148,7 +148,7 @@ export const CenteredInPage = meta.story({
       gap="3"
       style={{ height: 320 }}
     >
-      <Spinner size="large" />
+      <ProgressCircle size="large" />
       <Text color="secondary">Fetching the latest data</Text>
     </Flex>
   ),
@@ -158,7 +158,7 @@ export const BesideButton = meta.story({
   render: () => (
     <Flex gap="4" align="center">
       <Button isPending>Save</Button>
-      <Spinner size="small" />
+      <ProgressCircle size="small" />
     </Flex>
   ),
 });

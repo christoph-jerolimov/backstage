@@ -17,7 +17,7 @@
 import { LinkButton } from '@backstage/core-components';
 import { useTranslationRef } from '@backstage/frontend-plugin-api';
 import Button from '@material-ui/core/Button';
-import { Spinner } from '@backstage/ui';
+import { ProgressCircle } from '@backstage/ui';
 import { makeStyles } from '@material-ui/core/styles';
 import { ComponentProps } from 'react';
 
@@ -56,7 +56,7 @@ export const NextButton = (
         disabled={props.disabled || props.loading}
       />
       {props.loading && (
-        <Spinner size="medium" className={classes.buttonProgress} />
+        <ProgressCircle size="medium" className={classes.buttonProgress} />
       )}
       {props.loading}
     </div>
