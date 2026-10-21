@@ -32,7 +32,6 @@ export const PluginHeaderDefinition = defineComponent<PluginHeaderOwnProps>()({
     toolbarIcon: 'bui-PluginHeaderToolbarIcon',
     toolbarName: 'bui-PluginHeaderToolbarName',
     breadcrumbs: 'bui-PluginHeaderBreadcrumbs',
-    breadcrumbsEllipsis: 'bui-PluginHeaderBreadcrumbsEllipsis',
     tabs: 'bui-PluginHeaderTabsWrapper',
   },
   propDefs: {

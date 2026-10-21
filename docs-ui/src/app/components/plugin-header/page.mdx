@@ -4,6 +4,7 @@ import { Snippet } from '@/components/Snippet';
 import {
   WithAllOptionsAndTabs,
   WithAllOptions,
+  WithBreadcrumbs,
   WithHeader,
 } from './components';
 import { headerPropDefs } from './props-definition';
@@ -12,6 +13,7 @@ import {
   simple,
   defaultSnippet,
   withTabs,
+  withBreadcrumbs,
   withHeader,
 } from './snippets';
 import { PageTitle } from '@/components/PageTitle';
@@ -45,6 +47,14 @@ import { ChangelogComponent } from '@/components/ChangelogComponent';
 Tabs use React Router and highlight automatically based on the current route.
 
 <Snippet preview={<WithAllOptionsAndTabs />} code={withTabs} open />
+
+### Breadcrumbs
+
+Pass a trail to the `breadcrumbs` prop to show where the current page sits in the plugin. The trail replaces the title in the toolbar, and the title stays available to screen readers as the page heading. The last entry is the current page. Long labels truncate with a tooltip, and trails with five or more entries collapse the middle entries behind an ellipsis menu.
+
+The header renders the trail with the [Breadcrumbs](/components/breadcrumbs) component. Use that component directly only for trails outside the header.
+
+<Snippet preview={<WithBreadcrumbs />} code={withBreadcrumbs} open />
 
 ### Plugin header with Header
 

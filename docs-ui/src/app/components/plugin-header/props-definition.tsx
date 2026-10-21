@@ -15,6 +15,32 @@ export const headerPropDefs: Record<string, PropDef> = {
     type: 'string',
     description: 'URL the title links to when clicked.',
   },
+  breadcrumbs: {
+    type: 'complex',
+    description: (
+      <>
+        Breadcrumb trail rendered in place of the title. The title stays
+        available to screen readers. See{' '}
+        <a href="/components/breadcrumbs">Breadcrumbs</a> for the behavior of
+        the trail.
+      </>
+    ),
+    complexType: {
+      name: 'PluginHeaderBreadcrumbEntry[]',
+      properties: {
+        label: {
+          type: 'string',
+          required: true,
+          description: 'Text shown for the entry.',
+        },
+        href: {
+          type: 'string',
+          required: true,
+          description: 'URL the entry links to.',
+        },
+      },
+    },
+  },
   customActions: {
     type: 'enum',
     values: ['ReactNode'],

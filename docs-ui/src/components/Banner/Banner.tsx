@@ -5,7 +5,7 @@ export const Banner = ({
   text,
 }: {
   variant?: 'info' | 'warning';
-  text?: string;
+  text?: React.ReactNode;
 }) => {
   return (
     <div className={`${styles.banner} ${styles[variant]}`}>

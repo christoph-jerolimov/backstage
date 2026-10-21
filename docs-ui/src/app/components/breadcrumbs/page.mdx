@@ -1,0 +1,86 @@
+import { PropsTable } from '@/components/PropsTable';
+import { CodeBlock } from '@/components/CodeBlock';
+import { Snippet } from '@/components/Snippet';
+import { Banner } from '@/components/Banner';
+import {
+  Default,
+  SingleItem,
+  WithLongLabels,
+  WithManyItems,
+  InPluginHeader,
+} from './components';
+import { breadcrumbsPropDefs } from './props-definition';
+import {
+  usage,
+  defaultSnippet,
+  singleItem,
+  withLongLabels,
+  withManyItems,
+  inPluginHeader,
+} from './snippets';
+import { PageTitle } from '@/components/PageTitle';
+import { Theming } from '@/components/Theming';
+import { BreadcrumbsDefinition } from '../../../utils/definitions';
+import { ChangelogComponent } from '@/components/ChangelogComponent';
+
+<PageTitle
+  title="Breadcrumbs"
+  description="A navigation trail that shows where the current page sits in the hierarchy."
+/>
+
+<Snippet py={4} preview={<Default />} code={defaultSnippet} />
+
+<Banner
+  variant="warning"
+  text={
+    <>
+      <strong>Breadcrumbs in the header belong to the header.</strong> Do not
+      place this component inside a <code>PluginHeader</code> yourself. Pass the
+      trail to the <code>breadcrumbs</code> prop of{' '}
+      <a href="/components/plugin-header#breadcrumbs">PluginHeader</a> instead.
+      The header renders the trail with this component and hides the title for
+      screen readers only. Use the standalone <code>Breadcrumbs</code> component
+      for trails outside the header.
+    </>
+  }
+/>
+
+## Usage
+
+<CodeBlock code={usage} />
+
+## API reference
+
+<PropsTable data={breadcrumbsPropDefs} />
+
+The component renders a `nav` landmark labeled "Breadcrumbs" and accepts any other `nav` attribute, such as `aria-label` or `id`.
+
+## Examples
+
+### Single item
+
+A trail with a single item, such as the root page of a plugin, renders that item as a link.
+
+<Snippet open preview={<SingleItem />} code={singleItem} />
+
+### Long labels
+
+Labels truncate when they run out of space. Truncated labels show their full text in a tooltip on hover and focus. The current page takes the remaining space.
+
+<Snippet open preview={<WithLongLabels />} code={withLongLabels} />
+
+### Many items
+
+Trails with five or more items collapse the middle items behind an ellipsis button. The button opens a menu with the collapsed links. The first item, the parent of the current page, and the current page stay visible.
+
+<Snippet open preview={<WithManyItems />} code={withManyItems} />
+
+### In the plugin header
+
+Pass the trail to [PluginHeader](/components/plugin-header#breadcrumbs). The header renders the breadcrumbs in place of its title.
+
+<Snippet open preview={<InPluginHeader />} code={inPluginHeader} />
+
+<Theming definition={BreadcrumbsDefinition} />
+
+<ChangelogComponent component="breadcrumbs" />

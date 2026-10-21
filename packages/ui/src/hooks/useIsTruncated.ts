@@ -15,7 +15,7 @@
  */
 
 import { useRef, useState } from 'react';
-import { useIsomorphicLayoutEffect } from '../../hooks/useIsomorphicLayoutEffect';
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
 
 const DEBOUNCE_MS = 150;
 

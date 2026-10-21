@@ -26,7 +26,7 @@ import { Link } from '../Link';
 import { RiShapesLine } from '@remixicon/react';
 import { Text } from '../Text';
 import { VisuallyHidden } from '../VisuallyHidden';
-import { PluginHeaderBreadcrumbs } from './PluginHeaderBreadcrumbs';
+import { Breadcrumbs } from '../Breadcrumbs';
 
 declare module 'react-aria-components' {
   interface RouterConfig {
@@ -145,10 +145,9 @@ export const PluginHeader = (props: PluginHeaderProps) => {
               <VisuallyHidden>
                 <h1>{titleText}</h1>
               </VisuallyHidden>
-              <PluginHeaderBreadcrumbs
-                entries={breadcrumbs}
+              <Breadcrumbs
+                items={breadcrumbs}
                 className={classes.breadcrumbs}
-                ellipsisClassName={classes.breadcrumbsEllipsis}
               />
             </div>
           ) : (
