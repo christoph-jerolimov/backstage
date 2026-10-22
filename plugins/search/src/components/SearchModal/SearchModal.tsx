@@ -30,7 +30,7 @@ import {
   Flex,
 } from '@backstage/ui';
 import { useRouteRef } from '@backstage/core-plugin-api';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { useTheme } from '@material-ui/core/styles';
 import { RiArrowRightLine } from '@remixicon/react';
 import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -89,14 +89,7 @@ export interface SearchModalProps {
   resultItemComponents?: SearchModalChildrenProps['resultItemComponents'];
 }
 
-const useStyles = makeStyles({
-  // Lets the pager span the full width of the footer, so that the previous
-  // and next buttons are placed at opposite ends.
-  footer: { display: 'block', paddingBlock: 0 },
-});
-
 export const Modal = ({ resultItemComponents }: SearchModalChildrenProps) => {
-  const classes = useStyles();
   const navigate = useNavigate();
   const { transitions } = useTheme();
   const { focusContent } = useContent();
@@ -147,7 +140,7 @@ export const Modal = ({ resultItemComponents }: SearchModalChildrenProps) => {
         </SearchResult>
       </DialogBody>
       {(fetchNextPage || fetchPreviousPage) && (
-        <DialogFooter className={classes.footer}>
+        <DialogFooter>
           <SearchResultPager />
         </DialogFooter>
       )}

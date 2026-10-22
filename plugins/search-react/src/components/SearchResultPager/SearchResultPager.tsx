@@ -39,6 +39,7 @@ export const SearchResultPager = () => {
       justify="between"
       gap="4"
       my="4"
+      grow
     >
       <Button
         aria-label="previous page"
