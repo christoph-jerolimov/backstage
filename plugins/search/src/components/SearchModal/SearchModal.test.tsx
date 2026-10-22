@@ -108,7 +108,7 @@ describe('SearchModal', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    const input = screen.getByRole<HTMLInputElement>('textbox', {
+    const input = screen.getByRole<HTMLInputElement>('searchbox', {
       name: 'Search',
     });
     await userEvent.type(input, 'text');
@@ -196,7 +196,7 @@ describe('SearchModal', () => {
       },
     );
 
-    expect(screen.getByRole('textbox', { name: 'Search' })).toHaveFocus();
+    expect(screen.getByRole('searchbox', { name: 'Search' })).toHaveFocus();
   });
 
   it("Don't wait query debounce time when enter is pressed", async () => {
@@ -225,7 +225,7 @@ describe('SearchModal', () => {
       { signal: expect.any(AbortSignal) },
     );
 
-    const input = screen.getByRole<HTMLInputElement>('textbox', {
+    const input = screen.getByRole<HTMLInputElement>('searchbox', {
       name: 'Search',
     });
     await userEvent.clear(input);
