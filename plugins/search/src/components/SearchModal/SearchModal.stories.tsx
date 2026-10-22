@@ -29,6 +29,8 @@ import List from '@material-ui/core/List';
 import { ComponentType, PropsWithChildren } from 'react';
 import { rootRouteRef } from '../../plugin';
 import { SearchType } from '../SearchType';
+import { useTranslationRef } from '@backstage/frontend-plugin-api';
+import { searchTranslationRef } from '../../translation';
 import { SearchModal } from './SearchModal';
 import { useSearchModal } from './useSearchModal';
 
@@ -96,6 +98,7 @@ export const Default = () => {
 
 export const CustomModal = () => {
   const { state, toggleModal } = useSearchModal();
+  const { t } = useTranslationRef(searchTranslationRef);
 
   return (
     <>
@@ -105,7 +108,7 @@ export const CustomModal = () => {
       <SearchModal {...state} toggleModal={toggleModal}>
         {() => (
           <>
-            <DialogHeader>Search</DialogHeader>
+            <DialogHeader>{t('searchModal.title')}</DialogHeader>
             <DialogBody>
               <SearchBar />
               <SearchType.Tabs
