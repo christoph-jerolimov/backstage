@@ -200,7 +200,7 @@ describe('SearchBar', () => {
 
     await waitFor(() => expect(textbox).toHaveValue(term));
 
-    await user.click(screen.getByLabelText('Clear'));
+    await user.click(screen.getByRole('button', { name: /clear/i }));
 
     await waitFor(() => expect(textbox).toHaveValue(''));
 
@@ -229,7 +229,9 @@ describe('SearchBar', () => {
     );
 
     await waitFor(() =>
-      expect(screen.queryByLabelText('Clear')).not.toBeInTheDocument(),
+      expect(
+        screen.queryByRole('button', { name: /clear/i }),
+      ).not.toBeInTheDocument(),
     );
   });
 
@@ -335,11 +337,6 @@ describe('SearchBar', () => {
       },
     );
 
-    const queryButton = screen.getByLabelText('Query');
-
-    expect(queryButton).toBeInTheDocument();
-    expect(queryButton.innerHTML).toContain(
-      '<svg><path id="custom-search-icon"></path></svg>',
-    );
+    expect(document.getElementById('custom-search-icon')).toBeInTheDocument();
   });
 });

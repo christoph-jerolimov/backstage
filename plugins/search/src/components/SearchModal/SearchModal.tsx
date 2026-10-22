@@ -15,9 +15,10 @@
  */
 import { useContent } from '@backstage/core-components';
 import {
+  SearchBar,
   SearchContextProvider,
   SearchResult,
-  searchReactTranslationRef,
+  SearchResultPager,
   useSearch,
 } from '@backstage/plugin-search-react';
 import {
@@ -27,17 +28,11 @@ import {
   DialogFooter,
   DialogHeader,
   Flex,
-  SearchField,
 } from '@backstage/ui';
-import { configApiRef, useApi, useRouteRef } from '@backstage/core-plugin-api';
+import { useRouteRef } from '@backstage/core-plugin-api';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
-import {
-  RiArrowLeftSLine,
-  RiArrowRightLine,
-  RiArrowRightSLine,
-} from '@remixicon/react';
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import useDebounce from 'react-use/esm/useDebounce';
+import { RiArrowRightLine } from '@remixicon/react';
+import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { rootRouteRef } from '../../plugin';
@@ -95,86 +90,51 @@ export interface SearchModalProps {
 }
 
 const useStyles = makeStyles({
-  // Places the previous and next buttons at opposite ends of the footer.
-  footer: { justifyContent: 'space-between' },
+  // Lets the pager span the full width of the footer, so that the previous
+  // and next buttons are placed at opposite ends.
+  footer: { display: 'block', paddingBlock: 0 },
 });
-
-// Matches the default debounce time of the search bar from the search React library.
-const SEARCH_DEBOUNCE_TIME = 200;
 
 export const Modal = ({ resultItemComponents }: SearchModalChildrenProps) => {
   const classes = useStyles();
   const navigate = useNavigate();
-  const configApi = useApi(configApiRef);
   const { transitions } = useTheme();
   const { focusContent } = useContent();
-  const { term, setTerm, fetchNextPage, fetchPreviousPage } = useSearch();
+  const { fetchNextPage, fetchPreviousPage } = useSearch();
   const { t } = useTranslationRef(searchTranslationRef);
-  const { t: tSearchReact } = useTranslationRef(searchReactTranslationRef);
 
   const searchRootRoute = useRouteRef(rootRouteRef)();
-
-  // The field value is kept locally and only forwarded to the search context
-  // after a debounce, to avoid firing a search request on every keystroke.
-  const [value, setValue] = useState(term);
-  const forwardedValueRef = useRef(term);
+  const searchBarRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    setValue(prevValue => {
-      // Only pick up term changes from the search context if the user has not
-      // continued typing since the value was last forwarded.
-      if (prevValue === forwardedValueRef.current) {
-        return term;
-      }
-      return prevValue;
-    });
-  }, [term]);
-
-  useDebounce(
-    () => {
-      forwardedValueRef.current = value;
-      setTerm(value);
-    },
-    SEARCH_DEBOUNCE_TIME,
-    [value],
-  );
+    searchBarRef.current?.focus();
+  }, []);
 
   const handleSearchResultClick = useCallback(() => {
     setTimeout(focusContent, transitions.duration.leavingScreen);
   }, [focusContent, transitions]);
 
-  // Navigates to the full search results page, using the current field value
-  // without waiting for the query debounce.
-  const handleSubmit = useCallback(
-    (query: string) => {
-      navigate(`${searchRootRoute}?query=${query}`);
-      handleSearchResultClick();
-    },
-    [navigate, handleSearchResultClick, searchRootRoute],
-  );
+  // This handler is called when "enter" is pressed
+  const handleSearchBarSubmit = useCallback(() => {
+    // Using ref to get the current field value without waiting for a query debounce
+    const query = searchBarRef.current?.value ?? '';
+    navigate(`${searchRootRoute}?query=${query}`);
+    handleSearchResultClick();
+  }, [navigate, handleSearchResultClick, searchRootRoute]);
 
   return (
     <>
       <DialogHeader>{t('searchModal.title')}</DialogHeader>
       <DialogBody>
-        <SearchField
-          // The search field is the primary interaction of the modal and
-          // should receive focus as soon as the modal is opened.
-          // eslint-disable-next-line jsx-a11y/no-autofocus
-          autoFocus
-          aria-label={tSearchReact('searchBar.title')}
-          placeholder={tSearchReact('searchBar.placeholder', {
-            org: configApi.getOptionalString('app.title') || 'Backstage',
-          })}
-          value={value}
-          onChange={setValue}
-          onSubmit={handleSubmit}
+        <SearchBar
+          inputProps={{ ref: searchBarRef }}
+          onSubmit={handleSearchBarSubmit}
         />
         <Flex justify="end">
           <Button
             variant="tertiary"
             iconEnd={<RiArrowRightLine />}
-            onPress={() => handleSubmit(value)}
+            onPress={handleSearchBarSubmit}
           >
             {t('searchModal.viewFullResults')}
           </Button>
@@ -188,22 +148,7 @@ export const Modal = ({ resultItemComponents }: SearchModalChildrenProps) => {
       </DialogBody>
       {(fetchNextPage || fetchPreviousPage) && (
         <DialogFooter className={classes.footer}>
-          <Button
-            variant="secondary"
-            iconStart={<RiArrowLeftSLine />}
-            isDisabled={!fetchPreviousPage}
-            onPress={fetchPreviousPage}
-          >
-            {tSearchReact('searchResultPager.previous')}
-          </Button>
-          <Button
-            variant="secondary"
-            iconEnd={<RiArrowRightSLine />}
-            isDisabled={!fetchNextPage}
-            onPress={fetchNextPage}
-          >
-            {tSearchReact('searchResultPager.next')}
-          </Button>
+          <SearchResultPager />
         </DialogFooter>
       )}
     </>

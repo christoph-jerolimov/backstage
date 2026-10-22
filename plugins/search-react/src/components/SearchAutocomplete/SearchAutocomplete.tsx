@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ChangeEvent, useCallback, useMemo } from 'react';
+import { ChangeEvent, useCallback, useEffect, useMemo } from 'react';
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
@@ -28,7 +28,7 @@ import {
 } from '@material-ui/lab/useAutocomplete';
 
 import { SearchContextProvider, useSearch } from '../../context';
-import { SearchBar, SearchBarProps } from '../SearchBar';
+import { SearchBarBase, SearchBarProps } from '../SearchBar';
 
 const useStyles = makeStyles(theme => ({
   loading: {
@@ -122,6 +122,12 @@ export const SearchAutocomplete = withContext(
       [value, getInputValue],
     );
 
+    useEffect(() => {
+      if (inputValue) {
+        setTerm(inputValue);
+      }
+    }, [inputValue, setTerm]);
+
     const handleChange = useCallback(
       (
         event: ChangeEvent<{}>,
@@ -141,11 +147,12 @@ export const SearchAutocomplete = withContext(
         InputLabelProps,
         ...params
       }: AutocompleteRenderInputParams) => (
-        <SearchBar
+        <SearchBarBase
           {...params}
           ref={ref}
           clearButton={false}
           value={inputValue}
+          onChange={setTerm}
           placeholder={inputPlaceholder}
           debounceTime={inputDebounceTime}
           endAdornment={
@@ -154,7 +161,7 @@ export const SearchAutocomplete = withContext(
           InputProps={{ className }}
         />
       ),
-      [loading, inputValue, inputPlaceholder, inputDebounceTime],
+      [loading, inputValue, inputPlaceholder, inputDebounceTime, setTerm],
     );
 
     return (

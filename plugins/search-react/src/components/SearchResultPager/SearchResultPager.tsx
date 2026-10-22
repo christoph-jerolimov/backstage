@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
+import { Button } from '@backstage/ui';
 import { makeStyles } from '@material-ui/core/styles';
-import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
-import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
+import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
 
 import { useSearch } from '../../context';
 import { useTranslationRef } from '@backstage/frontend-plugin-api';
@@ -48,18 +47,20 @@ export const SearchResultPager = () => {
     <nav aria-label="pagination navigation" className={classes.root}>
       <Button
         aria-label="previous page"
-        disabled={!fetchPreviousPage}
-        onClick={fetchPreviousPage}
-        startIcon={<ArrowBackIosIcon />}
+        variant="secondary"
+        isDisabled={!fetchPreviousPage}
+        onPress={fetchPreviousPage}
+        iconStart={<RiArrowLeftSLine />}
       >
         {t('searchResultPager.previous')}
       </Button>
 
       <Button
         aria-label="next page"
-        disabled={!fetchNextPage}
-        onClick={fetchNextPage}
-        endIcon={<ArrowForwardIosIcon />}
+        variant="secondary"
+        isDisabled={!fetchNextPage}
+        onPress={fetchNextPage}
+        iconEnd={<RiArrowRightSLine />}
       >
         {t('searchResultPager.next')}
       </Button>
