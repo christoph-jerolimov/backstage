@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import SearchIcon from '@material-ui/icons/Search';
+import { RiSearchLine } from '@remixicon/react';
 import { SidebarItem } from '@backstage/core-components';
 import { IconComponent } from '@backstage/core-plugin-api';
 import {
@@ -37,9 +37,11 @@ export type SidebarSearchModalProps = Pick<
   icon?: IconComponent;
 };
 
+const DefaultSearchIcon: IconComponent = () => <RiSearchLine />;
+
 const SidebarSearchModalContent = (props: SidebarSearchModalProps) => {
   const { state, toggleModal } = useSearchModal();
-  const Icon = props.icon ? props.icon : SearchIcon;
+  const Icon = props.icon ? props.icon : DefaultSearchIcon;
   const { t } = useTranslationRef(searchTranslationRef);
 
   return (

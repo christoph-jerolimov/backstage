@@ -27,9 +27,8 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Typography from '@material-ui/core/Typography';
-import AllIcon from '@material-ui/icons/FontDownload';
+import { RiArrowDownSLine, RiCharacterRecognitionLine } from '@remixicon/react';
 import useAsync from 'react-use/esm/useAsync';
 import { useTranslationRef } from '@backstage/frontend-plugin-api';
 import { searchTranslationRef } from '../../translation';
@@ -108,7 +107,7 @@ export const SearchTypeAccordion = (props: SearchTypeAccordionProps) => {
     {
       value: '',
       name: t('searchType.accordion.allTitle'),
-      icon: <AllIcon />,
+      icon: <RiCharacterRecognitionLine />,
     },
     ...givenTypes,
   ];
@@ -180,7 +179,7 @@ export const SearchTypeAccordion = (props: SearchTypeAccordionProps) => {
             root: classes.accordionSummary,
             content: classes.accordionSummaryContent,
           }}
-          expandIcon={<ExpandMoreIcon className={classes.icon} />}
+          expandIcon={<RiArrowDownSLine className={classes.icon} />}
           IconButtonProps={{ size: 'small' }}
         >
           {expanded

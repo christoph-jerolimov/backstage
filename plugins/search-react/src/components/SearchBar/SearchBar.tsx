@@ -25,9 +25,9 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import { TextFieldProps } from '@material-ui/core/TextField';
-import DefaultSearchIcon from '@material-ui/icons/Search';
 import { makeStyles } from '@material-ui/core/styles';
 import { SearchField, SearchFieldDefinition } from '@backstage/ui';
+import { RiSearchLine } from '@remixicon/react';
 import {
   ReactNode,
   ChangeEvent,
@@ -147,7 +147,7 @@ export const SearchBarBase = forwardRef((props: SearchBarBaseProps, ref) => {
     t('searchBar.placeholder', {
       org: configApi.getOptionalString('app.title') || 'Backstage',
     });
-  const SearchIcon = useApp().getSystemIcon('search') || DefaultSearchIcon;
+  const SearchIcon = useApp().getSystemIcon('search') || RiSearchLine;
 
   const startAdornment = (
     <InputAdornment position="start">

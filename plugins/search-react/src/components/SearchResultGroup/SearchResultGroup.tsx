@@ -33,8 +33,7 @@ import Select from '@material-ui/core/Select';
 import Chip from '@material-ui/core/Chip';
 import Typography, { TypographyProps } from '@material-ui/core/Typography';
 import { makeStyles, Theme } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import ArrowRightIcon from '@material-ui/icons/ArrowForwardIos';
+import { RiAddLine, RiArrowRightSLine } from '@remixicon/react';
 
 import { JsonValue } from '@backstage/types';
 import {
@@ -369,7 +368,10 @@ export function SearchResultGroupLayout<FilterOption>(
     link = (
       <>
         {t('searchResultGroup.linkTitle')}
-        <ArrowRightIcon className={classes.listSubheaderLinkIcon} />
+        <RiArrowRightSLine
+          size="1em"
+          className={classes.listSubheaderLinkIcon}
+        />
       </>
     ),
     linkProps = {},
@@ -435,7 +437,7 @@ export function SearchResultGroupLayout<FilterOption>(
           <Chip
             className={classes.listSubheaderChip}
             component="button"
-            icon={<AddIcon />}
+            icon={<RiAddLine />}
             variant="outlined"
             label={t('searchResultGroup.addFilterButtonTitle')}
             aria-controls="filters-menu"
