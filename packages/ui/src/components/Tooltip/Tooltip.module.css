@@ -28,7 +28,8 @@
     max-width: 240px;
     /* fixes FF gap */
     transform: translate3d(0, 0, 0);
-    transition: transform var(--bui-duration-3), opacity var(--bui-duration-3);
+    transition: transform var(--bui-duration-3) var(--bui-ease-out),
+      opacity var(--bui-duration-3) var(--bui-ease-out);
     font-size: var(--bui-font-size-3);
     font-family: var(--bui-font-regular);
     line-height: 1.15;

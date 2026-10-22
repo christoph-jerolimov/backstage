@@ -74,7 +74,7 @@
     --bui-duration-4: 300ms; /* Large movement: indicators, collapsing fields */
     --bui-ease-out: ease-out;
     --bui-ease-in-out: ease-in-out;
-    --bui-animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    --bui-animate-pulse: bui-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
     /* Base Colors */
     --bui-black: #000000;

@@ -20,7 +20,6 @@ import type {
   TabListOwnProps,
   TabOwnProps,
   TabPanelOwnProps,
-  TabsIndicatorsOwnProps,
 } from './types';
 import styles from './Tabs.module.css';
 
@@ -57,6 +56,8 @@ export const TabDefinition = defineComponent<TabOwnProps>()({
   styles,
   classNames: {
     root: 'bui-Tab',
+    active: 'bui-TabActive',
+    hovered: 'bui-TabHovered',
   },
   analytics: true,
   navigation: { type: 'anchor' },
@@ -79,19 +80,3 @@ export const TabPanelDefinition = defineComponent<TabPanelOwnProps>()({
     className: {},
   },
 });
-
-/** @internal */
-export const TabsIndicatorsDefinition =
-  defineComponent<TabsIndicatorsOwnProps>()({
-    styles,
-    classNames: {
-      root: 'bui-TabActive',
-      hovered: 'bui-TabHovered',
-    },
-    propDefs: {
-      tabRefs: {},
-      tabsRef: {},
-      hoveredKey: {},
-      prevHoveredKey: {},
-    },
-  });

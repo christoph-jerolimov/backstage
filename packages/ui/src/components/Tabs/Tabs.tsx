@@ -15,33 +15,22 @@
  */
 
 import {
-  useRef,
   useState,
   useMemo,
-  Children,
-  cloneElement,
-  isValidElement,
   createContext,
   useContext,
   useEffect,
   useCallback,
 } from 'react';
 import type { ReactNode } from 'react';
-import type {
-  TabsProps,
-  TabListProps,
-  TabPanelProps,
-  TabsContextValue,
-  TabProps,
-} from './types';
-import { TabsIndicators } from './TabsIndicators';
+import type { TabsProps, TabListProps, TabPanelProps, TabProps } from './types';
 import {
   Tabs as AriaTabs,
   TabList as AriaTabList,
   Tab as AriaTab,
   TabPanel as AriaTabPanel,
-  TabProps as AriaTabProps,
 } from 'react-aria-components';
+import { SharedIndicator } from '../../utils/SharedIndicator';
 import {
   useDefinition,
   type UseDefinitionResult,
@@ -58,16 +47,6 @@ import {
   getReactAriaAnchorProps,
   type AnchorNavigation,
 } from '../../navigation/useNavigation';
-
-const TabsContext = createContext<TabsContextValue | undefined>(undefined);
-
-const useTabsContext = () => {
-  const context = useContext(TabsContext);
-  if (!context) {
-    throw new Error('Tab components must be used within a Tabs component');
-  }
-  return context;
-};
 
 type TabSelectionContextValue = {
   registerRoutedTab: (id: string) => void;
@@ -119,10 +98,6 @@ const isTabActive = (
 export const Tabs = (props: TabsProps) => {
   const { ownProps, restProps } = useDefinition(TabsDefinition, props);
   const { classes, children } = ownProps;
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const tabRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
-  const prevHoveredKey = useRef<string | null>(null);
 
   // State for tracking routed tabs (tabs with hrefs)
   const [routedTabs, setRoutedTabs] = useState<Set<string>>(() => new Set());
@@ -131,14 +106,6 @@ export const Tabs = (props: TabsProps) => {
   const [activeTabs, setActiveTabs] = useState<Map<string, number>>(
     () => new Map(),
   );
-
-  const setTabRef = (key: string, element: HTMLDivElement | null) => {
-    if (element) {
-      tabRefs.current.set(key, element);
-    } else {
-      tabRefs.current.delete(key);
-    }
-  };
 
   // Compute the selected tab based on active tabs with highest segment count
   const selectedTabId = useMemo(() => {
@@ -193,15 +160,6 @@ export const Tabs = (props: TabsProps) => {
 
   if (!children) return null;
 
-  const tabsContextValue: TabsContextValue = {
-    tabsRef,
-    tabRefs,
-    hoveredKey,
-    prevHoveredKey,
-    setHoveredKey,
-    setTabRef,
-  };
-
   const selectionContextValue: TabSelectionContextValue = useMemo(
     () => ({
       registerRoutedTab,
@@ -218,19 +176,16 @@ export const Tabs = (props: TabsProps) => {
   );
 
   return (
-    <TabsContext.Provider value={tabsContextValue}>
-      <TabSelectionContext.Provider value={selectionContextValue}>
-        <AriaTabs
-          className={classes.root}
-          keyboardActivation="manual"
-          selectedKey={selectedTabId}
-          ref={tabsRef}
-          {...restProps}
-        >
-          {children as ReactNode}
-        </AriaTabs>
-      </TabSelectionContext.Provider>
-    </TabsContext.Provider>
+    <TabSelectionContext.Provider value={selectionContextValue}>
+      <AriaTabs
+        className={classes.root}
+        keyboardActivation="manual"
+        selectedKey={selectedTabId}
+        {...restProps}
+      >
+        {children as ReactNode}
+      </AriaTabs>
+    </TabSelectionContext.Provider>
   );
 };
 
@@ -242,23 +197,6 @@ export const Tabs = (props: TabsProps) => {
 export const TabList = (props: TabListProps) => {
   const { ownProps, restProps } = useDefinition(TabListDefinition, props);
   const { classes, children } = ownProps;
-  const { setHoveredKey, tabRefs, tabsRef, hoveredKey, prevHoveredKey } =
-    useTabsContext();
-
-  const handleHover = (key: string | null) => {
-    setHoveredKey(key);
-  };
-
-  // Clone children with additional props for hover and ref management
-  const enhancedChildren = Children.map(children as ReactNode, child => {
-    if (isValidElement(child)) {
-      return cloneElement(child, {
-        onHoverStart: () => handleHover(child.props.id as string),
-        onHoverEnd: () => handleHover(null),
-      } as Partial<AriaTabProps>);
-    }
-    return child;
-  });
 
   return (
     <div className={classes.root}>
@@ -267,14 +205,8 @@ export const TabList = (props: TabListProps) => {
         aria-label="Toolbar tabs"
         {...restProps}
       >
-        {enhancedChildren}
+        {children}
       </AriaTabList>
-      <TabsIndicators
-        tabRefs={tabRefs}
-        tabsRef={tabsRef}
-        hoveredKey={hoveredKey}
-        prevHoveredKey={prevHoveredKey}
-      />
     </div>
   );
 };
@@ -336,7 +268,7 @@ const TabView = ({ definitionResult, navigation }: TabViewProps) => {
   const { ownProps, restProps, analytics } = definitionResult;
   const { classes, matchStrategy, id } = ownProps;
   const { href } = ownProps;
-  const { setTabRef } = useTabsContext();
+  const { children, ...tabProps } = restProps;
   const navigationProps = getReactAriaAnchorProps(navigation, {
     href,
     routerOptions: restProps.routerOptions,
@@ -366,14 +298,30 @@ const TabView = ({ definitionResult, navigation }: TabViewProps) => {
       <AriaTab
         id={id}
         className={classes.root}
-        ref={el => setTabRef(id as string, el as HTMLDivElement)}
-        {...restProps}
+        {...tabProps}
         {...navigationProps}
         onPress={e => {
           restProps.onPress?.(e);
           handlePress();
         }}
-      />
+      >
+        {renderProps => (
+          <>
+            {typeof children === 'function' ? children(renderProps) : children}
+            {/* Selection and hover indicators slide between tabs */}
+            <SharedIndicator
+              name="active"
+              isVisible={renderProps.isSelected}
+              className={classes.active}
+            />
+            <SharedIndicator
+              name="hover"
+              isVisible={renderProps.isHovered}
+              className={classes.hovered}
+            />
+          </>
+        )}
+      </AriaTab>
     </>
   );
 };

@@ -28,18 +28,16 @@
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    transition: opacity var(--bui-duration-3) var(--bui-ease-out);
+
+    &[data-entering],
+    &[data-exiting] {
+      opacity: 0;
+    }
   }
 
   [data-theme-mode='dark'] .bui-Dialog {
     background: rgba(0, 0, 0, 0.5);
-  }
-
-  .bui-DialogOverlay[data-entering] {
-    animation: fade-in var(--bui-duration-3) var(--bui-ease-out) forwards;
-  }
-
-  .bui-DialogOverlay[data-exiting] {
-    animation: fade-out var(--bui-duration-2) var(--bui-ease-out) forwards;
   }
 
   .bui-Dialog {
@@ -56,6 +54,8 @@
     max-width: calc(100vw - 3rem);
     height: var(--bui-dialog-height, auto);
     max-height: calc(100vh - 3rem);
+    transition: transform var(--bui-duration-2) var(--bui-ease-out),
+      opacity var(--bui-duration-2) var(--bui-ease-out);
   }
 
   .bui-DialogInner {
@@ -75,14 +75,11 @@
     overflow: hidden;
   }
 
-  /* Dialog entering animation */
-  .bui-DialogOverlay[data-entering] .bui-Dialog {
-    animation: dialog-enter var(--bui-duration-2) var(--bui-ease-out) forwards;
-  }
-
-  /* Dialog exiting animation */
+  /* Dialog scales in on enter and back out on exit */
+  .bui-DialogOverlay[data-entering] .bui-Dialog,
   .bui-DialogOverlay[data-exiting] .bui-Dialog {
-    animation: dialog-exit var(--bui-duration-2) var(--bui-ease-out) forwards;
+    transform: scale(0.95);
+    opacity: 0;
   }
 
   .bui-DialogHeader {
@@ -116,46 +113,5 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-  }
-
-  /* Keyframe animations */
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes fade-out {
-    from {
-      opacity: 1;
-    }
-    to {
-      opacity: 0;
-    }
-  }
-
-  @keyframes dialog-enter {
-    from {
-      opacity: 0.5;
-      transform: scale(0.8);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes dialog-exit {
-    from {
-      opacity: 1;
-      transform: scale(1);
-    }
-    to {
-      opacity: 0;
-      transform: scale(0.95);
-    }
   }
 }

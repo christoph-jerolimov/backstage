@@ -19,25 +19,6 @@
 @layer components {
   .bui-HeaderNav {
     position: relative;
-
-    /* CSS custom properties for indicator positioning — set by HeaderNavIndicators */
-    --active-tab-left: 0px;
-    --active-tab-right: 0px;
-    --active-tab-top: 0px;
-    --active-tab-bottom: 0px;
-    --active-tab-width: 0px;
-    --active-tab-height: 0px;
-    --active-tab-opacity: 0;
-    --active-transition-duration: 0s;
-
-    --hovered-tab-left: 0px;
-    --hovered-tab-right: 0px;
-    --hovered-tab-top: 0px;
-    --hovered-tab-bottom: 0px;
-    --hovered-tab-width: 0px;
-    --hovered-tab-height: 0px;
-    --hovered-tab-opacity: 0;
-    --hovered-transition-duration: 0s;
   }
 
   .bui-HeaderNavList {
@@ -74,36 +55,48 @@
     color: var(--bui-fg-primary);
   }
 
+  /*
+   * Indicators are rendered inside each item and move between items with a
+   * shared element transition. Every property listed in transition-property
+   * is carried over from the previous item, so include translate for position.
+   */
   .bui-HeaderNavActive {
     pointer-events: none;
     position: absolute;
     bottom: -1px;
-    left: calc(var(--active-tab-left) + var(--bui-space-2));
-    width: calc(var(--active-tab-width) - var(--bui-space-4));
+    left: var(--bui-space-2);
+    width: calc(100% - var(--bui-space-4));
     height: 1px;
     background-color: var(--bui-fg-primary);
     border-radius: 4px;
-    opacity: var(--active-tab-opacity);
-    transition: left var(--active-transition-duration) var(--bui-ease-out),
-      width var(--active-transition-duration) var(--bui-ease-out),
-      opacity var(--bui-duration-2);
+    transition-property: translate, width, opacity;
+    transition-duration: var(--bui-duration-4);
+    transition-timing-function: var(--bui-ease-out);
+
+    &[data-entering],
+    &[data-exiting] {
+      opacity: 0;
+    }
   }
 
   .bui-HeaderNavHovered {
     pointer-events: none;
     position: absolute;
-    left: var(--hovered-tab-left);
-    top: calc(var(--hovered-tab-top) + 4px);
-    width: var(--hovered-tab-width);
-    height: calc(var(--hovered-tab-height) - 8px);
+    left: 0;
+    top: 4px;
+    width: 100%;
+    height: calc(100% - 8px);
+    z-index: -1;
     background-color: var(--bui-bg-neutral-2);
     border-radius: 4px;
-    opacity: var(--hovered-tab-opacity);
-    transition: left var(--hovered-transition-duration) var(--bui-ease-out),
-      top var(--hovered-transition-duration) var(--bui-ease-out),
-      width var(--hovered-transition-duration) var(--bui-ease-out),
-      height var(--hovered-transition-duration) var(--bui-ease-out),
-      opacity var(--bui-duration-2);
+    transition-property: translate, width, height, opacity;
+    transition-duration: var(--bui-duration-3);
+    transition-timing-function: var(--bui-ease-out);
+
+    &[data-entering],
+    &[data-exiting] {
+      opacity: 0;
+    }
 
     [data-focus-visible] & {
       outline: 2px solid var(--bui-ring);

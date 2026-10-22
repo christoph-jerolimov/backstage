@@ -253,7 +253,7 @@ describe('HeaderNav', () => {
     expect(item).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('preserves aria-current and the registered anchor ref', () => {
+  it('preserves aria-current and renders the active indicator inside the link', () => {
     renderHeaderNav({
       tabs: [
         {
@@ -266,11 +266,8 @@ describe('HeaderNav', () => {
     });
 
     const link = screen.getByRole('link', { name: 'Overview' });
-    const navigation = screen.getByRole('navigation', {
-      name: 'Content navigation',
-    });
     expect(link).toHaveAttribute('aria-current', 'page');
-    expect(navigation.style.getPropertyValue('--active-tab-opacity')).toBe('1');
+    expect(link.querySelector('.bui-HeaderNavActive')).not.toBeNull();
   });
 
   it('registers flat navigation with the selected routing integration', () => {

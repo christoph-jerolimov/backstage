@@ -20,7 +20,6 @@ import type {
   TabPanelProps as AriaTabPanelProps,
   TabProps as AriaTabProps,
 } from 'react-aria-components';
-import { MutableRefObject } from 'react';
 
 /**
  * Strategies for matching the current route to determine which tab should be active.
@@ -94,19 +93,6 @@ export interface TabProps
   extends TabOwnProps,
     Omit<AriaTabProps, keyof TabOwnProps | 'render'> {}
 
-/** Context for sharing refs between Tabs and TabList
- *
- * @internal
- */
-export interface TabsContextValue {
-  tabsRef: React.RefObject<HTMLDivElement>;
-  tabRefs: React.MutableRefObject<Map<string, HTMLDivElement>>;
-  hoveredKey: string | null;
-  prevHoveredKey: React.MutableRefObject<string | null>;
-  setHoveredKey: (key: string | null) => void;
-  setTabRef: (key: string, element: HTMLDivElement | null) => void;
-}
-
 /**
  * Own props for the TabPanel component.
  *
@@ -124,22 +110,3 @@ export type TabPanelOwnProps = {
 export interface TabPanelProps
   extends TabPanelOwnProps,
     Omit<AriaTabPanelProps, keyof TabPanelOwnProps> {}
-
-/**
- * Own props for the TabsIndicators component.
- *
- * @internal
- */
-export type TabsIndicatorsOwnProps = {
-  tabRefs: MutableRefObject<Map<string, HTMLDivElement>>;
-  tabsRef: MutableRefObject<HTMLDivElement | null>;
-  hoveredKey: string | null;
-  prevHoveredKey: MutableRefObject<string | null>;
-};
-
-/**
- * Props for the TabsIndicators component.
- *
- * @internal
- */
-export interface TabsIndicatorsProps extends TabsIndicatorsOwnProps {}

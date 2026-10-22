@@ -29,7 +29,8 @@ export interface HeaderNavTab {
 export interface HeaderNavLinkProps extends HeaderNavTab {
   noTrack?: boolean;
   active: boolean;
-  registerRef: (key: string, el: HTMLElement | null) => void;
+  highlighted: boolean;
+  indicatorClassNames: { active: string; hovered: string };
   onHighlight: (key: string | null) => void;
   className?: string;
 }

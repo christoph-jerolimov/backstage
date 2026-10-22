@@ -84,6 +84,11 @@
   }
 
   .bui-AccordionPanel {
+    box-sizing: border-box;
+    height: var(--disclosure-panel-height);
+    overflow: clip;
+    transition: height var(--bui-duration-4) var(--bui-ease-in-out);
+
     .bui-Accordion[data-expanded='true'] > & {
       padding-top: var(--bui-space-1);
     }

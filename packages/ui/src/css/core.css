@@ -20,9 +20,20 @@
     text-decoration: none;
   }
 
-  @keyframes pulse {
+  /* Shared keyframes used by components. */
+  @keyframes bui-pulse {
     50% {
       opacity: 0.5;
+    }
+  }
+
+  @keyframes bui-spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
     }
   }
 

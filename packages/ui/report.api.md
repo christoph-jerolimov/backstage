@@ -2355,7 +2355,8 @@ export const HeaderNavItemDefinition: {
     readonly label: {};
     readonly href: {};
     readonly active: {};
-    readonly registerRef: {};
+    readonly highlighted: {};
+    readonly indicatorClassNames: {};
     readonly onHighlight: {};
     readonly className: {};
   };

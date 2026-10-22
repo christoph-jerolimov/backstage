@@ -30,7 +30,8 @@
     flex-direction: column;
     /* fixes FF gap */
     transform: translate3d(0, 0, 0);
-    transition: transform var(--bui-duration-3), opacity var(--bui-duration-3);
+    transition: transform var(--bui-duration-3) var(--bui-ease-out),
+      opacity var(--bui-duration-3) var(--bui-ease-out);
 
     &[data-entering],
     &[data-exiting] {

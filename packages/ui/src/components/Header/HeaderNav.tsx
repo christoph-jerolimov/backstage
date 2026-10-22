@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { mergeProps, useFocusVisible, useHover, useLink } from 'react-aria';
 import {
   matchRoutes,
   resolvePath,
   type NavigateOptions,
 } from 'react-router-dom';
-import { Button as RAButton } from 'react-aria-components';
+import {
+  Button as RAButton,
+  SharedElementTransition,
+} from 'react-aria-components';
+import { SharedIndicator } from '../../utils/SharedIndicator';
 import { RiArrowDownSLine } from '@remixicon/react';
 import {
   useDefinition,
@@ -32,7 +36,6 @@ import {
   HeaderNavItemDefinition,
   HeaderNavGroupDefinition,
 } from './HeaderNavDefinition';
-import { HeaderNavIndicators } from './HeaderNavIndicators';
 import { MenuTrigger, Menu, MenuItem } from '../Menu';
 import type {
   HeaderNavLinkProps,
@@ -44,6 +47,34 @@ import type { AnchorNavigation } from '../../navigation/useNavigation';
 
 function isTabGroup(tab: HeaderNavTabItem): tab is HeaderNavTabGroup {
   return 'items' in tab;
+}
+
+interface HeaderNavIndicatorsProps {
+  active: boolean;
+  highlighted: boolean;
+  classNames: { active: string; hovered: string };
+}
+
+/**
+ * Active and highlight indicators for a navigation item. They are rendered
+ * inside every item and move between items with a shared element transition.
+ */
+function HeaderNavIndicators(props: HeaderNavIndicatorsProps) {
+  const { active, highlighted, classNames } = props;
+  return (
+    <>
+      <SharedIndicator
+        name="active"
+        isVisible={active}
+        className={classNames.active}
+      />
+      <SharedIndicator
+        name="highlight"
+        isVisible={highlighted}
+        className={classNames.hovered}
+      />
+    </>
+  );
 }
 
 type HeaderNavLinkViewProps = {
@@ -59,7 +90,8 @@ function HeaderNavLinkView({
   navigation,
 }: HeaderNavLinkViewProps) {
   const { ownProps, analytics } = definitionResult;
-  const { id, label, active, registerRef, onHighlight } = ownProps;
+  const { id, label, active, highlighted, indicatorClassNames, onHighlight } =
+    ownProps;
   const { href } = ownProps;
 
   const linkRef = useRef<HTMLAnchorElement>(null);
@@ -93,19 +125,24 @@ function HeaderNavLinkView({
     linkProps,
     hoverProps,
   ) as React.AnchorHTMLAttributes<HTMLAnchorElement>;
-  const ref = (el: HTMLAnchorElement | null) => {
-    (linkRef as React.MutableRefObject<HTMLAnchorElement | null>).current = el;
-    registerRef(id, el);
-  };
   const commonProps = {
     ...anchorProps,
-    ref,
+    ref: linkRef,
     className: ownProps.classes.root,
     'aria-current': active ? ('page' as const) : undefined,
     onClick: handleClick,
     onFocus: () => onHighlight(id),
     onBlur: () => onHighlight(null),
-    children: label,
+    children: (
+      <>
+        {label}
+        <HeaderNavIndicators
+          active={active}
+          highlighted={highlighted}
+          classNames={indicatorClassNames}
+        />
+      </>
+    ),
   };
   const browserHref =
     navigation.type === 'native' ? navigation.browserHref : href;
@@ -141,13 +178,21 @@ function HeaderNavLink(props: HeaderNavLinkProps) {
 interface HeaderNavGroupItemProps {
   group: HeaderNavTabGroup;
   active: boolean;
+  highlighted: boolean;
   activeChildId?: string;
-  registerRef: (key: string, el: HTMLElement | null) => void;
+  indicatorClassNames: { active: string; hovered: string };
   onHighlight: (key: string | null) => void;
 }
 
 function HeaderNavGroupItem(props: HeaderNavGroupItemProps) {
-  const { group, active, activeChildId, registerRef, onHighlight } = props;
+  const {
+    group,
+    active,
+    highlighted,
+    activeChildId,
+    indicatorClassNames,
+    onHighlight,
+  } = props;
   const { ownProps } = useDefinition(HeaderNavGroupDefinition, {});
   const { hoverProps } = useHover({
     onHoverStart: () => onHighlight(group.id),
@@ -158,9 +203,6 @@ function HeaderNavGroupItem(props: HeaderNavGroupItemProps) {
     <li>
       <MenuTrigger>
         <RAButton
-          ref={el => {
-            registerRef(group.id, el);
-          }}
           className={ownProps.classes.root}
           aria-current={active ? 'page' : undefined}
           {...hoverProps}
@@ -169,6 +211,11 @@ function HeaderNavGroupItem(props: HeaderNavGroupItemProps) {
         >
           {group.label}
           <RiArrowDownSLine size={16} />
+          <HeaderNavIndicators
+            active={active}
+            highlighted={highlighted}
+            classNames={indicatorClassNames}
+          />
         </RAButton>
         <Menu
           selectionMode="single"
@@ -220,10 +267,12 @@ function HeaderNavInner(props: HeaderNavProps) {
   const { classes } = ownProps;
 
   const { isFocusVisible } = useFocusVisible();
-  const navRef = useRef<HTMLElement>(null);
-  const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
+  const indicatorClassNames = useMemo(
+    () => ({ active: classes.active, hovered: classes.hovered }),
+    [classes.active, classes.hovered],
+  );
 
   // Resolve activeTabId to a top-level key (groups own their children's active state)
   const { activeKey, activeChildId } = useMemo(() => {
@@ -241,52 +290,40 @@ function HeaderNavInner(props: HeaderNavProps) {
     return { activeKey: undefined, activeChildId: undefined };
   }, [activeTabId, tabs]);
 
-  const registerRef = useCallback((key: string, el: HTMLElement | null) => {
-    if (el) {
-      itemRefs.current.set(key, el);
-    } else {
-      itemRefs.current.delete(key);
-    }
-  }, []);
-
   return (
     <nav
-      ref={navRef}
       aria-label="Content navigation"
       className={classes.root}
       data-focus-visible={isFocusVisible || undefined}
     >
-      <ul role="list" className={classes.list}>
-        {tabs.map(item =>
-          isTabGroup(item) ? (
-            <HeaderNavGroupItem
-              key={item.id}
-              group={item}
-              active={activeKey === item.id}
-              activeChildId={activeChildId}
-              registerRef={registerRef}
-              onHighlight={setHighlightedKey}
-            />
-          ) : (
-            <HeaderNavLink
-              key={item.id}
-              id={item.id}
-              label={item.label}
-              href={item.href}
-              active={activeKey === item.id}
-              registerRef={registerRef}
-              onHighlight={setHighlightedKey}
-            />
-          ),
-        )}
-      </ul>
-      <HeaderNavIndicators
-        navRef={navRef}
-        itemRefs={itemRefs}
-        activeKey={activeKey}
-        highlightedKey={highlightedKey}
-        classes={{ active: classes.active, hovered: classes.hovered }}
-      />
+      <SharedElementTransition>
+        <ul role="list" className={classes.list}>
+          {tabs.map(item =>
+            isTabGroup(item) ? (
+              <HeaderNavGroupItem
+                key={item.id}
+                group={item}
+                active={activeKey === item.id}
+                highlighted={highlightedKey === item.id}
+                activeChildId={activeChildId}
+                indicatorClassNames={indicatorClassNames}
+                onHighlight={setHighlightedKey}
+              />
+            ) : (
+              <HeaderNavLink
+                key={item.id}
+                id={item.id}
+                label={item.label}
+                href={item.href}
+                active={activeKey === item.id}
+                highlighted={highlightedKey === item.id}
+                indicatorClassNames={indicatorClassNames}
+                onHighlight={setHighlightedKey}
+              />
+            ),
+          )}
+        </ul>
+      </SharedElementTransition>
     </nav>
   );
 }

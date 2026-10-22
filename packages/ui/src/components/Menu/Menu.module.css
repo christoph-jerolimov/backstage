@@ -27,7 +27,8 @@
     background: var(--bui-bg-app);
     color: var(--bui-fg-primary);
     outline: none;
-    transition: transform var(--bui-duration-3), opacity var(--bui-duration-3);
+    transition: transform var(--bui-duration-3) var(--bui-ease-out),
+      opacity var(--bui-duration-3) var(--bui-ease-out);
     /* Let React Aria handle height constraints naturally */
     min-height: 0;
     /* Remove overflow from popover since ScrollArea will handle it */
