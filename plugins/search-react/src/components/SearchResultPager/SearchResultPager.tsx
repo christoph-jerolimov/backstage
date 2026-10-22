@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-import { Button } from '@backstage/ui';
-import { makeStyles } from '@material-ui/core/styles';
+import { Button, Flex } from '@backstage/ui';
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
 
 import { useSearch } from '../../context';
 import { useTranslationRef } from '@backstage/frontend-plugin-api';
 import { searchReactTranslationRef } from '../../translation';
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: theme.spacing(2),
-    margin: theme.spacing(2, 0),
-  },
-}));
-
 /**
  * @public
  */
 export const SearchResultPager = () => {
   const { fetchNextPage, fetchPreviousPage } = useSearch();
-  const classes = useStyles();
   const { t } = useTranslationRef(searchReactTranslationRef);
 
   if (!fetchNextPage && !fetchPreviousPage) {
@@ -44,7 +33,13 @@ export const SearchResultPager = () => {
   }
 
   return (
-    <nav aria-label="pagination navigation" className={classes.root}>
+    <Flex
+      role="navigation"
+      aria-label="pagination navigation"
+      justify="between"
+      gap="4"
+      my="4"
+    >
       <Button
         aria-label="previous page"
         variant="secondary"
@@ -64,6 +59,6 @@ export const SearchResultPager = () => {
       >
         {t('searchResultPager.next')}
       </Button>
-    </nav>
+    </Flex>
   );
 };
