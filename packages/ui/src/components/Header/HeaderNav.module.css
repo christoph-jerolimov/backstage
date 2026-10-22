@@ -19,6 +19,9 @@
 @layer components {
   .bui-HeaderNav {
     position: relative;
+    /* Own stacking context so the highlight indicator (z-index: -1) stays
+       below the text of every item, including the one it is sliding across. */
+    isolation: isolate;
   }
 
   .bui-HeaderNavList {
@@ -44,7 +47,6 @@
     text-decoration: none;
     cursor: pointer;
     position: relative;
-    z-index: 2;
     border: none;
     background: none;
     outline: none;

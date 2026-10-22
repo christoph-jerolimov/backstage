@@ -24,6 +24,9 @@
 
   .bui-TabListWrapper {
     position: relative;
+    /* Own stacking context so the hover indicator (z-index: -1) stays below
+       the text of every tab, including the one it is sliding across. */
+    isolation: isolate;
   }
 
   .bui-Tab {
@@ -38,7 +41,6 @@
     justify-content: center;
     cursor: pointer;
     position: relative;
-    z-index: 2;
     padding-inline: var(--bui-space-2);
 
     &[data-selected='true'] {
