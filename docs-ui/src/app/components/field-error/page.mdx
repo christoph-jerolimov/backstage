@@ -1,0 +1,102 @@
+import { PropsTable } from '@/components/PropsTable';
+import { Snippet } from '@/components/Snippet';
+import { CodeBlock } from '@/components/CodeBlock';
+import { fieldErrorPropDefs } from './props-definition';
+import {
+  fieldErrorUsageSnippet,
+  defaultSnippet,
+  withValidationErrorsSnippet,
+  withRenderPropSnippet,
+  customFieldSnippet,
+} from './snippets';
+import {
+  Default,
+  WithValidationErrors,
+  WithRenderProp,
+  CustomField,
+} from './components';
+import { PageTitle } from '@/components/PageTitle';
+import { Theming } from '@/components/Theming';
+import { FieldErrorDefinition } from '../../../utils/definitions';
+import { ChangelogComponent } from '@/components/ChangelogComponent';
+import { ReactAriaLink } from '@/components/ReactAriaLink';
+
+export const reactAriaUrls = {
+  fieldError: 'https://react-aria.adobe.com/Form#fielderror',
+};
+
+<PageTitle
+  title="FieldError"
+  description="A validation error message for a form field. Use it to build custom input fields that match the built-in ones."
+/>
+
+<Snippet align="center" py={4} preview={<Default />} code={defaultSnippet} />
+
+## Usage
+
+<CodeBlock code={fieldErrorUsageSnippet} />
+
+`FieldError` is what `TextField`, `Select`, `Combobox`, and the other form
+field components use internally to display validation errors. It is exported
+so that you can reuse it around your own inputs.
+
+The component reads the validation state of the surrounding field from the
+React Aria `FieldErrorContext`. The built-in field components provide this
+context for you. Around a custom input, provide it yourself with
+`FieldErrorContext.Provider` from `react-aria-components`, as shown in the
+examples below. The component renders nothing while `isInvalid` is `false`.
+
+## API reference
+
+<PropsTable data={fieldErrorPropDefs} />
+
+<ReactAriaLink component="FieldError" href={reactAriaUrls.fieldError} />
+
+## Examples
+
+### With validation errors
+
+When `children` is omitted, the `validationErrors` from the context are
+displayed, joined by a space.
+
+<Snippet
+  align="center"
+  py={4}
+  open
+  preview={<WithValidationErrors />}
+  code={withValidationErrorsSnippet}
+  layout="side-by-side"
+/>
+
+### With a render function
+
+Pass a function as `children` to access the validation errors and customize
+how they are rendered.
+
+<Snippet
+  align="center"
+  py={4}
+  open
+  preview={<WithRenderProp />}
+  code={withRenderPropSnippet}
+  layout="side-by-side"
+/>
+
+### With a custom field
+
+Combine `FieldLabel`, your own input, and `FieldError` to build a custom
+field with the same layout as the built-in ones. Type into the input to see
+the validation message.
+
+<Snippet
+  align="center"
+  py={4}
+  open
+  preview={<CustomField />}
+  code={customFieldSnippet}
+  layout="side-by-side"
+/>
+
+<Theming definition={FieldErrorDefinition} />
+
+<ChangelogComponent component="field-error" />

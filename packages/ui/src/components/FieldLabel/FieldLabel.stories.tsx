@@ -59,3 +59,30 @@ export const WithAllFields = meta.story({
     description: 'Description',
   },
 });
+
+export const WithCustomInput = meta.story({
+  render: () => (
+    <div>
+      <FieldLabel
+        label="Favorite color"
+        description="Pick the color you like most"
+        htmlFor="favorite-color"
+        descriptionId="favorite-color-description"
+      />
+      <input
+        id="favorite-color"
+        type="color"
+        aria-describedby="favorite-color-description"
+      />
+    </div>
+  ),
+});
+
+export const WithLabelledBy = meta.story({
+  render: () => (
+    <div>
+      <FieldLabel id="volume-label" label="Volume" />
+      <input type="range" min={0} max={100} aria-labelledby="volume-label" />
+    </div>
+  ),
+});
