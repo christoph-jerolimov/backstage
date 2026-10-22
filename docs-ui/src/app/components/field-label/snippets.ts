@@ -26,13 +26,12 @@ export const customFieldSnippet = `<div>
   />
 </div>`;
 
-export const withReactAriaSnippet = `import { TextField, Input } from 'react-aria-components';
-
-<TextField name="url">
-  <FieldLabel
-    label="URL"
-    description="The URL of your repository"
-    descriptionSlot="description"
+export const withLabelledBySnippet = `<div>
+  <FieldLabel id="volume-label" label="Volume" />
+  <input
+    type="range"
+    min={0}
+    max={100}
+    aria-labelledby="volume-label"
   />
-  <Input placeholder="https://" />
-</TextField>`;
+</div>`;

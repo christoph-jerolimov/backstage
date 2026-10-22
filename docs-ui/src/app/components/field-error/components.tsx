@@ -1,6 +1,7 @@
 'use client';
 
-import { TextField, Input, Form } from 'react-aria-components';
+import { useState } from 'react';
+import { FieldErrorContext } from 'react-aria-components';
 import { FieldError } from '../../../../../packages/ui/src/components/FieldError/FieldError';
 import { FieldLabel } from '../../../../../packages/ui/src/components/FieldLabel/FieldLabel';
 
@@ -13,60 +14,103 @@ const fieldStyle = {
 
 export const Default = () => {
   return (
-    <TextField isInvalid validationBehavior="aria" style={fieldStyle}>
-      <Input />
-      <FieldError>This is an error message.</FieldError>
-    </TextField>
+    <FieldErrorContext.Provider
+      value={{
+        isInvalid: true,
+        validationErrors: [],
+        validationDetails: {} as ValidityState,
+      }}
+    >
+      <div style={fieldStyle}>
+        <input aria-invalid aria-label="Example" />
+        <FieldError>This is an error message.</FieldError>
+      </div>
+    </FieldErrorContext.Provider>
   );
 };
 
-export const WithServerValidation = () => {
+export const WithValidationErrors = () => {
   return (
-    <Form validationErrors={{ email: 'This email is already taken.' }}>
-      <TextField name="email" style={fieldStyle}>
-        <Input />
+    <FieldErrorContext.Provider
+      value={{
+        isInvalid: true,
+        validationErrors: [
+          'Must be at least 3 characters',
+          'Must not contain spaces',
+        ],
+        validationDetails: {} as ValidityState,
+      }}
+    >
+      <div style={fieldStyle}>
+        <input aria-invalid aria-label="Example" defaultValue="a b" />
         <FieldError />
-      </TextField>
-    </Form>
+      </div>
+    </FieldErrorContext.Provider>
   );
 };
 
 export const WithRenderProp = () => {
   return (
-    <TextField
-      isInvalid
-      validationBehavior="aria"
-      validate={() => 'This field is invalid'}
-      style={fieldStyle}
+    <FieldErrorContext.Provider
+      value={{
+        isInvalid: true,
+        validationErrors: [
+          'Must be at least 3 characters',
+          'Must not contain spaces',
+        ],
+        validationDetails: {} as ValidityState,
+      }}
     >
-      <Input />
-      <FieldError>
-        {({ validationErrors }) =>
-          validationErrors.length > 0 ? validationErrors[0] : 'Field is invalid'
-        }
-      </FieldError>
-    </TextField>
+      <div style={fieldStyle}>
+        <input aria-invalid aria-label="Example" defaultValue="a b" />
+        <FieldError>
+          {({ validationErrors }) => (
+            <ul style={{ margin: 0, paddingLeft: '1.25em' }}>
+              {validationErrors.map(error => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          )}
+        </FieldError>
+      </div>
+    </FieldErrorContext.Provider>
   );
 };
 
 export const CustomField = () => {
+  const [value, setValue] = useState('');
+  const [touched, setTouched] = useState(false);
+  const validationErrors =
+    touched && value.length < 3 ? ['Must be at least 3 characters'] : [];
+
   return (
-    <TextField
-      name="username"
-      validationBehavior="aria"
-      validate={value =>
-        value.length < 3 ? 'Must be at least 3 characters' : null
-      }
-      style={fieldStyle}
+    <FieldErrorContext.Provider
+      value={{
+        isInvalid: validationErrors.length > 0,
+        validationErrors,
+        validationDetails: {} as ValidityState,
+      }}
     >
-      <FieldLabel
-        label="Username"
-        secondaryLabel="Required"
-        description="At least 3 characters"
-        descriptionSlot="description"
-      />
-      <Input />
-      <FieldError />
-    </TextField>
+      <div style={fieldStyle}>
+        <FieldLabel
+          label="Username"
+          secondaryLabel="Required"
+          description="At least 3 characters"
+          htmlFor="username"
+          descriptionId="username-description"
+        />
+        <input
+          id="username"
+          aria-describedby="username-description"
+          aria-invalid={validationErrors.length > 0}
+          value={value}
+          onChange={event => {
+            setTouched(true);
+            setValue(event.target.value);
+          }}
+        />
+        <FieldError />
+      </div>
+    </FieldErrorContext.Provider>
   );
 };

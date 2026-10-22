@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import preview from '../../../../../.storybook/preview';
-import { TextField, Input } from 'react-aria-components';
 import { FieldLabel } from './FieldLabel';
 
 const meta = preview.meta({
@@ -79,16 +78,11 @@ export const WithCustomInput = meta.story({
   ),
 });
 
-export const WithReactAriaField = meta.story({
+export const WithLabelledBy = meta.story({
   render: () => (
-    <TextField name="url" style={{ maxWidth: '300px' }}>
-      <FieldLabel
-        label="URL"
-        secondaryLabel="Optional"
-        description="The URL of your repository"
-        descriptionSlot="description"
-      />
-      <Input placeholder="https://" />
-    </TextField>
+    <div>
+      <FieldLabel id="volume-label" label="Volume" />
+      <input type="range" min={0} max={100} aria-labelledby="volume-label" />
+    </div>
   ),
 });

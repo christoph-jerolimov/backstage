@@ -1,6 +1,5 @@
 'use client';
 
-import { TextField, Input } from 'react-aria-components';
 import { FieldLabel } from '../../../../../packages/ui/src/components/FieldLabel/FieldLabel';
 
 export const Default = () => {
@@ -39,15 +38,11 @@ export const CustomField = () => {
   );
 };
 
-export const WithReactAria = () => {
+export const WithLabelledBy = () => {
   return (
-    <TextField name="url" style={{ maxWidth: '300px' }}>
-      <FieldLabel
-        label="URL"
-        description="The URL of your repository"
-        descriptionSlot="description"
-      />
-      <Input placeholder="https://" />
-    </TextField>
+    <div>
+      <FieldLabel id="volume-label" label="Volume" />
+      <input type="range" min={0} max={100} aria-labelledby="volume-label" />
+    </div>
   );
 };

@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import preview from '../../../../../.storybook/preview';
-import { TextField, Input, Form } from 'react-aria-components';
+import { useState } from 'react';
+import {
+  TextField,
+  Input,
+  Form,
+  FieldErrorContext,
+} from 'react-aria-components';
 import { FieldError } from './FieldError';
 import { FieldLabel } from '../FieldLabel';
 
@@ -83,30 +89,53 @@ export const WithRenderProp = meta.story({
   ),
 });
 
-// Build a custom field with the same layout as the built-in field components
-export const WithCustomField = meta.story({
-  render: () => (
-    <TextField
-      name="username"
-      validationBehavior="aria"
-      validate={value =>
-        value.length < 3 ? 'Must be at least 3 characters' : null
-      }
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        maxWidth: '300px',
+// Build a custom field around a plain input by providing the validation
+// context yourself
+const CustomField = () => {
+  const [value, setValue] = useState('');
+  const [touched, setTouched] = useState(false);
+  const validationErrors =
+    touched && value.length < 3 ? ['Must be at least 3 characters'] : [];
+
+  return (
+    <FieldErrorContext.Provider
+      value={{
+        isInvalid: validationErrors.length > 0,
+        validationErrors,
+        validationDetails: {} as ValidityState,
       }}
     >
-      <FieldLabel
-        label="Username"
-        secondaryLabel="Required"
-        description="At least 3 characters"
-        descriptionSlot="description"
-      />
-      <Input />
-      <FieldError />
-    </TextField>
-  ),
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          maxWidth: '300px',
+        }}
+      >
+        <FieldLabel
+          label="Username"
+          secondaryLabel="Required"
+          description="At least 3 characters"
+          htmlFor="username"
+          descriptionId="username-description"
+        />
+        <input
+          id="username"
+          aria-describedby="username-description"
+          aria-invalid={validationErrors.length > 0}
+          value={value}
+          onChange={event => {
+            setTouched(true);
+            setValue(event.target.value);
+          }}
+        />
+        <FieldError />
+      </div>
+    </FieldErrorContext.Provider>
+  );
+};
+
+export const WithCustomField = meta.story({
+  render: () => <CustomField />,
 });

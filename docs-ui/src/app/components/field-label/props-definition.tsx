@@ -23,7 +23,7 @@ export const fieldLabelPropDefs: Record<string, PropDef> = {
   htmlFor: {
     type: 'string',
     description:
-      'The id of the input element the label is associated with. Use it when the label is not rendered inside a React Aria field component.',
+      'The id of the input element the label is associated with. Use it to connect the label to a custom input.',
   },
   id: {
     type: 'string',

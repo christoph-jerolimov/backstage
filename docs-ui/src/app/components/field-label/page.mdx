@@ -8,14 +8,14 @@ import {
   withSecondaryLabelSnippet,
   withDescriptionSnippet,
   customFieldSnippet,
-  withReactAriaSnippet,
+  withLabelledBySnippet,
 } from './snippets';
 import {
   Default,
   WithSecondaryLabel,
   WithDescription,
   CustomField,
-  WithReactAria,
+  WithLabelledBy,
 } from './components';
 import { PageTitle } from '@/components/PageTitle';
 import { Theming } from '@/components/Theming';
@@ -75,9 +75,9 @@ field components use it to display `Required` when `isRequired` is set.
 
 ### With a custom input
 
-When the label is used with a plain input, connect them with `htmlFor` and
-`id`. Use `descriptionId` together with `aria-describedby` so that screen
-readers also announce the description.
+Connect the label to your own input with `htmlFor` and `id`. Use
+`descriptionId` together with `aria-describedby` so that screen readers also
+announce the description.
 
 <Snippet
   align="center"
@@ -88,18 +88,17 @@ readers also announce the description.
   layout="side-by-side"
 />
 
-### With React Aria field components
+### With aria-labelledby
 
-Inside a React Aria field component such as `TextField`, pass
-`descriptionSlot="description"`. The label and description are then connected
-to the input automatically, without any ids.
+When the input cannot be labelled through `htmlFor`, give the label an `id`
+and reference it from `aria-labelledby` on the input.
 
 <Snippet
   align="center"
   py={4}
   open
-  preview={<WithReactAria />}
-  code={withReactAriaSnippet}
+  preview={<WithLabelledBy />}
+  code={withLabelledBySnippet}
   layout="side-by-side"
 />
 
