@@ -72,7 +72,6 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: var(--bui-space-1);
   }
 
   .bui-TableHeadLabel {
@@ -82,19 +81,34 @@
     min-width: 0;
   }
 
+  /*
+   * The sort indicator is hidden by default and only takes up space while it
+   * is visible (hover, keyboard focus, or active sort), so that it does not
+   * steal room from the column title and cause unnecessary truncation.
+   */
   .bui-TableHeadSortButton {
     cursor: pointer;
     user-select: none;
     display: inline-flex;
     align-items: center;
-    gap: var(--bui-space-1);
+    flex: none;
+    width: 0;
+    margin-left: 0;
+    overflow: hidden;
     opacity: 0;
-    transition: opacity 0.1s ease-in-out;
+    transition:
+      opacity 0.1s ease-in-out,
+      width 0.1s ease-in-out,
+      margin-left 0.1s ease-in-out;
     color: var(--bui-fg-secondary);
 
     .bui-TableHead:hover &,
+    .bui-TableHead[data-hovered] &,
+    .bui-TableHead[data-focus-visible] &,
     [data-sort-direction='ascending'] &,
     [data-sort-direction='descending'] & {
+      width: 16px;
+      margin-left: var(--bui-space-1);
       opacity: 1;
     }
 

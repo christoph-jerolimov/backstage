@@ -492,3 +492,83 @@ export const ColumnWidthsWithFr: Story = {
     );
   },
 };
+
+/**
+ * Column titles in a narrow table. The sort indicator must not reserve
+ * space while it is hidden, so titles that fit the column are shown in
+ * full. Only titles that are wider than their column get truncated.
+ *
+ * - "Name" and "Type" fit comfortably and must be fully visible.
+ * - "Owner team" and "Lifecycle" fit their column only if the hidden sort
+ *   indicator does not take up space. Before the fix these were truncated.
+ * - "Last deployment date" and "Number of open incidents" are wider than
+ *   their columns and are expected to be truncated.
+ */
+export const ColumnTitleTruncation: Story = {
+  render: () => {
+    const columns: ColumnConfig<Data1Item>[] = [
+      {
+        id: 'name',
+        label: 'Name',
+        isRowHeader: true,
+        width: 110,
+        isSortable: true,
+        cell: item => <CellText title={item.name} />,
+      },
+      {
+        id: 'owner',
+        label: 'Owner team',
+        width: 112,
+        isSortable: true,
+        cell: item => <CellText title={item.owner.name} />,
+      },
+      {
+        id: 'type',
+        label: 'Type',
+        width: 70,
+        isSortable: false,
+        cell: item => <CellText title={item.type} />,
+      },
+      {
+        id: 'lifecycle',
+        label: 'Lifecycle',
+        width: 92,
+        isSortable: true,
+        cell: item => <CellText title={item.lifecycle} />,
+      },
+      {
+        id: 'lastDeployment',
+        label: 'Last deployment date',
+        width: 130,
+        isSortable: true,
+        cell: item => <CellText title={item.lifecycle} />,
+      },
+      {
+        id: 'incidents',
+        label: 'Number of open incidents',
+        width: 120,
+        isSortable: false,
+        cell: item => <CellText title={item.type} />,
+      },
+    ];
+
+    const { tableProps } = useTable({
+      mode: 'complete',
+      getData: () => data1,
+      paginationOptions: { pageSize: 3 },
+      initialSort: { column: 'name', direction: 'ascending' },
+      sortFn: (items, { direction }) =>
+        [...items].sort((a, b) =>
+          direction === 'descending'
+            ? b.name.localeCompare(a.name)
+            : a.name.localeCompare(b.name),
+        ),
+    });
+
+    return (
+      <div style={{ width: 640 }}>
+        <Table columnConfig={columns} {...tableProps} />
+      </div>
+    );
+  },
+};
