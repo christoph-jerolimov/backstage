@@ -85,17 +85,19 @@
   .bui-TableHeadSortButton {
     cursor: pointer;
     user-select: none;
-    display: inline-flex;
+    /* Hidden by default so the label can use the full column width. The
+       indicator only takes up space while the column header is hovered,
+       focused via keyboard, or actively sorted. */
+    display: none;
     align-items: center;
     gap: var(--bui-space-1);
-    opacity: 0;
-    transition: opacity 0.1s ease-in-out;
     color: var(--bui-fg-secondary);
 
     .bui-TableHead:hover &,
+    .bui-TableHead[data-focus-visible] &,
     [data-sort-direction='ascending'] &,
     [data-sort-direction='descending'] & {
-      opacity: 1;
+      display: inline-flex;
     }
 
     & svg {
