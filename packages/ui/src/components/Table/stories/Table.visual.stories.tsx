@@ -389,6 +389,68 @@ export const CustomPageSizeOptions: Story = {
   },
 };
 
+export const ColumnTitleTruncation: Story = {
+  render: () => {
+    const columns: ColumnConfig<Data1Item>[] = [
+      {
+        id: 'name',
+        label: 'Name',
+        isRowHeader: true,
+        width: 160,
+        isSortable: true,
+        cell: item => <CellText title={item.name} />,
+      },
+      {
+        id: 'lifecycle',
+        label: 'Lifecycle',
+        width: 92,
+        isSortable: true,
+        cell: item => <CellText title={item.lifecycle} />,
+      },
+      {
+        id: 'owner',
+        label: 'Owner team',
+        width: 110,
+        isSortable: true,
+        cell: item => <CellText title={item.owner.name} />,
+      },
+      {
+        id: 'type',
+        label: 'Type',
+        width: 72,
+        cell: item => <CellText title={item.type} />,
+      },
+      {
+        id: 'description',
+        label: 'A very long column title that is expected to be truncated',
+        width: 200,
+        isSortable: true,
+        cell: item => <CellText title={item.description} />,
+      },
+    ];
+
+    const { tableProps } = useTable({
+      mode: 'complete',
+      getData: () => data1,
+      paginationOptions: { pageSize: 5 },
+    });
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <Text>
+          Fixed-width table with sortable columns. Titles that fit their column
+          stay fully visible, even when the space is only just enough, because
+          the sort indicator only takes up space while the column header is
+          hovered, focused, or sorted. Only the overly long title is truncated.
+        </Text>
+        <div style={{ width: 630 }}>
+          <Table columnConfig={columns} {...tableProps} />
+        </div>
+      </div>
+    );
+  },
+};
+
 export const ColumnWidthsWithFr: Story = {
   render: () => {
     const fixedColumns: ColumnConfig<Data1Item>[] = [
