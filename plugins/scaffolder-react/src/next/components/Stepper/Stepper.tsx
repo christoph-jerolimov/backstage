@@ -23,8 +23,7 @@ import {
   TemplateParameterSchema,
 } from '@backstage/plugin-scaffolder-react';
 import { JsonValue } from '@backstage/types';
-import { Button } from '@backstage/ui';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import { Button, ProgressBar } from '@backstage/ui';
 import MuiStep from '@material-ui/core/Step';
 import MuiStepLabel from '@material-ui/core/StepLabel';
 import MuiStepper from '@material-ui/core/Stepper';
@@ -259,7 +258,7 @@ export const Stepper = (stepperProps: StepperProps) => {
 
   return (
     <>
-      {isValidating && <LinearProgress variant="indeterminate" />}
+      {isValidating && <ProgressBar isIndeterminate />}
       <MuiStepper
         activeStep={activeStep}
         alternativeLabel

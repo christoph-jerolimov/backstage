@@ -43,6 +43,7 @@ import type { MenuTriggerProps as MenuTriggerProps_2 } from 'react-aria-componen
 import type { ModalOverlayProps } from 'react-aria-components';
 import type { NumberFieldProps as NumberFieldProps_2 } from 'react-aria-components';
 import { PopoverProps as PopoverProps_2 } from 'react-aria-components';
+import type { ProgressBarProps as ProgressBarProps_2 } from 'react-aria-components';
 import type { RadioGroupProps as RadioGroupProps_2 } from 'react-aria-components';
 import type { RadioProps as RadioProps_2 } from 'react-aria-components';
 import type { ReactElement } from 'react';
@@ -3117,6 +3118,105 @@ export type PopoverOwnProps = {
 export interface PopoverProps
   extends Omit<PopoverProps_2, 'children' | 'className'>,
     PopoverOwnProps {}
+
+// @public
+export const ProgressBar: ForwardRefExoticComponent<
+  ProgressBarProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const ProgressBarDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-ProgressBar';
+    readonly header: 'bui-ProgressBarHeader';
+    readonly label: 'bui-ProgressBarLabel';
+    readonly value: 'bui-ProgressBarValue';
+    readonly track: 'bui-ProgressBarTrack';
+    readonly fill: 'bui-ProgressBarFill';
+  };
+  readonly bg: 'consumer';
+  readonly propDefs: {
+    readonly size: {
+      readonly dataAttribute: true;
+      readonly default: 'medium';
+    };
+    readonly color: {
+      readonly dataAttribute: true;
+      readonly default: 'primary';
+    };
+    readonly label: {};
+    readonly showValueLabel: {
+      readonly default: false;
+    };
+    readonly className: {};
+    readonly style: {};
+  };
+};
+
+// @public (undocumented)
+export type ProgressBarOwnProps = {
+  label?: string;
+  showValueLabel?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  color?: 'primary' | 'success' | 'warning' | 'danger';
+  className?: string;
+  style?: CSSProperties;
+};
+
+// @public (undocumented)
+export interface ProgressBarProps
+  extends Omit<ProgressBarProps_2, 'children' | 'className' | 'style'>,
+    ProgressBarOwnProps {}
+
+// @public
+export const ProgressCircle: ForwardRefExoticComponent<
+  ProgressCircleProps & RefAttributes<HTMLDivElement>
+>;
+
+// @public
+export const ProgressCircleDefinition: {
+  readonly styles: {
+    readonly [key: string]: string;
+  };
+  readonly classNames: {
+    readonly root: 'bui-ProgressCircle';
+    readonly indicator: 'bui-ProgressCircleIndicator';
+    readonly track: 'bui-ProgressCircleTrack';
+    readonly arc: 'bui-ProgressCircleArc';
+    readonly value: 'bui-ProgressCircleValue';
+  };
+  readonly propDefs: {
+    readonly size: {
+      readonly dataAttribute: true;
+      readonly default: 'medium';
+    };
+    readonly label: {
+      readonly default: 'Loading';
+    };
+    readonly showValueLabel: {
+      readonly default: false;
+    };
+    readonly className: {};
+    readonly style: {};
+  };
+};
+
+// @public (undocumented)
+export type ProgressCircleOwnProps = {
+  size?: 'small' | 'medium' | 'large';
+  label?: string;
+  showValueLabel?: boolean;
+  className?: string;
+  style?: CSSProperties;
+};
+
+// @public (undocumented)
+export interface ProgressCircleProps
+  extends Omit<ProgressBarProps_2, 'children' | 'className' | 'style'>,
+    ProgressCircleOwnProps {}
 
 // @public
 export type ProviderBg = 'neutral' | 'danger' | 'warning' | 'success';

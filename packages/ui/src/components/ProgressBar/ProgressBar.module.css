@@ -1,0 +1,134 @@
+/*
+ * Copyright 2026 The Backstage Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@layer tokens, base, components, theme, utilities;
+
+@layer components {
+  .bui-ProgressBar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bui-space-2);
+    width: 100%;
+    color: var(--bui-fg-primary);
+  }
+
+  .bui-ProgressBarHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--bui-space-3);
+  }
+
+  .bui-ProgressBarLabel {
+    font-size: var(--bui-font-size-2);
+    font-weight: var(--bui-font-weight-medium);
+    line-height: 1.15;
+    color: var(--bui-fg-primary);
+  }
+
+  .bui-ProgressBarValue {
+    font-size: var(--bui-font-size-2);
+    font-weight: var(--bui-font-weight-medium);
+    line-height: 1.15;
+    color: var(--bui-fg-secondary);
+    white-space: nowrap;
+    margin-left: auto;
+  }
+
+  .bui-ProgressBarTrack {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    overflow: hidden;
+    border-radius: var(--bui-radius-full);
+    background-color: var(--bui-bg-neutral-2);
+
+    .bui-ProgressBar[data-on-bg='neutral-1'] & {
+      background-color: var(--bui-bg-neutral-2);
+    }
+
+    .bui-ProgressBar[data-on-bg='neutral-2'] & {
+      background-color: var(--bui-bg-neutral-3);
+    }
+
+    .bui-ProgressBar[data-on-bg='neutral-3'] & {
+      background-color: var(--bui-bg-neutral-4);
+    }
+  }
+
+  .bui-ProgressBar[data-size='small'] .bui-ProgressBarTrack {
+    height: 2px;
+  }
+
+  .bui-ProgressBar[data-size='medium'] .bui-ProgressBarTrack {
+    height: 4px;
+  }
+
+  .bui-ProgressBar[data-size='large'] .bui-ProgressBarTrack {
+    height: 8px;
+  }
+
+  .bui-ProgressBarFill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    border-radius: var(--bui-radius-full);
+    background-color: var(--bui-bg-solid);
+    transition: width 200ms ease-out;
+  }
+
+  .bui-ProgressBar[data-color='success'] .bui-ProgressBarFill {
+    background-color: var(--bui-fg-success);
+  }
+
+  .bui-ProgressBar[data-color='warning'] .bui-ProgressBarFill {
+    background-color: var(--bui-fg-warning);
+  }
+
+  .bui-ProgressBar[data-color='danger'] .bui-ProgressBarFill {
+    background-color: var(--bui-fg-danger);
+  }
+
+  .bui-ProgressBarFill[data-indeterminate='true'] {
+    width: 40%;
+    transition: none;
+    animation: bui-progress-bar-indeterminate 1.5s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bui-ProgressBarFill {
+      transition: none;
+    }
+
+    .bui-ProgressBarFill[data-indeterminate='true'] {
+      animation: none;
+      width: 100%;
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes bui-progress-bar-indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(250%);
+    }
+  }
+}

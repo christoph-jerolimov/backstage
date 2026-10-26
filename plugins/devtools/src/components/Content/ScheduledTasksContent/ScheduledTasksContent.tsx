@@ -40,7 +40,7 @@ import StopIcon from '@material-ui/icons/Stop';
 import NightsStay from '@material-ui/icons/NightsStay';
 import ErrorIcon from '@material-ui/icons/Error';
 import BlockIcon from '@material-ui/icons/Block';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { ProgressCircle } from '@backstage/ui';
 import { ScheduledTaskDetailPanel } from './ScheduledTaskDetailedPanel';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { toastApiRef } from '@backstage/frontend-plugin-api';
@@ -181,7 +181,7 @@ export const ScheduledTasksContent = () => {
         if (status === 'running') {
           return (
             <StatusDisplay
-              icon={<CircularProgress color="inherit" size="30px" />}
+              icon={<ProgressCircle size="large" />}
               text="Running"
             />
           );
