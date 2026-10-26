@@ -25,6 +25,8 @@ import HomeIcon from '@material-ui/icons/Home';
 import CreateComponentIcon from '@material-ui/icons/AddCircleOutline';
 import { Sidebar } from './Bar';
 import { SidebarItem, SidebarSearchField, SidebarExpandButton } from './Items';
+import { SidebarSubmenu } from './SidebarSubmenu';
+import { SidebarSubmenuItem } from './SidebarSubmenuItem';
 import { renderHook } from '@testing-library/react';
 import { makeStyles } from '@material-ui/core/styles';
 import { analyticsApiRef } from '@backstage/core-plugin-api';
@@ -67,6 +69,11 @@ async function renderSidebar() {
           className={result.current.spotlight}
           noTrack
         />
+        <SidebarItem icon={HomeIcon} text="With submenu">
+          <SidebarSubmenu title="Submenu">
+            <SidebarSubmenuItem title="Submenu item" to="/submenu" />
+          </SidebarSubmenu>
+        </SidebarItem>
         <SidebarExpandButton />
       </Sidebar>
     </TestApiProvider>,
@@ -128,6 +135,29 @@ describe('Items', () => {
         await screen.findByRole('link', { name: /explore/i }),
       );
       expect(analyticsApiMock.captureEvent).not.toHaveBeenCalled();
+    });
+
+    it('should only reserve space for a secondary action when there is one', async () => {
+      const secondaryAction = '[class*="secondaryAction"]';
+
+      // Plain items without children let the label use the full width
+      const homeItem = await screen.findByRole('link', { name: /home/i });
+      expect(homeItem.querySelector(secondaryAction)).toBeNull();
+      const createItem = await screen.findByRole('button', {
+        name: /create/i,
+      });
+      expect(createItem.querySelector(secondaryAction)).toBeNull();
+
+      // Items with children keep the secondary action slot
+      const searchItem = await screen.findByRole('link', { name: '/search' });
+      expect(searchItem.querySelector(secondaryAction)).not.toBeNull();
+      expect(searchItem.querySelector('input')).not.toBeNull();
+
+      // Items with a submenu keep the slot for the submenu arrow
+      const submenuItem = await screen.findByRole('button', {
+        name: /with submenu/i,
+      });
+      expect(submenuItem.querySelector(secondaryAction)).not.toBeNull();
     });
   });
 
