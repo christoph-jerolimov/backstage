@@ -377,10 +377,10 @@ In the examples above, the contents of the files have been shortened for simplic
 
 The `CatalogIndexPage` comes with three default actions - view, edit, and star. You might want to add more.
 
-To do this, first you'll need to add `@mui/utils` to your `packages/app/package.json`:
+To do this, first you'll need to add `@backstage/ui` to your `packages/app/package.json`, if it is not already there:
 
 ```sh
-yarn --cwd packages/app add @mui/utils
+yarn --cwd packages/app add @backstage/ui
 ```
 
 Then you'll do the following:
@@ -403,9 +403,8 @@ import {
 } from '@backstage/plugin-catalog';
 
 {/* highlight-add-start */}
-import { Typography } from '@material-ui/core';
+import { VisuallyHidden } from '@backstage/ui';
 import OpenInNew from '@material-ui/icons/OpenInNew';
-import { visuallyHidden } from '@mui/utils';
 {/* highlight-add-end */}
 
 {/* highlight-add-start */}
@@ -417,7 +416,7 @@ const customActions: TableProps<CatalogTableRow>['actions'] = [
     return {
       icon: () => (
         <>
-          <Typography style={visuallyHidden}>{title}</Typography>
+          <VisuallyHidden>{title}</VisuallyHidden>
           <OpenInNew fontSize="small" />
         </>
       ),

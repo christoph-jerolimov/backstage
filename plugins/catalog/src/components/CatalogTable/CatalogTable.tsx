@@ -36,9 +36,8 @@ import {
   useStarredEntities,
   type EntityPresentationApi,
 } from '@backstage/plugin-catalog-react';
+import { VisuallyHidden } from '@backstage/ui';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import Typography from '@material-ui/core/Typography';
-import { visuallyHidden } from '@mui/utils';
 import Edit from '@material-ui/icons/Edit';
 import OpenInNew from '@material-ui/icons/OpenInNew';
 import { capitalize, sortBy } from 'lodash';
@@ -151,7 +150,7 @@ export const CatalogTable = (props: CatalogTableProps) => {
       return {
         icon: () => (
           <>
-            <Typography style={visuallyHidden}>{title}</Typography>
+            <VisuallyHidden>{title}</VisuallyHidden>
             <OpenInNew fontSize="small" />
           </>
         ),
@@ -170,7 +169,7 @@ export const CatalogTable = (props: CatalogTableProps) => {
       return {
         icon: () => (
           <>
-            <Typography style={visuallyHidden}>{title}</Typography>
+            <VisuallyHidden>{title}</VisuallyHidden>
             <Edit fontSize="small" />
           </>
         ),

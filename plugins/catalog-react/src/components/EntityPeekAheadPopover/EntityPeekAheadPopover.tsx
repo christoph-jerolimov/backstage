@@ -16,18 +16,20 @@
 
 import useAsyncFn from 'react-use/esm/useAsyncFn';
 import { catalogApiRef } from '../../api';
-import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
-import HoverPopover from 'material-ui-popup-state/HoverPopover';
 import {
-  bindHover,
-  bindPopover,
-  usePopupState,
-} from 'material-ui-popup-state/hooks';
+  MouseEvent,
+  PropsWithChildren,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Box from '@material-ui/core/Box';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Chip from '@material-ui/core/Chip';
+import Popover from '@material-ui/core/Popover';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -55,8 +57,15 @@ export type EntityPeekAheadPopoverProps = PropsWithChildren<{
 
 const useStyles = makeStyles(() => {
   return {
+    // The popover root covers the whole screen while open, so it must not
+    // capture pointer events. The paper re-enables them so that the content
+    // can be hovered and interacted with.
+    popover: {
+      pointerEvents: 'none',
+    },
     popoverPaper: {
       width: '30em',
+      pointerEvents: 'auto',
     },
     descriptionTypography: {
       overflow: 'hidden',
@@ -69,6 +78,7 @@ const useStyles = makeStyles(() => {
 });
 
 const maxTagChips = 4;
+const popoverId = 'entity-peek-ahead';
 
 /**
  * Shows an entity popover on hover of a component.
@@ -80,15 +90,19 @@ export const EntityPeekAheadPopover = (props: EntityPeekAheadPopoverProps) => {
   const { t } = useTranslationRef(catalogReactTranslationRef);
   const classes = useStyles();
   const apiHolder = useApiHolder();
-  const popupState = usePopupState({
-    variant: 'popover',
-    popupId: 'entity-peek-ahead',
-  });
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const isOpen = Boolean(anchorEl);
 
   const debouncedHandleMouseEnter = useMemo(
     () => debounce(() => setIsHovered(true), delayTime),
     [delayTime],
+  );
+
+  useEffect(
+    () => () => debouncedHandleMouseEnter.cancel(),
+    [debouncedHandleMouseEnter],
   );
 
   const [{ loading, error, value: entity }, load] = useAsyncFn(async () => {
@@ -103,34 +117,59 @@ export const EntityPeekAheadPopover = (props: EntityPeekAheadPopoverProps) => {
     return undefined;
   }, [apiHolder, entityRef]);
 
-  const handleOnMouseLeave = () => {
-    setIsHovered(false);
+  const handleTriggerMouseEnter = (event: MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    debouncedHandleMouseEnter();
+  };
+
+  const handleTriggerMouseLeave = (event: MouseEvent<HTMLElement>) => {
+    // Keep the popover open while moving the pointer from the trigger into it
+    if (
+      event.relatedTarget instanceof Node &&
+      popoverRef.current?.contains(event.relatedTarget)
+    ) {
+      return;
+    }
     debouncedHandleMouseEnter.cancel();
+    setIsHovered(false);
+    setAnchorEl(null);
+  };
+
+  const handlePopoverMouseLeave = () => {
+    debouncedHandleMouseEnter.cancel();
+    setIsHovered(false);
+    setAnchorEl(null);
   };
 
   useEffect(() => {
-    if (popupState.isOpen && !entity && !error && !loading) {
+    if (isOpen && !entity && !error && !loading) {
       load();
     }
-  }, [popupState.isOpen, load, entity, error, loading]);
+  }, [isOpen, load, entity, error, loading]);
 
   return (
     <>
-      <Typography component="span" onMouseEnter={debouncedHandleMouseEnter}>
-        <Typography
-          component="span"
-          data-testid="trigger"
-          {...bindHover(popupState)}
-        >
-          {children}
-        </Typography>
+      <Typography
+        component="span"
+        data-testid="trigger"
+        aria-haspopup="true"
+        aria-owns={isOpen ? popoverId : undefined}
+        onMouseEnter={handleTriggerMouseEnter}
+        onMouseLeave={handleTriggerMouseLeave}
+      >
+        {children}
       </Typography>
       {isHovered && (
-        <HoverPopover
+        <Popover
+          id={popoverId}
+          ref={popoverRef}
+          className={classes.popover}
           PaperProps={{
             className: classes.popoverPaper,
           }}
-          {...bindPopover(popupState)}
+          open={isOpen}
+          anchorEl={anchorEl}
+          onClose={handlePopoverMouseLeave}
           anchorOrigin={{
             vertical: 'bottom',
             horizontal: 'center',
@@ -139,7 +178,8 @@ export const EntityPeekAheadPopover = (props: EntityPeekAheadPopoverProps) => {
             vertical: 'top',
             horizontal: 'center',
           }}
-          onMouseLeave={handleOnMouseLeave}
+          onMouseLeave={handlePopoverMouseLeave}
+          disableRestoreFocus
         >
           <Card>
             <CardContent>
@@ -193,7 +233,7 @@ export const EntityPeekAheadPopover = (props: EntityPeekAheadPopoverProps) => {
               </CardActions>
             )}
           </Card>
-        </HoverPopover>
+        </Popover>
       )}
     </>
   );
