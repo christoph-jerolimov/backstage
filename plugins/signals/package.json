@@ -57,13 +57,13 @@
     "@backstage/plugin-signals-react": "workspace:^",
     "@backstage/theme": "workspace:^",
     "@backstage/types": "workspace:^",
-    "@material-ui/core": "^4.12.4",
     "@remixicon/react": ">=4.6.0 <4.9.0"
   },
   "devDependencies": {
     "@backstage/cli": "workspace:^",
     "@backstage/dev-utils": "workspace:^",
     "@backstage/test-utils": "workspace:^",
+    "@backstage/ui": "workspace:^",
     "@testing-library/dom": "^10.0.0",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.0.0",

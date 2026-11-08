@@ -16,7 +16,7 @@
 import { createDevApp } from '@backstage/dev-utils';
 import { signalsPlugin } from '../src/plugin';
 import { CodeSnippet, Content, Header, Page } from '@backstage/core-components';
-import Typography from '@material-ui/core/Typography';
+import { Text } from '@backstage/ui';
 import { useSignal } from '@backstage/plugin-signals-react';
 
 const SignalsDebugPage = () => {
@@ -25,14 +25,12 @@ const SignalsDebugPage = () => {
     <Page themeId="home">
       <Header title="Signals" />
       <Content>
-        <Typography>Last signal:</Typography>
-        <Typography>
-          {lastSignal ? (
-            <CodeSnippet text={JSON.stringify(lastSignal)} language="json" />
-          ) : (
-            'Not received'
-          )}
-        </Typography>
+        <Text>Last signal:</Text>
+        {lastSignal ? (
+          <CodeSnippet text={JSON.stringify(lastSignal)} language="json" />
+        ) : (
+          <Text>Not received</Text>
+        )}
       </Content>
     </Page>
   );
