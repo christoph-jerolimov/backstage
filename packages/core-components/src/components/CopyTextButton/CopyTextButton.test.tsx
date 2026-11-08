@@ -20,17 +20,6 @@ import { CopyTextButton } from './CopyTextButton';
 import { errorApiRef } from '@backstage/core-plugin-api';
 import { default as useCopyToClipboardUnmocked } from 'react-use/esm/useCopyToClipboard';
 
-jest.mock('popper.js', () => {
-  const PopperJS = jest.requireActual('popper.js');
-
-  return class {
-    static placements = PopperJS.placements;
-    update() {}
-    destroy() {}
-    scheduleUpdate() {}
-  };
-});
-
 const useCopyToClipboard = jest.mocked(useCopyToClipboardUnmocked);
 jest.mock('react-use/esm/useCopyToClipboard', () =>
   jest.fn().mockImplementation(() => [{ noUserInteraction: false }, jest.fn()]),

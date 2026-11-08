@@ -21,7 +21,7 @@ import {
   Tooltip,
   TooltipTrigger,
 } from '@backstage/ui';
-import CopyIcon from '@material-ui/icons/FileCopy';
+import { RiFileCopyLine } from '@remixicon/react';
 import { useEffect, useRef, useState } from 'react';
 import useCopyToClipboard from 'react-use/esm/useCopyToClipboard';
 import { coreComponentsTranslationRef } from '../../translation';
@@ -81,7 +81,6 @@ export interface CopyTextButtonProps {
  *
  * Visual feedback takes form of:
  *  - a hover color
- *  - click ripple
  *  - Tooltip shown when user has clicked
  *
  * @example
@@ -144,7 +143,7 @@ export function CopyTextButton(props: CopyTextButtonProps) {
       }}
     >
       <ButtonIcon
-        icon={<CopyIcon />}
+        icon={<RiFileCopyLine />}
         onPress={handleCopyClick}
         aria-label={ariaLabel}
         variant={variant}

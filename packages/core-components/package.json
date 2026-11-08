@@ -67,6 +67,7 @@
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "4.0.0-alpha.61",
     "@react-hookz/web": "^24.0.0",
+    "@remixicon/react": ">=4.6.0 <4.9.0",
     "@testing-library/dom": "^10.0.0",
     "@testing-library/react": "^16.0.0",
     "@types/react-sparklines": "^1.7.0",
