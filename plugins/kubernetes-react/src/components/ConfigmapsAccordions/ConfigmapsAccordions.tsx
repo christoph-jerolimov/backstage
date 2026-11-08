@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 import { useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
 import type { V1ConfigMap } from '@kubernetes/client-node';
 import { ConfigmapsDrawer } from './ConfigmapsDrawer.tsx';
 import { GroupedResponsesContext } from '../../hooks';
 import { StructuredMetadataTable } from '@backstage/core-components';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 type ConfigmapSummaryProps = {
   configmap: V1ConfigMap;
@@ -31,23 +27,14 @@ type ConfigmapSummaryProps = {
 
 const ConfigmapSummary = ({ configmap }: ConfigmapSummaryProps) => {
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={8} item>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow>
         <ConfigmapsDrawer configmap={configmap} />
-      </Grid>
-
-      <Grid item>
-        <Typography variant="subtitle2">
-          Data Count: {configmap.data ? Object.keys(configmap.data).length : 0}
-        </Typography>
-      </Grid>
-    </Grid>
+      </Box>
+      <Text as="span" variant="body-medium" weight="bold">
+        Data Count: {configmap.data ? Object.keys(configmap.data).length : 0}
+      </Text>
+    </Flex>
   );
 };
 
@@ -78,31 +65,22 @@ type ConfigmapsAccordionProps = {
 
 const ConfigmapsAccordion = ({ configmap }: ConfigmapsAccordionProps) => {
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <ConfigmapSummary configmap={configmap} />
-      </AccordionSummary>
-      <AccordionDetails>
-        <ConfigmapCard configmap={configmap} />
-      </AccordionDetails>
-    </Accordion>
+    <KubernetesAccordion
+      label={configmap.metadata?.name ?? 'unknown object'}
+      summary={<ConfigmapSummary configmap={configmap} />}
+    >
+      <ConfigmapCard configmap={configmap} />
+    </KubernetesAccordion>
   );
 };
 
 export const ConfigmapsAccordions = ({}: ConfigmapsAccordionsProps) => {
   const groupedResponses = useContext(GroupedResponsesContext);
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {groupedResponses.configMaps.map((configmap, i) => (
-        <Grid item key={i} xs>
-          <ConfigmapsAccordion configmap={configmap} />
-        </Grid>
+        <ConfigmapsAccordion key={i} configmap={configmap} />
       ))}
-    </Grid>
+    </Flex>
   );
 };

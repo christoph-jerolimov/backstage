@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 import { ReactNode, useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
 import type { V1CronJob, V1Job } from '@kubernetes/client-node';
 import { JobsAccordions } from '../JobsAccordions';
 import { CronJobDrawer } from './CronJobsDrawer';
@@ -27,6 +22,7 @@ import { getOwnedResources } from '../../utils/owner';
 import { GroupedResponsesContext } from '../../hooks';
 import { StatusError, StatusOK } from '@backstage/core-components';
 import { humanizeCron } from '../../utils/crons';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 /**
  *
@@ -50,57 +46,37 @@ type CronJobSummaryProps = {
 
 const CronJobSummary = ({ cronJob }: CronJobSummaryProps) => {
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={6} item>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow basis="0">
         <CronJobDrawer cronJob={cronJob} />
-      </Grid>
-      <Grid
-        item
-        container
-        xs={6}
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-end"
-        spacing={0}
-      >
-        <Grid item>
-          {cronJob.spec?.suspend ? (
-            <StatusError>Suspended</StatusError>
-          ) : (
-            <StatusOK>Active</StatusOK>
-          )}
-        </Grid>
-        <Grid item>
-          <Typography variant="body1">
-            Schedule:{' '}
-            {cronJob.spec?.schedule
-              ? `${cronJob.spec.schedule} (${humanizeCron(
-                  cronJob.spec.schedule,
-                )})`
-              : 'N/A'}
-          </Typography>
-        </Grid>
-      </Grid>
-    </Grid>
+      </Box>
+      <Flex direction="column" align="end" gap="1" grow basis="0">
+        {cronJob.spec?.suspend ? (
+          <StatusError>Suspended</StatusError>
+        ) : (
+          <StatusOK>Active</StatusOK>
+        )}
+        <Text as="span" variant="body-medium">
+          Schedule:{' '}
+          {cronJob.spec?.schedule
+            ? `${cronJob.spec.schedule} (${humanizeCron(
+                cronJob.spec.schedule,
+              )})`
+            : 'N/A'}
+        </Text>
+      </Flex>
+    </Flex>
   );
 };
 
 const CronJobAccordion = ({ cronJob, ownedJobs }: CronJobAccordionProps) => {
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <CronJobSummary cronJob={cronJob} />
-      </AccordionSummary>
-      <AccordionDetails>
-        <JobsAccordions jobs={ownedJobs.reverse()} />
-      </AccordionDetails>
-    </Accordion>
+    <KubernetesAccordion
+      label={cronJob.metadata?.name ?? 'unknown object'}
+      summary={<CronJobSummary cronJob={cronJob} />}
+    >
+      <JobsAccordions jobs={ownedJobs.reverse()} />
+    </KubernetesAccordion>
   );
 };
 
@@ -113,22 +89,14 @@ export const CronJobsAccordions = ({}: CronJobsAccordionsProps) => {
   const groupedResponses = useContext(GroupedResponsesContext);
 
   return (
-    <Grid
-      container
-      direction="column"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {groupedResponses.cronJobs.map((cronJob, i) => (
-        <Grid container item key={i} xs>
-          <Grid item xs>
-            <CronJobAccordion
-              ownedJobs={getOwnedResources(cronJob, groupedResponses.jobs)}
-              cronJob={cronJob}
-            />
-          </Grid>
-        </Grid>
+        <CronJobAccordion
+          key={i}
+          ownedJobs={getOwnedResources(cronJob, groupedResponses.jobs)}
+          cronJob={cronJob}
+        />
       ))}
-    </Grid>
+    </Flex>
   );
 };

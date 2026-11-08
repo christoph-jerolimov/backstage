@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 import { ReactNode, useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
 import type { V1Job, V1Pod } from '@kubernetes/client-node';
 import { PodsTable } from '../Pods';
 import { JobDrawer } from './JobsDrawer';
@@ -29,6 +25,7 @@ import {
   StatusOK,
   StatusPending,
 } from '@backstage/core-components';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 /**
  *
@@ -53,51 +50,37 @@ type JobSummaryProps = {
 
 const JobSummary = ({ job }: JobSummaryProps) => {
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={6} item>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow basis="0">
         <JobDrawer job={job} />
-      </Grid>
-      <Grid
-        item
-        container
-        xs={6}
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-end"
-        spacing={0}
-      >
-        <Grid item>
+      </Box>
+      <Flex direction="column" align="end" gap="1" grow basis="0">
+        <div>
           {job.status?.succeeded && <StatusOK>Succeeded</StatusOK>}
           {job.status?.active && <StatusPending>Running</StatusPending>}
           {job.status?.failed && <StatusError>Failed</StatusError>}
-        </Grid>
-        <Grid item>Start time: {job.status?.startTime?.toString()}</Grid>
+        </div>
+        <Text as="span" variant="body-small">
+          Start time: {job.status?.startTime?.toString()}
+        </Text>
         {job.status?.completionTime && (
-          <Grid item>
+          <Text as="span" variant="body-small">
             Completion time: {job.status.completionTime.toString()}
-          </Grid>
+          </Text>
         )}
-      </Grid>
-    </Grid>
+      </Flex>
+    </Flex>
   );
 };
 
 const JobAccordion = ({ job, ownedPods }: JobAccordionProps) => {
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <JobSummary job={job} />
-      </AccordionSummary>
-      <AccordionDetails>
-        <PodsTable pods={ownedPods} />
-      </AccordionDetails>
-    </Accordion>
+    <KubernetesAccordion
+      label={job.metadata?.name ?? 'unknown object'}
+      summary={<JobSummary job={job} />}
+    >
+      <PodsTable pods={ownedPods} />
+    </KubernetesAccordion>
   );
 };
 
@@ -110,22 +93,14 @@ export const JobsAccordions = ({ jobs }: JobsAccordionsProps) => {
   const groupedResponses = useContext(GroupedResponsesContext);
 
   return (
-    <Grid
-      container
-      direction="column"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {jobs.map((job, i) => (
-        <Grid container item key={i} xs>
-          <Grid item xs>
-            <JobAccordion
-              ownedPods={getOwnedResources(job, groupedResponses.pods)}
-              job={job}
-            />
-          </Grid>
-        </Grid>
+        <JobAccordion
+          key={i}
+          ownedPods={getOwnedResources(job, groupedResponses.pods)}
+          job={job}
+        />
       ))}
-    </Grid>
+    </Flex>
   );
 };

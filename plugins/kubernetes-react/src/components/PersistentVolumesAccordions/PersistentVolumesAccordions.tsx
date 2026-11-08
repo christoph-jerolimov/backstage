@@ -15,16 +15,12 @@
  */
 
 import { ReactNode, useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
 import type { V1PersistentVolume } from '@kubernetes/client-node';
 import { PersistentVolumesTable } from './PersistentVolumesTable';
 import { GroupedResponsesContext } from '../../hooks';
 import { StatusOK, StatusError } from '@backstage/core-components';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 type PersistentVolumesAccordionsProps = {
   children?: ReactNode;
@@ -48,43 +44,23 @@ const PersistentVolumesSummary = ({
   numberOfFailedVolumes,
 }: PersistentVolumesSummaryProps) => {
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={4} item>
-        <Typography variant="body1">
-          <strong>PersistentVolumes</strong>
-        </Typography>
-      </Grid>
-      <Grid
-        item
-        container
-        xs={8}
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-end"
-        spacing={0}
-      >
-        <Grid item>
-          <StatusOK>{numberOfPersistentVolumes} volumes</StatusOK>
-        </Grid>
-        <Grid item>
-          <StatusOK>{numberOfBoundVolumes} bound</StatusOK>
-        </Grid>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow basis="0">
+        <Text as="span" variant="body-medium" weight="bold">
+          PersistentVolumes
+        </Text>
+      </Box>
+      <Flex direction="column" align="end" gap="1" grow basis="0">
+        <StatusOK>{numberOfPersistentVolumes} volumes</StatusOK>
+        <StatusOK>{numberOfBoundVolumes} bound</StatusOK>
         {numberOfFailedVolumes > 0 && (
-          <Grid item>
-            <StatusError>
-              {numberOfFailedVolumes} volume
-              {numberOfFailedVolumes > 1 ? 's' : ''} failed
-            </StatusError>
-          </Grid>
+          <StatusError>
+            {numberOfFailedVolumes} volume
+            {numberOfFailedVolumes > 1 ? 's' : ''} failed
+          </StatusError>
         )}
-      </Grid>
-    </Grid>
+      </Flex>
+    </Flex>
   );
 };
 
@@ -99,18 +75,18 @@ const PersistentVolumesAccordion = ({
   );
 
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <KubernetesAccordion
+      label="PersistentVolumes"
+      summary={
         <PersistentVolumesSummary
           numberOfPersistentVolumes={persistentVolumes.length}
           numberOfBoundVolumes={boundVolumes.length}
           numberOfFailedVolumes={failedVolumes.length}
         />
-      </AccordionSummary>
-      <AccordionDetails>
-        <PersistentVolumesTable persistentVolumes={persistentVolumes} />
-      </AccordionDetails>
-    </Accordion>
+      }
+    >
+      <PersistentVolumesTable persistentVolumes={persistentVolumes} />
+    </KubernetesAccordion>
   );
 };
 
@@ -119,19 +95,8 @@ export const PersistentVolumesAccordions =
     const groupedResponses = useContext(GroupedResponsesContext);
 
     return (
-      <Grid
-        container
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-start"
-      >
-        <Grid container item xs>
-          <Grid item xs>
-            <PersistentVolumesAccordion
-              persistentVolumes={groupedResponses.persistentVolumes}
-            />
-          </Grid>
-        </Grid>
-      </Grid>
+      <PersistentVolumesAccordion
+        persistentVolumes={groupedResponses.persistentVolumes}
+      />
     );
   };

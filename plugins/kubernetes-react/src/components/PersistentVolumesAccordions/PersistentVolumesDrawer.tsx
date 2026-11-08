@@ -15,9 +15,7 @@
  */
 import type { V1PersistentVolume } from '@kubernetes/client-node';
 import { KubernetesStructuredMetadataTableDrawer } from '../KubernetesDrawer';
-import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
-import Chip from '@material-ui/core/Chip';
+import { Badge, Flex, Text } from '@backstage/ui';
 
 export const PersistentVolumesDrawer = ({
   persistentVolume,
@@ -36,29 +34,15 @@ export const PersistentVolumesDrawer = ({
         return persistentVolumeObject || {};
       }}
     >
-      <Grid
-        container
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-start"
-        spacing={0}
-      >
-        <Grid item>
-          <Typography variant="body1">
-            {persistentVolume.metadata?.name ?? 'unknown object'}
-          </Typography>
-        </Grid>
-        <Grid item>
-          <Typography color="textSecondary" variant="subtitle1">
-            PersistentVolume
-          </Typography>
-        </Grid>
-        {namespace && (
-          <Grid item>
-            <Chip size="small" label={`namespace: ${namespace}`} />
-          </Grid>
-        )}
-      </Grid>
+      <Flex direction="column" align="start" gap="1">
+        <Text as="span" variant="body-medium">
+          {persistentVolume.metadata?.name ?? 'unknown object'}
+        </Text>
+        <Text as="span" variant="body-large" color="secondary">
+          PersistentVolume
+        </Text>
+        {namespace && <Badge size="small">{`namespace: ${namespace}`}</Badge>}
+      </Flex>
     </KubernetesStructuredMetadataTableDrawer>
   );
 };

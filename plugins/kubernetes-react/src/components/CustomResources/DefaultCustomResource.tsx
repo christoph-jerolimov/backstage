@@ -15,13 +15,10 @@
  */
 
 import { ReactNode } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Flex } from '@backstage/ui';
 import { DefaultCustomResourceDrawer } from './DefaultCustomResourceDrawer';
 import { StructuredMetadataTable } from '@backstage/core-components';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 type DefaultCustomResourceAccordionsProps = {
   customResources: any[];
@@ -48,20 +45,12 @@ const DefaultCustomResourceSummary = ({
   customResourceName,
 }: DefaultCustomResourceSummaryProps) => {
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={12} item>
-        <DefaultCustomResourceDrawer
-          customResource={customResource}
-          customResourceName={customResourceName}
-        />
-      </Grid>
-    </Grid>
+    <Flex direction="row" justify="between" align="center">
+      <DefaultCustomResourceDrawer
+        customResource={customResource}
+        customResourceName={customResourceName}
+      />
+    </Flex>
   );
 };
 
@@ -71,26 +60,23 @@ const DefaultCustomResourceAccordion = ({
   defaultExpanded,
 }: DefaultCustomResourceAccordionProps) => {
   return (
-    <Accordion
+    <KubernetesAccordion
+      label={customResource.metadata?.name ?? 'unknown object'}
       defaultExpanded={defaultExpanded}
-      TransitionProps={{ unmountOnExit: true }}
-      variant="outlined"
-    >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      summary={
         <DefaultCustomResourceSummary
           customResource={customResource}
           customResourceName={customResourceName}
         />
-      </AccordionSummary>
-      <AccordionDetails>
-        {Object.prototype.hasOwnProperty.call(customResource, 'status') && (
-          <StructuredMetadataTable
-            metadata={customResource.status}
-            options={{ nestedValuesAsYaml: true }}
-          />
-        )}
-      </AccordionDetails>
-    </Accordion>
+      }
+    >
+      {Object.prototype.hasOwnProperty.call(customResource, 'status') && (
+        <StructuredMetadataTable
+          metadata={customResource.status}
+          options={{ nestedValuesAsYaml: true }}
+        />
+      )}
+    </KubernetesAccordion>
   );
 };
 
@@ -100,23 +86,15 @@ export const DefaultCustomResourceAccordions = ({
   defaultExpanded = false,
 }: DefaultCustomResourceAccordionsProps) => {
   return (
-    <Grid
-      container
-      direction="column"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {customResources.map((cr, i) => (
-        <Grid container item key={i} xs>
-          <Grid item xs>
-            <DefaultCustomResourceAccordion
-              defaultExpanded={defaultExpanded}
-              customResource={cr}
-              customResourceName={customResourceName}
-            />
-          </Grid>
-        </Grid>
+        <DefaultCustomResourceAccordion
+          key={i}
+          defaultExpanded={defaultExpanded}
+          customResource={cr}
+          customResourceName={customResourceName}
+        />
       ))}
-    </Grid>
+    </Flex>
   );
 };

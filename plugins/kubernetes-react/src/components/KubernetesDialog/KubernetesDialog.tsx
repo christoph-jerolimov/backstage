@@ -14,33 +14,19 @@
  * limitations under the License.
  */
 
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import IconButton from '@material-ui/core/IconButton';
-import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
-import CloseIcon from '@material-ui/icons/Close';
-import { ReactNode, useState } from 'react';
-import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
-import { kubernetesReactTranslationRef } from '../../translation';
-
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    dialogPaper: { minHeight: 'calc(100% - 64px)' },
-    dialogContent: { flexBasis: 0 },
-    closeButton: {
-      position: 'absolute',
-      right: theme.spacing(1),
-      top: theme.spacing(1),
-      color: theme.palette.grey[500],
-    },
-  }),
-);
+import {
+  Button,
+  Dialog,
+  DialogBody,
+  DialogHeader,
+  DialogTrigger,
+} from '@backstage/ui';
+import { ReactElement, ReactNode } from 'react';
+import styles from './KubernetesDialog.module.css';
 
 export interface KubernetesDialogProps {
   buttonAriaLabel: string;
-  buttonIcon: ReactNode;
+  buttonIcon: ReactElement;
   buttonText: string;
   children?: ReactNode;
   disabled?: boolean;
@@ -60,50 +46,20 @@ export const KubernetesDialog = ({
   disabled,
   title,
 }: KubernetesDialogProps) => {
-  const classes = useStyles();
-  const { t } = useTranslationRef(kubernetesReactTranslationRef);
-
-  const [open, setOpen] = useState(false);
-  const openDialog = () => {
-    setOpen(true);
-  };
-  const closeDialog = () => {
-    setOpen(false);
-  };
-
   return (
-    <>
-      <Dialog
-        maxWidth="xl"
-        fullWidth
-        open={open}
-        onClose={closeDialog}
-        PaperProps={{ className: classes.dialogPaper }}
-      >
-        <DialogTitle id="dialog-title">
-          {title}
-          <IconButton
-            aria-label={t('kubernetesDialog.closeAriaLabel')}
-            className={classes.closeButton}
-            onClick={closeDialog}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent className={classes.dialogContent}>
-          {children}
-        </DialogContent>
-      </Dialog>
+    <DialogTrigger>
       <Button
-        variant="outlined"
+        variant="secondary"
         aria-label={buttonAriaLabel}
-        component="label"
-        disabled={disabled}
-        onClick={openDialog}
-        startIcon={buttonIcon}
+        isDisabled={disabled}
+        iconStart={buttonIcon}
       >
         {buttonText}
       </Button>
-    </>
+      <Dialog className={styles.dialog}>
+        <DialogHeader>{title}</DialogHeader>
+        <DialogBody className={styles.body}>{children}</DialogBody>
+      </Dialog>
+    </DialogTrigger>
   );
 };

@@ -15,11 +15,7 @@
  */
 
 import { ReactNode, useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex } from '@backstage/ui';
 import type { V1Pod, V1DaemonSet } from '@kubernetes/client-node';
 import { PodsTable } from '../Pods';
 import { DaemonSetDrawer } from './DaemonSetsDrawer';
@@ -32,6 +28,7 @@ import { StatusError, StatusOK } from '@backstage/core-components';
 import { READY_COLUMNS, RESOURCE_COLUMNS } from '../Pods/PodsTable';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { kubernetesReactTranslationRef } from '../../translation';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 type DaemonSetsAccordionsProps = {
   children?: ReactNode;
@@ -57,39 +54,21 @@ const DaemonSetSummary = ({
 }: DaemonSetSummaryProps) => {
   const { t } = useTranslationRef(kubernetesReactTranslationRef);
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={4} item>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow basis="0">
         <DaemonSetDrawer daemonset={daemonset} />
-      </Grid>
-      <Grid
-        item
-        container
-        xs={4}
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-end"
-        spacing={0}
-      >
-        <Grid item>
-          <StatusOK>{t('pods.pods', { count: numberOfCurrentPods })}</StatusOK>
-        </Grid>
-        <Grid item>
-          {numberOfPodsWithErrors > 0 ? (
-            <StatusError>
-              {t('cluster.podsWithErrors', { count: numberOfPodsWithErrors })}
-            </StatusError>
-          ) : (
-            <StatusOK>{t('cluster.noPodsWithErrors')}</StatusOK>
-          )}
-        </Grid>
-      </Grid>
-    </Grid>
+      </Box>
+      <Flex direction="column" align="end" gap="1" grow basis="0">
+        <StatusOK>{t('pods.pods', { count: numberOfCurrentPods })}</StatusOK>
+        {numberOfPodsWithErrors > 0 ? (
+          <StatusError>
+            {t('cluster.podsWithErrors', { count: numberOfPodsWithErrors })}
+          </StatusError>
+        ) : (
+          <StatusOK>{t('cluster.noPodsWithErrors')}</StatusOK>
+        )}
+      </Flex>
+    </Flex>
   );
 };
 
@@ -104,21 +83,21 @@ const DaemonSetAccordion = ({
   );
 
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <KubernetesAccordion
+      label={daemonset.metadata?.name ?? 'unknown object'}
+      summary={
         <DaemonSetSummary
           daemonset={daemonset}
           numberOfCurrentPods={ownedPods.length}
           numberOfPodsWithErrors={podsWithErrors.length}
         />
-      </AccordionSummary>
-      <AccordionDetails>
-        <PodsTable
-          pods={ownedPods}
-          extraColumns={[READY_COLUMNS, RESOURCE_COLUMNS]}
-        />
-      </AccordionDetails>
-    </Accordion>
+      }
+    >
+      <PodsTable
+        pods={ownedPods}
+        extraColumns={[READY_COLUMNS, RESOURCE_COLUMNS]}
+      />
+    </KubernetesAccordion>
   );
 };
 
@@ -126,22 +105,14 @@ export const DaemonSetsAccordions = ({}: DaemonSetsAccordionsProps) => {
   const groupedResponses = useContext(GroupedResponsesContext);
 
   return (
-    <Grid
-      container
-      direction="column"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {groupedResponses.daemonSets.map((daemonset, i) => (
-        <Grid container item key={i} xs>
-          <Grid item xs>
-            <DaemonSetAccordion
-              ownedPods={getOwnedResources(daemonset, groupedResponses.pods)}
-              daemonset={daemonset}
-            />
-          </Grid>
-        </Grid>
+        <DaemonSetAccordion
+          key={i}
+          ownedPods={getOwnedResources(daemonset, groupedResponses.pods)}
+          daemonset={daemonset}
+        />
       ))}
-    </Grid>
+    </Flex>
   );
 };

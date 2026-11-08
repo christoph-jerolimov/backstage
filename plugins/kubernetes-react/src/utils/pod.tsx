@@ -20,7 +20,7 @@ import type {
   V1DeploymentCondition,
 } from '@kubernetes/client-node';
 import { Fragment, ReactNode } from 'react';
-import Chip from '@material-ui/core/Chip';
+import { Badge, Flex } from '@backstage/ui';
 import {
   StatusAborted,
   StatusError,
@@ -34,10 +34,18 @@ import { bytesToMiB, formatMillicores } from './resources';
 export const imageChips = (pod: V1Pod): ReactNode => {
   const containerStatuses = pod.status?.containerStatuses ?? [];
   const images = containerStatuses.map((cs, i) => {
-    return <Chip key={i} label={`${cs.name}=${cs.image}`} size="small" />;
+    return (
+      <Badge key={i} size="small">
+        {`${cs.name}=${cs.image}`}
+      </Badge>
+    );
   });
 
-  return <div>{images}</div>;
+  return (
+    <Flex gap="1" style={{ flexWrap: 'wrap' }}>
+      {images}
+    </Flex>
+  );
 };
 
 export const containersReady = (pod: Pod): string => {

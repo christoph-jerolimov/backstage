@@ -15,16 +15,12 @@
  */
 
 import { ReactNode, useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
 import type { V1PersistentVolumeClaim } from '@kubernetes/client-node';
 import { PersistentVolumeClaimsTable } from './PersistentVolumeClaimsTable';
 import { GroupedResponsesContext } from '../../hooks';
 import { StatusOK, StatusError } from '@backstage/core-components';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 type PersistentVolumeClaimsAccordionsProps = {
   children?: ReactNode;
@@ -48,43 +44,23 @@ const PersistentVolumeClaimsSummary = ({
   numberOfLostClaims,
 }: PersistentVolumeClaimsSummaryProps) => {
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={4} item>
-        <Typography variant="body1">
-          <strong>PersistentVolumeClaims</strong>
-        </Typography>
-      </Grid>
-      <Grid
-        item
-        container
-        xs={8}
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-end"
-        spacing={0}
-      >
-        <Grid item>
-          <StatusOK>{numberOfPersistentVolumeClaims} claims</StatusOK>
-        </Grid>
-        <Grid item>
-          <StatusOK>{numberOfBoundClaims} bound</StatusOK>
-        </Grid>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow basis="0">
+        <Text as="span" variant="body-medium" weight="bold">
+          PersistentVolumeClaims
+        </Text>
+      </Box>
+      <Flex direction="column" align="end" gap="1" grow basis="0">
+        <StatusOK>{numberOfPersistentVolumeClaims} claims</StatusOK>
+        <StatusOK>{numberOfBoundClaims} bound</StatusOK>
         {numberOfLostClaims > 0 && (
-          <Grid item>
-            <StatusError>
-              {numberOfLostClaims} claim
-              {numberOfLostClaims > 1 ? 's' : ''} lost
-            </StatusError>
-          </Grid>
+          <StatusError>
+            {numberOfLostClaims} claim
+            {numberOfLostClaims > 1 ? 's' : ''} lost
+          </StatusError>
         )}
-      </Grid>
-    </Grid>
+      </Flex>
+    </Flex>
   );
 };
 
@@ -99,20 +75,20 @@ const PersistentVolumeClaimsAccordion = ({
   );
 
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <KubernetesAccordion
+      label="PersistentVolumeClaims"
+      summary={
         <PersistentVolumeClaimsSummary
           numberOfPersistentVolumeClaims={persistentVolumeClaims.length}
           numberOfBoundClaims={boundClaims.length}
           numberOfLostClaims={lostClaims.length}
         />
-      </AccordionSummary>
-      <AccordionDetails>
-        <PersistentVolumeClaimsTable
-          persistentVolumeClaims={persistentVolumeClaims}
-        />
-      </AccordionDetails>
-    </Accordion>
+      }
+    >
+      <PersistentVolumeClaimsTable
+        persistentVolumeClaims={persistentVolumeClaims}
+      />
+    </KubernetesAccordion>
   );
 };
 
@@ -121,19 +97,8 @@ export const PersistentVolumeClaimsAccordions =
     const groupedResponses = useContext(GroupedResponsesContext);
 
     return (
-      <Grid
-        container
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-start"
-      >
-        <Grid container item xs>
-          <Grid item xs>
-            <PersistentVolumeClaimsAccordion
-              persistentVolumeClaims={groupedResponses.persistentVolumeClaims}
-            />
-          </Grid>
-        </Grid>
-      </Grid>
+      <PersistentVolumeClaimsAccordion
+        persistentVolumeClaims={groupedResponses.persistentVolumeClaims}
+      />
     );
   };

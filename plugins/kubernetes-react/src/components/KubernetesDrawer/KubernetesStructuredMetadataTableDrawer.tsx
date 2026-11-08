@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-import { ReactNode, ChangeEvent, useContext, useState } from 'react';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import Drawer from '@material-ui/core/Drawer';
-import Switch from '@material-ui/core/Switch';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
-import Close from '@material-ui/icons/Close';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import type { V1ObjectMeta } from '@kubernetes/client-node';
-import { withStyles } from '@material-ui/core/styles';
+import { ReactNode, useContext, useState } from 'react';
 import {
-  LinkButton as BackstageButton,
+  Button,
+  ButtonLink,
+  Dialog,
+  DialogBody,
+  DialogHeader,
+  Switch,
+  Text,
+} from '@backstage/ui';
+import { RiExternalLinkLine } from '@remixicon/react';
+import type { V1ObjectMeta } from '@kubernetes/client-node';
+import {
   StructuredMetadataTable,
   WarningPanel,
 } from '@backstage/core-components';
@@ -40,50 +38,7 @@ import { kubernetesClusterLinkFormatterApiRef } from '../../api';
 import useAsync from 'react-use/esm/useAsync';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { kubernetesReactTranslationRef } from '../../translation';
-
-const useDrawerStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    paper: {
-      width: '50%',
-      justifyContent: 'space-between',
-      padding: theme.spacing(2.5),
-    },
-  }),
-);
-
-const useDrawerContentStyles = makeStyles((_: Theme) =>
-  createStyles({
-    header: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    errorMessage: {
-      marginTop: '1em',
-      marginBottom: '1em',
-    },
-    options: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    icon: {
-      fontSize: 20,
-    },
-    content: {
-      height: '80%',
-    },
-  }),
-);
-
-const PodDrawerButton = withStyles({
-  root: {
-    padding: '6px 5px',
-  },
-  label: {
-    textTransform: 'none',
-  },
-})(Button);
+import styles from './KubernetesDrawer.module.css';
 
 /**
  *
@@ -115,9 +70,9 @@ export const LinkErrorPanel = ({
       })}
     >
       {errorMessage && (
-        <Typography variant="body2">
+        <Text as="p" variant="body-small">
           {t('linkErrorPanel.errorsLabel')} {errorMessage}
-        </Typography>
+        </Text>
       )}
     </WarningPanel>
   );
@@ -135,7 +90,6 @@ export interface KubernetesDrawerable {
 interface KubernetesStructuredMetadataTableDrawerContentProps<
   T extends KubernetesDrawerable,
 > {
-  toggleDrawer: (e: ChangeEvent<{}>, isOpen: boolean) => void;
   object: T;
   renderObject: (obj: T) => object;
   kind: string;
@@ -153,7 +107,6 @@ function replaceNullsWithUndefined(someObj: any) {
 const KubernetesStructuredMetadataTableDrawerContent = <
   T extends KubernetesDrawerable,
 >({
-  toggleDrawer,
   object,
   renderObject,
   kind,
@@ -162,7 +115,6 @@ const KubernetesStructuredMetadataTableDrawerContent = <
   const [isYaml, setIsYaml] = useState<boolean>(false);
 
   const formatter = useApi(kubernetesClusterLinkFormatterApiRef);
-  const classes = useDrawerContentStyles();
   const cluster = useContext(ClusterContext);
   const { value: clusterLink, error } = useAsync(
     async () =>
@@ -178,76 +130,47 @@ const KubernetesStructuredMetadataTableDrawerContent = <
 
   return (
     <>
-      <div className={classes.header}>
-        <Grid container justifyContent="flex-start" alignItems="flex-start">
-          <Grid item xs={11}>
-            <Typography variant="h5">
-              {object.metadata?.name ?? t('kubernetesDrawer.unknownName')}
-            </Typography>
-          </Grid>
-          <Grid item xs={1}>
-            <IconButton
-              key="dismiss"
-              title={t('kubernetesDrawer.closeDrawer')}
-              onClick={e => toggleDrawer(e, false)}
-              color="inherit"
-            >
-              <Close className={classes.icon} />
-            </IconButton>
-          </Grid>
-          <Grid item xs={11}>
-            <Typography color="textSecondary" variant="body1">
-              {kind}
-            </Typography>
-          </Grid>
-          <Grid item xs={11}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isYaml}
-                  onChange={event => {
-                    setIsYaml(event.target.checked);
-                  }}
-                  name={t('kubernetesDrawer.yaml')}
-                />
-              }
-              label={t('kubernetesDrawer.yaml')}
-            />
-          </Grid>
-        </Grid>
-      </div>
-      {error && (
-        <div className={classes.errorMessage}>
-          <LinkErrorPanel
-            cluster={cluster}
-            errorMessage={error.message || error.toString()}
+      <DialogHeader>
+        {object.metadata?.name ?? t('kubernetesDrawer.unknownName')}
+      </DialogHeader>
+      <DialogBody>
+        <div className={styles.content}>
+          <Text as="p" variant="body-medium" color="secondary">
+            {kind}
+          </Text>
+          <Switch
+            label={t('kubernetesDrawer.yaml')}
+            name={t('kubernetesDrawer.yaml')}
+            isSelected={isYaml}
+            onChange={setIsYaml}
           />
-        </div>
-      )}
-      <div className={classes.options}>
-        <div>
+          {error && (
+            <LinkErrorPanel
+              cluster={cluster}
+              errorMessage={error.message || error.toString()}
+            />
+          )}
           {clusterLink && (
-            <BackstageButton
-              variant="outlined"
-              color="primary"
-              size="small"
-              to={clusterLink}
-              endIcon={<OpenInNewIcon />}
-            >
-              Open Kubernetes Dashboard
-            </BackstageButton>
+            <div>
+              <ButtonLink
+                variant="secondary"
+                size="small"
+                href={clusterLink}
+                iconEnd={<RiExternalLinkLine />}
+              >
+                Open Kubernetes Dashboard
+              </ButtonLink>
+            </div>
+          )}
+          {isYaml && <ManifestYaml object={object} />}
+          {!isYaml && (
+            <StructuredMetadataTable
+              metadata={renderObject(replaceNullsWithUndefined(object))}
+              options={{ nestedValuesAsYaml: true }}
+            />
           )}
         </div>
-      </div>
-      <div className={classes.content}>
-        {isYaml && <ManifestYaml object={object} />}
-        {!isYaml && (
-          <StructuredMetadataTable
-            metadata={renderObject(replaceNullsWithUndefined(object))}
-            options={{ nestedValuesAsYaml: true }}
-          />
-        )}
-      </div>
+      </DialogBody>
     </>
   );
 };
@@ -282,43 +205,39 @@ export const KubernetesStructuredMetadataTableDrawer = <
   children,
 }: KubernetesStructuredMetadataTableDrawerProps<T>) => {
   const [isOpen, setIsOpen] = useState(expanded);
-  const classes = useDrawerStyles();
-
-  const toggleDrawer = (e: ChangeEvent<{}>, newValue: boolean) => {
-    e.stopPropagation();
-    setIsOpen(newValue);
-  };
 
   return (
     <>
-      <PodDrawerButton
-        onClick={e => toggleDrawer(e, true)}
-        onFocus={event => event.stopPropagation()}
+      <Button
+        variant="tertiary"
+        className={styles.trigger}
+        onPress={() => setIsOpen(true)}
       >
         {children === undefined ? (
-          <Typography variant={buttonVariant}>
+          <Text
+            as="span"
+            variant={buttonVariant === 'h5' ? 'title-small' : 'body-medium'}
+            weight={buttonVariant === 'h5' ? 'regular' : 'bold'}
+          >
             {object.metadata?.name ?? 'unknown object'}
-          </Typography>
+          </Text>
         ) : (
           children
         )}
-      </PodDrawerButton>
-      <Drawer
-        classes={{
-          paper: classes.paper,
-        }}
-        anchor="right"
-        open={isOpen}
-        onClose={(e: any) => toggleDrawer(e, false)}
-        onClick={event => event.stopPropagation()}
+      </Button>
+      <Dialog
+        className={styles.drawer}
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
       >
-        <KubernetesStructuredMetadataTableDrawerContent
-          kind={kind}
-          toggleDrawer={toggleDrawer}
-          object={object}
-          renderObject={renderObject}
-        />
-      </Drawer>
+        {isOpen && (
+          <KubernetesStructuredMetadataTableDrawerContent
+            kind={kind}
+            object={object}
+            renderObject={renderObject}
+          />
+        )}
+      </Dialog>
     </>
   );
 };

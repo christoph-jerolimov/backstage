@@ -125,6 +125,9 @@ export const kubernetesReactTranslationRef = createTranslationRef({
       eventTooltip: '{{eventType}} event',
       firstEvent: 'First event {{timeAgo}} (count: {{count}})',
     },
+    kubernetesAccordion: {
+      toggleDetails: 'Show or hide details for {{name}}',
+    },
     kubernetesDrawer: {
       closeDrawer: 'Close the drawer',
       yaml: 'YAML',

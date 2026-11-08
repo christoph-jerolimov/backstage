@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 import { useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
 import type { V1Secret } from '@kubernetes/client-node';
 import { SecretsDrawer } from './SecretsDrawer.tsx';
 import { GroupedResponsesContext } from '../../hooks';
 import { StructuredMetadataTable } from '@backstage/core-components';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 type SecretSummaryProps = {
   secret: V1Secret;
@@ -31,23 +27,14 @@ type SecretSummaryProps = {
 
 const SecretSummary = ({ secret }: SecretSummaryProps) => {
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={8} item>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow>
         <SecretsDrawer secret={secret} />
-      </Grid>
-
-      <Grid item>
-        <Typography variant="subtitle2">
-          Data Count: {secret.data ? Object.keys(secret.data).length : 0}
-        </Typography>
-      </Grid>
-    </Grid>
+      </Box>
+      <Text as="span" variant="body-medium" weight="bold">
+        Data Count: {secret.data ? Object.keys(secret.data).length : 0}
+      </Text>
+    </Flex>
   );
 };
 
@@ -78,31 +65,22 @@ type SecretsAccordionProps = {
 
 const SecretsAccordion = ({ secret }: SecretsAccordionProps) => {
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <SecretSummary secret={secret} />
-      </AccordionSummary>
-      <AccordionDetails>
-        <SecretCard secret={secret} />
-      </AccordionDetails>
-    </Accordion>
+    <KubernetesAccordion
+      label={secret.metadata?.name ?? 'unknown object'}
+      summary={<SecretSummary secret={secret} />}
+    >
+      <SecretCard secret={secret} />
+    </KubernetesAccordion>
   );
 };
 
 export const SecretsAccordions = ({}: SecretsAccordionsProps) => {
   const groupedResponses = useContext(GroupedResponsesContext);
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {groupedResponses.secrets.map((secret, i) => (
-        <Grid item key={i} xs>
-          <SecretsAccordion secret={secret} />
-        </Grid>
+        <SecretsAccordion key={i} secret={secret} />
       ))}
-    </Grid>
+    </Flex>
   );
 };

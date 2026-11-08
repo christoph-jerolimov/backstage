@@ -15,16 +15,12 @@
  */
 
 import { useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
 import type { V1Service } from '@kubernetes/client-node';
 import { ServiceDrawer } from './ServiceDrawer';
 import { GroupedResponsesContext } from '../../hooks';
 import { StructuredMetadataTable } from '@backstage/core-components';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 type ServiceSummaryProps = {
   service: V1Service;
@@ -32,23 +28,14 @@ type ServiceSummaryProps = {
 
 const ServiceSummary = ({ service }: ServiceSummaryProps) => {
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={8} item>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow>
         <ServiceDrawer service={service} />
-      </Grid>
-
-      <Grid item>
-        <Typography variant="subtitle2">
-          Type: {service.spec?.type ?? '?'}
-        </Typography>
-      </Grid>
-    </Grid>
+      </Box>
+      <Text as="span" variant="body-medium" weight="bold">
+        Type: {service.spec?.type ?? '?'}
+      </Text>
+    </Flex>
   );
 };
 
@@ -95,14 +82,12 @@ type ServiceAccordionProps = {
 
 const ServiceAccordion = ({ service }: ServiceAccordionProps) => {
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <ServiceSummary service={service} />
-      </AccordionSummary>
-      <AccordionDetails>
-        <ServiceCard service={service} />
-      </AccordionDetails>
-    </Accordion>
+    <KubernetesAccordion
+      label={service.metadata?.name ?? 'unknown object'}
+      summary={<ServiceSummary service={service} />}
+    >
+      <ServiceCard service={service} />
+    </KubernetesAccordion>
   );
 };
 
@@ -114,17 +99,10 @@ const ServiceAccordion = ({ service }: ServiceAccordionProps) => {
 export const ServicesAccordions = ({}: ServicesAccordionsProps) => {
   const groupedResponses = useContext(GroupedResponsesContext);
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {groupedResponses.services.map((service, i) => (
-        <Grid item key={i} xs>
-          <ServiceAccordion service={service} />
-        </Grid>
+        <ServiceAccordion key={i} service={service} />
       ))}
-    </Grid>
+    </Flex>
   );
 };

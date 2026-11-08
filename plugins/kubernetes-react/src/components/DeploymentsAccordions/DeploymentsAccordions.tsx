@@ -15,12 +15,7 @@
  */
 
 import { ReactNode, useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
 import type {
   V1Deployment,
   V1Pod,
@@ -41,6 +36,7 @@ import { StatusError, StatusOK } from '@backstage/core-components';
 import { READY_COLUMNS, RESOURCE_COLUMNS } from '../Pods/PodsTable';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { kubernetesReactTranslationRef } from '../../translation';
+import { KubernetesAccordion } from '../KubernetesAccordion';
 
 type DeploymentsAccordionsProps = {
   children?: ReactNode;
@@ -77,76 +73,45 @@ const DeploymentSummary = ({
   )?.resource?.current.averageUtilization;
 
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={4} item>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow basis="0">
         <DeploymentDrawer deployment={deployment} />
-      </Grid>
+      </Box>
       {hpa && (
-        <Grid item xs={4}>
+        <Box grow basis="0">
           <HorizontalPodAutoscalerDrawer hpa={hpa}>
-            <Grid
-              item
-              container
-              direction="column"
-              justifyContent="flex-start"
-              alignItems="flex-start"
-              spacing={0}
-            >
-              <Grid item>
-                <Typography variant="subtitle2">
-                  {t('hpa.replicasSummary', {
-                    min: String(hpa.spec?.minReplicas ?? '?'),
-                    max: String(hpa.spec?.maxReplicas ?? '?'),
-                  })}
-                </Typography>
-              </Grid>
-              <Grid item>
-                <Typography variant="subtitle2">
-                  {t('hpa.currentCpuUsageLabel', {
-                    value: String(cpuUtil ?? '?'),
-                  })}
-                </Typography>
-              </Grid>
-              <Grid item>
-                <Typography variant="subtitle2">
-                  {t('hpa.targetCpuUsageLabel', {
-                    value: String(specCpuUtil ?? '?'),
-                  })}
-                </Typography>
-              </Grid>
-            </Grid>
+            <Flex direction="column" align="start" gap="1">
+              <Text as="span" variant="body-medium" weight="bold">
+                {t('hpa.replicasSummary', {
+                  min: String(hpa.spec?.minReplicas ?? '?'),
+                  max: String(hpa.spec?.maxReplicas ?? '?'),
+                })}
+              </Text>
+              <Text as="span" variant="body-medium" weight="bold">
+                {t('hpa.currentCpuUsageLabel', {
+                  value: String(cpuUtil ?? '?'),
+                })}
+              </Text>
+              <Text as="span" variant="body-medium" weight="bold">
+                {t('hpa.targetCpuUsageLabel', {
+                  value: String(specCpuUtil ?? '?'),
+                })}
+              </Text>
+            </Flex>
           </HorizontalPodAutoscalerDrawer>
-        </Grid>
+        </Box>
       )}
-      <Grid
-        item
-        container
-        xs={4}
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-end"
-        spacing={0}
-      >
-        <Grid item>
-          <StatusOK>{t('pods.pods', { count: numberOfCurrentPods })}</StatusOK>
-        </Grid>
-        <Grid item>
-          {numberOfPodsWithErrors > 0 ? (
-            <StatusError>
-              {t('cluster.podsWithErrors', { count: numberOfPodsWithErrors })}
-            </StatusError>
-          ) : (
-            <StatusOK>{t('cluster.noPodsWithErrors')}</StatusOK>
-          )}
-        </Grid>
-      </Grid>
-    </Grid>
+      <Flex direction="column" align="end" gap="1" grow basis="0">
+        <StatusOK>{t('pods.pods', { count: numberOfCurrentPods })}</StatusOK>
+        {numberOfPodsWithErrors > 0 ? (
+          <StatusError>
+            {t('cluster.podsWithErrors', { count: numberOfPodsWithErrors })}
+          </StatusError>
+        ) : (
+          <StatusOK>{t('cluster.noPodsWithErrors')}</StatusOK>
+        )}
+      </Flex>
+    </Flex>
   );
 };
 
@@ -162,22 +127,22 @@ const DeploymentAccordion = ({
   );
 
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} variant="outlined">
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <KubernetesAccordion
+      label={deployment.metadata?.name ?? 'unknown object'}
+      summary={
         <DeploymentSummary
           deployment={deployment}
           numberOfCurrentPods={ownedPods.length}
           numberOfPodsWithErrors={podsWithErrors.length}
           hpa={matchingHpa}
         />
-      </AccordionSummary>
-      <AccordionDetails>
-        <PodsTable
-          pods={ownedPods}
-          extraColumns={[READY_COLUMNS, RESOURCE_COLUMNS]}
-        />
-      </AccordionDetails>
-    </Accordion>
+      }
+    >
+      <PodsTable
+        pods={ownedPods}
+        extraColumns={[READY_COLUMNS, RESOURCE_COLUMNS]}
+      />
+    </KubernetesAccordion>
   );
 };
 
@@ -185,34 +150,26 @@ export const DeploymentsAccordions = ({}: DeploymentsAccordionsProps) => {
   const groupedResponses = useContext(GroupedResponsesContext);
 
   return (
-    <Grid
-      container
-      direction="column"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {groupedResponses.deployments.map((deployment, i) => (
-        <Grid container item key={i} xs>
-          <Grid item xs>
-            <DeploymentAccordion
-              matchingHpa={getMatchingHpa(
-                {
-                  name: deployment.metadata?.name,
-                  namespace: deployment.metadata?.namespace,
-                  kind: 'deployment',
-                },
-                groupedResponses.horizontalPodAutoscalers,
-              )}
-              ownedPods={getOwnedPodsThroughReplicaSets(
-                deployment,
-                groupedResponses.replicaSets,
-                groupedResponses.pods,
-              )}
-              deployment={deployment}
-            />
-          </Grid>
-        </Grid>
+        <DeploymentAccordion
+          key={i}
+          matchingHpa={getMatchingHpa(
+            {
+              name: deployment.metadata?.name,
+              namespace: deployment.metadata?.namespace,
+              kind: 'deployment',
+            },
+            groupedResponses.horizontalPodAutoscalers,
+          )}
+          ownedPods={getOwnedPodsThroughReplicaSets(
+            deployment,
+            groupedResponses.replicaSets,
+            groupedResponses.pods,
+          )}
+          deployment={deployment}
+        />
       ))}
-    </Grid>
+    </Flex>
   );
 };

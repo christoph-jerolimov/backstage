@@ -15,16 +15,15 @@
  */
 
 import { ReactNode } from 'react';
-import Step from '@material-ui/core/Step';
-import StepLabel from '@material-ui/core/StepLabel';
-import Stepper from '@material-ui/core/Stepper';
-import Typography from '@material-ui/core/Typography';
+import { Text } from '@backstage/ui';
+import { RiCheckLine } from '@remixicon/react';
 import {
   ArgoRolloutCanaryStep,
   SetWeightStep,
   PauseStep,
   AnalysisStep,
 } from './types';
+import styles from './StepsProgress.module.css';
 
 interface StepsProgressProps {
   currentStepIndex: number;
@@ -52,16 +51,42 @@ const createLabelForStep = (step: ArgoRolloutCanaryStep): ReactNode => {
   } else if (isAnalysisStep(step)) {
     return (
       <div>
-        <Typography paragraph>analysis templates:</Typography>
+        <Text as="p">analysis templates:</Text>
         {step.analysis.templates.map((t, i) => (
-          <Typography paragraph key={i}>{`${t.templateName}${
+          <Text as="p" key={i}>{`${t.templateName}${
             t.clusterScope ? ' (cluster scoped)' : ''
-          }`}</Typography>
+          }`}</Text>
         ))}
       </div>
     );
   }
   return 'unknown step';
+};
+
+type StepState = 'completed' | 'active' | 'pending';
+
+interface StepProps {
+  number: number;
+  testId: string;
+  state: StepState;
+  label: ReactNode;
+}
+
+const Step = ({ number, testId, state, label }: StepProps) => {
+  return (
+    <li className={styles.step} data-state={state}>
+      <div className={styles.indicator}>
+        {state === 'completed' ? (
+          <RiCheckLine size={16} aria-label="completed" />
+        ) : (
+          number
+        )}
+      </div>
+      <div className={styles.label} data-testid={testId}>
+        {label}
+      </div>
+    </li>
+  );
 };
 
 export const StepsProgress = ({
@@ -76,24 +101,39 @@ export const StepsProgress = ({
     currentStepIndex >= steps.length ? currentStepIndex + 1 : currentStepIndex;
 
   /*
-   *  When the Rollout is aborted set the active step to -1
+   *  When the Rollout is aborted no step is active or completed,
    *  otherwise it appears to always be on the first step
    */
+  const getState = (index: number): StepState => {
+    if (aborted) {
+      return 'pending';
+    }
+    if (index < activeStepIndex) {
+      return 'completed';
+    }
+    if (index === activeStepIndex) {
+      return 'active';
+    }
+    return 'pending';
+  };
+
   return (
-    <Stepper activeStep={aborted ? -1 : activeStepIndex} alternativeLabel>
-      {steps
-        .map((step, i) => (
-          <Step key={i}>
-            <StepLabel data-testid={`step-${i}`}>
-              {createLabelForStep(step)}
-            </StepLabel>
-          </Step>
-        ))
-        .concat(
-          <Step key="-1">
-            <StepLabel data-testid="step--1">Canary promoted</StepLabel>
-          </Step>,
-        )}
-    </Stepper>
+    <ol className={styles.stepper}>
+      {steps.map((step, i) => (
+        <Step
+          key={i}
+          number={i + 1}
+          testId={`step-${i}`}
+          state={getState(i)}
+          label={createLabelForStep(step)}
+        />
+      ))}
+      <Step
+        number={steps.length + 1}
+        testId="step--1"
+        state={getState(steps.length)}
+        label="Canary promoted"
+      />
+    </ol>
   );
 };

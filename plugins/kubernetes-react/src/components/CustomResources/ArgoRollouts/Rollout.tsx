@@ -15,18 +15,12 @@
  */
 
 import { ReactNode, useContext } from 'react';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Box, Flex, Text } from '@backstage/ui';
+import { RiErrorWarningLine, RiPauseLine } from '@remixicon/react';
 import type { V1Pod, V2HorizontalPodAutoscaler } from '@kubernetes/client-node';
 import { PodsTable } from '../../Pods';
 import { HorizontalPodAutoscalerDrawer } from '../../HorizontalPodAutoscalers';
 import { RolloutDrawer } from './RolloutDrawer';
-import PauseIcon from '@material-ui/icons/Pause';
-import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import { DateTime } from 'luxon';
 import { StepsProgress } from './StepsProgress';
 import {
@@ -41,6 +35,7 @@ import { StatusError, StatusOK } from '@backstage/core-components';
 import { READY_COLUMNS, RESOURCE_COLUMNS } from '../../Pods/PodsTable';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { kubernetesReactTranslationRef } from '../../../translation';
+import { KubernetesAccordion } from '../../KubernetesAccordion';
 
 type RolloutAccordionsProps = {
   rollouts: any[];
@@ -65,16 +60,12 @@ type RolloutSummaryProps = {
 };
 
 const AbortedTitle = (
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-    }}
-  >
-    <ErrorOutlineIcon />
-    <Typography variant="subtitle1">Aborted</Typography>
-  </div>
+  <Flex align="center" gap="1">
+    <RiErrorWarningLine />
+    <Text as="span" variant="body-large">
+      Aborted
+    </Text>
+  </Flex>
 );
 
 const findAbortedMessage = (rollout: any): string | undefined =>
@@ -105,98 +96,58 @@ const RolloutSummary = ({
   )?.resource?.current.averageUtilization;
 
   return (
-    <Grid
-      container
-      direction="row"
-      justifyContent="space-between"
-      alignItems="center"
-      spacing={0}
-    >
-      <Grid xs={6} item>
+    <Flex direction="row" justify="between" align="center" gap="4">
+      <Box grow basis="0">
         <RolloutDrawer rollout={rollout} />
-      </Grid>
+      </Box>
       {hpa && (
-        <Grid item xs={3}>
+        <Box grow basis="0">
           <HorizontalPodAutoscalerDrawer hpa={hpa}>
-            <Grid
-              item
-              container
-              direction="column"
-              justifyContent="flex-start"
-              alignItems="flex-start"
-              spacing={0}
-            >
-              <Grid item>
-                <Typography variant="subtitle2">
-                  {t('hpa.replicasSummary', {
-                    min: String(hpa.spec?.minReplicas ?? '?'),
-                    max: String(hpa.spec?.maxReplicas ?? '?'),
-                  })}
-                </Typography>
-              </Grid>
-              <Grid item>
-                <Typography variant="subtitle2">
-                  {t('hpa.currentCpuUsageLabel', {
-                    value: String(cpuUtil ?? '?'),
-                  })}
-                </Typography>
-              </Grid>
-              <Grid item>
-                <Typography variant="subtitle2">
-                  {t('hpa.targetCpuUsageLabel', {
-                    value: String(specCpuUtil ?? '?'),
-                  })}
-                </Typography>
-              </Grid>
-            </Grid>
+            <Flex direction="column" align="start" gap="1">
+              <Text as="span" variant="body-medium" weight="bold">
+                {t('hpa.replicasSummary', {
+                  min: String(hpa.spec?.minReplicas ?? '?'),
+                  max: String(hpa.spec?.maxReplicas ?? '?'),
+                })}
+              </Text>
+              <Text as="span" variant="body-medium" weight="bold">
+                {t('hpa.currentCpuUsageLabel', {
+                  value: String(cpuUtil ?? '?'),
+                })}
+              </Text>
+              <Text as="span" variant="body-medium" weight="bold">
+                {t('hpa.targetCpuUsageLabel', {
+                  value: String(specCpuUtil ?? '?'),
+                })}
+              </Text>
+            </Flex>
           </HorizontalPodAutoscalerDrawer>
-        </Grid>
+        </Box>
       )}
-      <Grid
-        item
-        container
-        xs={3}
-        direction="column"
-        justifyContent="flex-start"
-        alignItems="flex-end"
-        spacing={0}
-      >
-        <Grid item>
-          <StatusOK>{t('pods.pods', { count: numberOfCurrentPods })}</StatusOK>
-        </Grid>
-        <Grid item>
-          {numberOfPodsWithErrors > 0 ? (
-            <StatusError>
-              {t('cluster.podsWithErrors', { count: numberOfPodsWithErrors })}
-            </StatusError>
-          ) : (
-            <StatusOK>{t('cluster.noPodsWithErrors')}</StatusOK>
-          )}
-        </Grid>
-      </Grid>
+      <Flex direction="column" align="end" gap="1" grow basis="0">
+        <StatusOK>{t('pods.pods', { count: numberOfCurrentPods })}</StatusOK>
+        {numberOfPodsWithErrors > 0 ? (
+          <StatusError>
+            {t('cluster.podsWithErrors', { count: numberOfPodsWithErrors })}
+          </StatusError>
+        ) : (
+          <StatusOK>{t('cluster.noPodsWithErrors')}</StatusOK>
+        )}
+      </Flex>
       {pauseTime && (
-        <Grid item xs={3}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            <PauseIcon />
-            <Typography variant="subtitle1">
-              Paused ({DateTime.fromISO(pauseTime).toRelative({ locale: 'en' })}
-              )
-            </Typography>
-          </div>
-        </Grid>
+        <Flex align="center" gap="1" grow basis="0">
+          <RiPauseLine />
+          <Text as="span" variant="body-large">
+            Paused ({DateTime.fromISO(pauseTime).toRelative({ locale: 'en' })})
+          </Text>
+        </Flex>
       )}
       {abortedMessage && (
-        <Grid item xs={3}>
+        <Box grow basis="0">
           {AbortedTitle}
-        </Grid>
+        </Box>
       )}
-    </Grid>
+    </Flex>
   );
 };
 
@@ -216,46 +167,43 @@ const RolloutAccordion = ({
   const abortedMessage = findAbortedMessage(rollout);
 
   return (
-    <Accordion
+    <KubernetesAccordion
+      label={rollout.metadata?.name ?? 'unknown object'}
       defaultExpanded={defaultExpanded}
-      TransitionProps={{ unmountOnExit: true }}
-      variant="outlined"
-    >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      summary={
         <RolloutSummary
           rollout={rollout}
           numberOfCurrentPods={ownedPods.length}
           numberOfPodsWithErrors={podsWithErrors.length}
           hpa={matchingHpa}
         />
-      </AccordionSummary>
-      <AccordionDetails>
-        <div style={{ width: '100%' }}>
-          <div>
-            <Typography variant="h6">Rollout status</Typography>
-          </div>
-          <div style={{ margin: '1rem' }}>
-            {abortedMessage && (
-              <>
-                {AbortedTitle}
-                <Typography variant="subtitle2">{abortedMessage}</Typography>
-              </>
-            )}
-            <StepsProgress
-              aborted={abortedMessage !== undefined}
-              steps={rollout.spec?.strategy?.canary?.steps ?? []}
-              currentStepIndex={currentStepIndex}
-            />
-          </div>
-          <div>
-            <PodsTable
-              pods={ownedPods}
-              extraColumns={[READY_COLUMNS, RESOURCE_COLUMNS]}
-            />
-          </div>
-        </div>
-      </AccordionDetails>
-    </Accordion>
+      }
+    >
+      <Flex direction="column" gap="4">
+        <Text as="h6" variant="title-x-small">
+          Rollout status
+        </Text>
+        <Box px="4">
+          {abortedMessage && (
+            <>
+              {AbortedTitle}
+              <Text as="p" variant="body-medium" weight="bold">
+                {abortedMessage}
+              </Text>
+            </>
+          )}
+          <StepsProgress
+            aborted={abortedMessage !== undefined}
+            steps={rollout.spec?.strategy?.canary?.steps ?? []}
+            currentStepIndex={currentStepIndex}
+          />
+        </Box>
+        <PodsTable
+          pods={ownedPods}
+          extraColumns={[READY_COLUMNS, RESOURCE_COLUMNS]}
+        />
+      </Flex>
+    </KubernetesAccordion>
   );
 };
 
@@ -266,35 +214,27 @@ export const RolloutAccordions = ({
   const groupedResponses = useContext(GroupedResponsesContext);
 
   return (
-    <Grid
-      container
-      direction="column"
-      justifyContent="flex-start"
-      alignItems="flex-start"
-    >
+    <Flex direction="column" gap="2">
       {rollouts.map((rollout, i) => (
-        <Grid container item key={i} xs>
-          <Grid item xs>
-            <RolloutAccordion
-              defaultExpanded={defaultExpanded}
-              matchingHpa={getMatchingHpa(
-                {
-                  name: rollout.metadata?.name,
-                  namespace: rollout.metadata?.namespace,
-                  kind: 'rollout',
-                },
-                groupedResponses.horizontalPodAutoscalers,
-              )}
-              ownedPods={getOwnedPodsThroughReplicaSets(
-                rollout,
-                groupedResponses.replicaSets,
-                groupedResponses.pods,
-              )}
-              rollout={rollout}
-            />
-          </Grid>
-        </Grid>
+        <RolloutAccordion
+          key={i}
+          defaultExpanded={defaultExpanded}
+          matchingHpa={getMatchingHpa(
+            {
+              name: rollout.metadata?.name,
+              namespace: rollout.metadata?.namespace,
+              kind: 'rollout',
+            },
+            groupedResponses.horizontalPodAutoscalers,
+          )}
+          ownedPods={getOwnedPodsThroughReplicaSets(
+            rollout,
+            groupedResponses.replicaSets,
+            groupedResponses.pods,
+          )}
+          rollout={rollout}
+        />
       ))}
-    </Grid>
+    </Flex>
   );
 };
