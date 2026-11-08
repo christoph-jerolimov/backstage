@@ -25,11 +25,11 @@ const SignalsDebugPage = () => {
     <Page themeId="home">
       <Header title="Signals" />
       <Content>
-        <Text>Last signal:</Text>
+        <Text as="p">Last signal:</Text>
         {lastSignal ? (
           <CodeSnippet text={JSON.stringify(lastSignal)} language="json" />
         ) : (
-          <Text>Not received</Text>
+          <Text as="p">Not received</Text>
         )}
       </Content>
     </Page>
