@@ -15,7 +15,7 @@
  */
 
 import { ScmIntegration, ScmIntegrationsGroup } from '@backstage/integration';
-import Typography from '@material-ui/core/Typography';
+import { Text } from '@backstage/ui';
 import { scmIntegrationsApiRef } from '../src/api/ScmIntegrationsApi';
 
 import { Content } from '@backstage/core-components';
@@ -27,16 +27,16 @@ const Integrations = (props: {
   const integrations = props.group.list();
   if (!integrations) {
     return (
-      <Typography color="textSecondary">
+      <Text as="p" color="secondary">
         No integrations of this type
-      </Typography>
+      </Text>
     );
   }
 
   return (
-    <Typography variant="caption">
+    <Text as="div" variant="body-x-small">
       <pre>{JSON.stringify(integrations, undefined, 2)}</pre>
-    </Typography>
+    </Text>
   );
 };
 
@@ -44,25 +44,25 @@ export const DevPage = () => {
   const integrations = useApi(scmIntegrationsApiRef);
   return (
     <Content>
-      <Typography paragraph variant="h2">
+      <Text as="h2" variant="title-medium">
         Azure
-      </Typography>
+      </Text>
       <Integrations group={integrations.azure} />
-      <Typography paragraph variant="h2">
+      <Text as="h2" variant="title-medium">
         Bitbucket Cloud
-      </Typography>
+      </Text>
       <Integrations group={integrations.bitbucketCloud} />
-      <Typography paragraph variant="h2">
+      <Text as="h2" variant="title-medium">
         Bitbucket Server
-      </Typography>
+      </Text>
       <Integrations group={integrations.bitbucketServer} />
-      <Typography paragraph variant="h2">
+      <Text as="h2" variant="title-medium">
         GitHub
-      </Typography>
+      </Text>
       <Integrations group={integrations.github} />
-      <Typography paragraph variant="h2">
+      <Text as="h2" variant="title-medium">
         GitLab
-      </Typography>
+      </Text>
       <Integrations group={integrations.gitlab} />
     </Content>
   );

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import CodeIcon from '@material-ui/icons/Code';
 import { useApp } from '@backstage/core-plugin-api';
+import { RiCodeLine } from '@remixicon/react';
 
 /**
  * Props for {@link ScmIntegrationIcon}.
@@ -36,7 +36,7 @@ export type ScmIntegrationIconProps = {
 export const ScmIntegrationIcon = (props: ScmIntegrationIconProps) => {
   const { type } = props;
   const app = useApp();
-  const DefaultIcon = CodeIcon;
+  const DefaultIcon = RiCodeLine;
   const Icon = type ? app.getSystemIcon(type) ?? DefaultIcon : DefaultIcon;
   return <Icon />;
 };

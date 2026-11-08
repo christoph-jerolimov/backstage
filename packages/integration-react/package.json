@@ -36,8 +36,8 @@
     "@backstage/config": "workspace:^",
     "@backstage/core-plugin-api": "workspace:^",
     "@backstage/integration": "workspace:^",
-    "@material-ui/core": "^4.12.2",
-    "@material-ui/icons": "^4.9.1"
+    "@backstage/ui": "workspace:^",
+    "@remixicon/react": ">=4.6.0 <4.9.0"
   },
   "devDependencies": {
     "@backstage/cli": "workspace:^",
