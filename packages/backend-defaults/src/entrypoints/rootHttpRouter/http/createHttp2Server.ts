@@ -27,15 +27,20 @@
 //   on top of the HTTP/2 compat classes and patches the header differences.
 //   Known to break: plugins that mount their own express() app, such as the
 //   scaffolder, switch the prototype back and the request hangs.
-// - bridge: Express stays on plain HTTP/1.1 on a loopback port. All requests,
-//   HTTP/2 and HTTP/1.1, plus WebSocket upgrades, are forwarded to it, so this
-//   is an in-process reverse proxy. Requires `backend.trustProxy` to include
-//   loopback for correct client IPs and protocol in Express.
+// - bridge: Express stays on plain HTTP/1.1 on a private Unix socket. All
+//   requests, HTTP/2 and HTTP/1.1, plus WebSocket upgrades, are forwarded to
+//   it, so this is an in-process reverse proxy. Express still sees the real
+//   client address and TLS, so `backend.trustProxy` works as without it.
+//
+// HTTP/2 requests are only accepted for allowed hosts, see readAllowedHosts.
 
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 import * as http from 'node:http';
 import * as http2 from 'node:http2';
 import * as net from 'node:net';
-import type { AddressInfo } from 'node:net';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import type { Duplex } from 'node:stream';
 import { RequestListener } from 'node:http';
 import { LoggerService } from '@backstage/backend-plugin-api';
@@ -66,6 +71,8 @@ const HOP_BY_HOP_HEADERS = new Set([
   'te',
 ]);
 
+const MAX_CONCURRENT_STREAMS = 100;
+
 export async function createHttp2Server(
   listener: RequestListener,
   credentials: { key: string | Buffer; cert: string | Buffer },
@@ -78,20 +85,42 @@ export async function createHttp2Server(
 
   const bridge =
     mode === 'bridge' ? await createBridgeHandler(listener) : undefined;
-  const handler = bridge?.handler ?? createShimHandler(listener);
+  const modeHandler = bridge?.handler ?? createShimHandler(listener);
+
+  const allowedHosts = readAllowedHosts(credentials.cert);
+  deps.logger.info(
+    `HTTP/2 requests are accepted for hosts: ${[...allowedHosts].join(', ')}`,
+  );
+  const handler = (req: any, res: any) => {
+    if (req.httpVersionMajor === 2) {
+      const hostname = hostnameOf(
+        req.headers[':authority'] ?? req.headers.host,
+      );
+      if (!hostname || !allowedHosts.has(hostname)) {
+        res.writeHead(421, { 'content-type': 'text/plain' });
+        res.end('Misdirected Request');
+        return;
+      }
+    }
+    modeHandler(req, res);
+  };
 
   const server = http2.createSecureServer(
-    { ...credentials, allowHTTP1: true },
-    handler as any,
+    {
+      ...credentials,
+      allowHTTP1: true,
+      // Limit parallel requests per connection, as nginx does (128). The
+      // default is unlimited, letting one connection fan out without bound.
+      settings: { maxConcurrentStreams: MAX_CONCURRENT_STREAMS },
+    },
+    handler,
   );
   if (bridge) {
     server.on('upgrade', bridge.onUpgrade);
     // Shut down the internal server together with the public one
     const close = server.close;
     server.close = function closeWithBridge(callback?: (err?: Error) => void) {
-      bridge.agent.destroy();
-      bridge.internal.closeAllConnections();
-      bridge.internal.close();
+      bridge.close();
       return close.call(this, callback);
     };
   }
@@ -236,13 +265,83 @@ function rebase(appProto: object, base: Function, app: object) {
   });
 }
 
+// Private header used by the bridge to pass the client connection details
+const BRIDGE_HEADER = 'x-backstage-http2-bridge';
+
 async function createBridgeHandler(listener: RequestListener) {
+  // The internal server listens on a Unix socket in a private directory
+  // (mode 0700), so no other local user can reach it. On Windows a named pipe
+  // is used instead, which only the per-process secret below protects.
+  const socketDir = fs.mkdtempSync(path.join(os.tmpdir(), 'backstage-h2-'));
+  // Synchronous, since the backend calls process.exit() right after shutdown
+  const removeSocketDir = () =>
+    fs.rmSync(socketDir, { recursive: true, force: true });
+  process.once('exit', removeSocketDir);
+  const socketPath =
+    process.platform === 'win32'
+      ? `\\\\.\\pipe\\${path.basename(socketDir)}`
+      : path.join(socketDir, 'bridge.sock');
+  const secret = crypto.randomBytes(32).toString('hex');
+
   const internal = http.createServer(listener);
-  await new Promise<void>(resolve =>
-    internal.listen(0, '127.0.0.1', () => resolve()),
-  );
-  const port = (internal.address() as AddressInfo).port;
+
+  // Before Express or any 'upgrade' listener sees a request, verify that it
+  // came from the bridge and restore the client connection details. Express
+  // then sees the real client address and TLS, exactly as without the bridge,
+  // and applies `backend.trustProxy` to the client's X-Forwarded-* headers.
+  const emit = internal.emit;
+  internal.emit = function emitWithBridgeInfo(
+    this: http.Server,
+    event: string | symbol,
+    ...args: any[]
+  ) {
+    if (event === 'request' || event === 'upgrade') {
+      const req = args[0] as http.IncomingMessage;
+      const info = readBridgeInfo(req, secret);
+      if (!info) {
+        if (event === 'request') {
+          (args[1] as http.ServerResponse).writeHead(403).end();
+        } else {
+          (args[1] as Duplex).destroy();
+        }
+        return true;
+      }
+      const connectionDetails = {
+        remoteAddress: { value: info.remoteAddress },
+        remotePort: { value: info.remotePort },
+        remoteFamily: {
+          value: net.isIPv6(info.remoteAddress) ? 'IPv6' : 'IPv4',
+        },
+        encrypted: { value: true },
+      };
+      if (event === 'upgrade') {
+        // Upgraded connections are never reused, so update them in place
+        Object.defineProperties(args[1], connectionDetails);
+      } else {
+        // Keep-alive sockets are shared by requests from different clients, so
+        // give each request its own view of the socket rather than changing
+        // the shared one, which a handler finishing late could read.
+        Object.defineProperty(req, 'socket', {
+          configurable: true,
+          writable: true,
+          value: Object.create(req.socket, connectionDetails),
+        });
+      }
+    }
+    return (emit as Function).call(this, event, ...args);
+  } as typeof internal.emit;
+
+  await new Promise<void>((resolve, reject) => {
+    internal.once('error', reject);
+    internal.listen(socketPath, () => {
+      internal.off('error', reject);
+      resolve();
+    });
+  });
   const agent = new http.Agent({ keepAlive: true });
+
+  const bridgeHeaderValue = (socket: net.Socket) =>
+    `${secret} ${socket.remotePort} ${socket.remoteAddress}`;
 
   // All traffic, HTTP/1.1 included, goes through the internal server. Plugins
   // that attach to the server of an incoming request, such as signals with
@@ -251,20 +350,20 @@ async function createBridgeHandler(listener: RequestListener) {
   const handler = (req: http.IncomingMessage, res: http.ServerResponse) => {
     const headers: http.OutgoingHttpHeaders = {};
     for (const [name, value] of Object.entries(req.headers)) {
-      if (!name.startsWith(':') && !HOP_BY_HOP_HEADERS.has(name)) {
+      if (
+        !name.startsWith(':') &&
+        !HOP_BY_HOP_HEADERS.has(name) &&
+        name !== BRIDGE_HEADER
+      ) {
         headers[name] = value;
       }
     }
-    const authority = String(req.headers[':authority'] ?? req.headers.host);
-    headers.host = authority;
-    headers['x-forwarded-proto'] = 'https';
-    headers['x-forwarded-host'] = authority;
-    headers['x-forwarded-for'] = req.socket.remoteAddress;
+    headers.host = String(req.headers[':authority'] ?? req.headers.host);
+    headers[BRIDGE_HEADER] = bridgeHeaderValue(req.socket);
 
     const upstream = http.request(
       {
-        host: '127.0.0.1',
-        port,
+        socketPath,
         method: req.method,
         path: req.url,
         headers,
@@ -300,13 +399,14 @@ async function createBridgeHandler(listener: RequestListener) {
     socket: Duplex,
     head: Buffer,
   ) => {
-    const upstream = net.connect(port, '127.0.0.1', () => {
+    const upstream = net.connect(socketPath, () => {
       const lines = [`${req.method} ${req.url} HTTP/1.1`];
       for (let i = 0; i < req.rawHeaders.length; i += 2) {
-        lines.push(`${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}`);
+        if (req.rawHeaders[i].toLowerCase() !== BRIDGE_HEADER) {
+          lines.push(`${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}`);
+        }
       }
-      lines.push(`X-Forwarded-For: ${req.socket.remoteAddress}`);
-      lines.push('X-Forwarded-Proto: https');
+      lines.push(`${BRIDGE_HEADER}: ${bridgeHeaderValue(req.socket)}`);
       upstream.write(`${lines.join('\r\n')}\r\n\r\n`);
       upstream.write(head);
       socket.pipe(upstream).pipe(socket);
@@ -315,5 +415,88 @@ async function createBridgeHandler(listener: RequestListener) {
     socket.on('error', () => upstream.destroy());
   };
 
-  return { handler, onUpgrade, internal, agent };
+  const close = () => {
+    agent.destroy();
+    internal.closeAllConnections();
+    internal.close();
+    removeSocketDir();
+    process.off('exit', removeSocketDir);
+  };
+
+  return { handler, onUpgrade, close };
+}
+
+// Reads and removes the bridge header, returns undefined unless it carries
+// the right secret
+function readBridgeInfo(req: http.IncomingMessage, secret: string) {
+  const value = req.headers[BRIDGE_HEADER];
+  delete req.headers[BRIDGE_HEADER];
+  for (let i = req.rawHeaders.length - 2; i >= 0; i -= 2) {
+    if (req.rawHeaders[i].toLowerCase() === BRIDGE_HEADER) {
+      req.rawHeaders.splice(i, 2);
+    }
+  }
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const [givenSecret, port, ...address] = value.split(' ');
+  const expected = Buffer.from(secret);
+  const given = Buffer.from(givenSecret ?? '');
+  if (
+    given.length !== expected.length ||
+    !crypto.timingSafeEqual(given, expected)
+  ) {
+    return undefined;
+  }
+  return { remotePort: Number(port), remoteAddress: address.join(' ') };
+}
+
+// The hostnames that HTTP/2 requests may be addressed to. Browsers reuse an
+// HTTP/2 connection for any other hostname that the certificate covers and
+// that resolves to the same IP, which with wildcard certificates and
+// hostname-based load balancing can deliver requests and cookies meant for
+// another service. Defaults to the exact, non-wildcard names in the
+// certificate.
+export function readAllowedHosts(cert: string | Buffer): Set<string> {
+  const fromEnv = process.env.BACKSTAGE_EXPERIMENTAL_HTTP2_ALLOWED_HOSTS;
+  if (fromEnv) {
+    return new Set(
+      fromEnv
+        .split(',')
+        .map(host => normalizeHostname(host.trim()))
+        .filter(Boolean),
+    );
+  }
+  const hosts = new Set<string>();
+  const san = new crypto.X509Certificate(cert).subjectAltName ?? '';
+  for (const entry of san.split(',')) {
+    const [type, ...rest] = entry.trim().split(':');
+    const name = rest.join(':').toLowerCase();
+    if ((type === 'DNS' && !name.includes('*')) || type === 'IP Address') {
+      hosts.add(normalizeHostname(name));
+    }
+  }
+  return hosts;
+}
+
+function hostnameOf(authority: string | undefined) {
+  if (!authority) {
+    return undefined;
+  }
+  try {
+    // Handles ports and bracketed IPv6 addresses
+    return normalizeHostname(new URL(`https://${authority}`).hostname);
+  } catch {
+    return undefined;
+  }
+}
+
+// Lowercase, without IPv6 brackets, and IPv6 in its shortest form so that
+// '[::1]' and '0:0:0:0:0:0:0:1' compare equal
+function normalizeHostname(hostname: string) {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (net.isIPv6(host)) {
+    return new URL(`https://[${host}]`).hostname.slice(1, -1);
+  }
+  return host;
 }
