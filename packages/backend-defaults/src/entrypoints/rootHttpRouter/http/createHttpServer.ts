@@ -20,6 +20,7 @@ import { RequestListener } from 'node:http';
 import { LoggerService } from '@backstage/backend-plugin-api';
 import { HttpServerOptions, ExtendedHttpServer } from './types';
 import { getGeneratedCertificate } from './getGeneratedCertificate';
+import { createHttp2Server, readHttp2Mode } from './createHttp2Server';
 
 /**
  * Creates a Node.js HTTP or HTTPS server instance.
@@ -84,16 +85,20 @@ async function createServer(
   options: HttpServerOptions,
   deps: { logger: LoggerService },
 ): Promise<http.Server> {
+  const http2Mode = readHttp2Mode();
   if (options.https) {
     const { certificate } = options.https;
-    if (certificate.type === 'generated') {
-      const credentials = await getGeneratedCertificate(
-        certificate.hostname,
-        deps.logger,
-      );
-      return https.createServer(credentials, listener);
+    const credentials =
+      certificate.type === 'generated'
+        ? await getGeneratedCertificate(certificate.hostname, deps.logger)
+        : certificate;
+    if (http2Mode) {
+      return createHttp2Server(listener, credentials, http2Mode, deps);
     }
-    return https.createServer(certificate, listener);
+    return https.createServer(credentials, listener);
+  }
+  if (http2Mode) {
+    throw new Error('Experimental HTTP/2 support requires backend.https');
   }
 
   return http.createServer(listener);
