@@ -15,6 +15,7 @@
  */
 
 import { ConfigReader } from '@backstage/config';
+import { resolve as resolvePath } from 'node:path';
 import { readHttpServerOptions } from './config';
 
 describe('readHttpServerOptions', () => {
@@ -57,6 +58,33 @@ describe('readHttpServerOptions', () => {
         },
       },
     ],
+    [
+      { baseUrl: 'https://example.com', https: true, http2: true },
+      {
+        listen: { host: '', port: 7007 },
+        https: { certificate: { type: 'generated', hostname: 'example.com' } },
+        http2: {},
+      },
+    ],
+    [
+      {
+        baseUrl: 'https://example.com',
+        https: true,
+        http2: {
+          staticAssets: [{ path: '/static/', directory: '/app/dist/static' }],
+        },
+      },
+      {
+        listen: { host: '', port: 7007 },
+        https: { certificate: { type: 'generated', hostname: 'example.com' } },
+        http2: {
+          staticAssets: [
+            { path: '/static', directory: resolvePath('/app/dist/static') },
+          ],
+        },
+      },
+    ],
+    [{ http2: false }, { listen: { host: '', port: 7007 } }],
   ])('should read http server options %#', (input, output) => {
     expect(readHttpServerOptions(new ConfigReader(input))).toEqual(output);
   });
@@ -78,6 +106,15 @@ describe('readHttpServerOptions', () => {
     [
       { https: { certificate: { cert: 'x' } } },
       "Missing required config value at 'https.certificate.key",
+    ],
+    [{ http2: true }, 'backend.http2 requires backend.https to be configured'],
+    [
+      {
+        baseUrl: 'https://example.com',
+        https: true,
+        http2: { staticAssets: [{ path: 'static', directory: 'dist' }] },
+      },
+      'Invalid backend.http2.staticAssets path "static", must start with a slash',
     ],
   ])('should throw on bad options %#', (input, message) => {
     expect(() => readHttpServerOptions(new ConfigReader(input))).toThrow(

@@ -1835,6 +1835,7 @@ __metadata:
     git-url-parse: "npm:^15.0.0"
     helmet: "npm:^6.0.0"
     http-errors: "npm:^2.0.0"
+    http-proxy-3: "npm:^2.0.2"
     infinispan: "npm:^0.16.0"
     iovalkey: "npm:^0.3.3"
     is-glob: "npm:^4.0.3"
@@ -28485,13 +28486,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.16.0":
-  version: 1.16.2
-  resolution: "follow-redirects@npm:1.16.2"
+"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.16.0, follow-redirects@npm:^1.16.1":
+  version: 1.16.3
+  resolution: "follow-redirects@npm:1.16.3"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: 10/3303addfa9aaf145022c2faa76ecba8052fe325bce00f3992ca2b13f3295590d6a64828c128cfcbc9678569f2f98fbd190d6ca5f505857b07eea9867008a38a3
+  checksum: 10/ac3b15f7d18c26be8b38fb314d271b8def49f710388eea76079721792ef1b828fdb6696cacc92962f54bcd2462479fdcf33497502dc20ed0a5a8be1afb092215
   languageName: node
   linkType: hard
 
@@ -30364,6 +30365,16 @@ __metadata:
   version: 0.5.3
   resolution: "http-parser-js@npm:0.5.3"
   checksum: 10/6a8a609db65c558df862fc8f0e743085de69d8e318286a4cfce5e9248a911426917a1201c77e120ab096df353272f2403821281f8db0e59328e7cc07de90dc8c
+  languageName: node
+  linkType: hard
+
+"http-proxy-3@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "http-proxy-3@npm:2.0.2"
+  dependencies:
+    debug: "npm:^4.4.3"
+    follow-redirects: "npm:^1.16.1"
+  checksum: 10/375f0a31e372888ec5216db7286050f35e318247df69cfb16478b7567309d78103e03799c1635819579266d5ced71dd4bec914251b8f7657dce6049f6d5b85a1
   languageName: node
   linkType: hard
 

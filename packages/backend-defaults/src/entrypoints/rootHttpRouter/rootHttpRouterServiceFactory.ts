@@ -87,7 +87,16 @@ const rootHttpRouterServiceFactoryWithOptions = (
       const logger = rootLogger.child({ service: 'rootHttpRouter' });
       const app = express();
 
-      const trustProxy = config.getOptional('backend.trustProxy');
+      const serverOptions = readHttpServerOptions(
+        config.getOptionalConfig('backend'),
+      );
+
+      // With HTTP/2 enabled, all requests reach Express through the built-in
+      // HTTP/2 server, which sets the forwarding headers. Trusting that single
+      // hop gives Express the client IP and protocol.
+      const trustProxy =
+        config.getOptional('backend.trustProxy') ??
+        (serverOptions.http2 ? 1 : undefined);
 
       const router = DefaultRootHttpRouter.create({ indexPath });
       const middleware = MiddlewareFactory.create({ config, logger });
@@ -95,11 +104,7 @@ const rootHttpRouterServiceFactoryWithOptions = (
 
       const healthRouter = createHealthRouter({ config, health });
 
-      const server = await createHttpServer(
-        app,
-        readHttpServerOptions(config.getOptionalConfig('backend')),
-        { logger },
-      );
+      const server = await createHttpServer(app, serverOptions, { logger });
 
       configure({
         app,

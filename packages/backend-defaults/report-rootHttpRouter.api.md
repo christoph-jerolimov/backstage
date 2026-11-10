@@ -74,6 +74,17 @@ export type HttpServerCertificateOptions =
     };
 
 // @public
+export type HttpServerHttp2Options = {
+  staticAssets?: HttpServerHttp2StaticAssetsOptions[];
+};
+
+// @public
+export type HttpServerHttp2StaticAssetsOptions = {
+  path: string;
+  directory: string;
+};
+
+// @public
 export type HttpServerOptions = {
   listen: {
     port: number;
@@ -82,6 +93,7 @@ export type HttpServerOptions = {
   https?: {
     certificate: HttpServerCertificateOptions;
   };
+  http2?: HttpServerHttp2Options;
 };
 
 // @public

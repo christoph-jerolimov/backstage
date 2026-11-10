@@ -26,5 +26,7 @@ export { readHelmetOptions } from './readHelmetOptions';
 export type {
   ExtendedHttpServer,
   HttpServerCertificateOptions,
+  HttpServerHttp2Options,
+  HttpServerHttp2StaticAssetsOptions,
   HttpServerOptions,
 } from './types';

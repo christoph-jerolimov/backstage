@@ -15,6 +15,7 @@
  */
 
 import { Config } from '@backstage/config';
+import { resolve as resolvePath } from 'node:path';
 import { HttpServerOptions } from './types';
 
 const DEFAULT_PORT = 7007;
@@ -38,6 +39,7 @@ export function readHttpServerOptions(config?: Config): HttpServerOptions {
   return {
     listen: readHttpListenOptions(config),
     https: readHttpsOptions(config),
+    http2: readHttp2Options(config),
   };
 }
 
@@ -97,5 +99,36 @@ function readHttpsOptions(config?: Config): HttpServerOptions['https'] {
       cert: cc.getString('certificate.cert'),
       key: cc.getString('certificate.key'),
     },
+  };
+}
+
+function readHttp2Options(config?: Config): HttpServerOptions['http2'] {
+  const http2 = config?.getOptional('http2');
+  if (http2 === undefined || http2 === false) {
+    return undefined;
+  }
+  if (!config?.has('https')) {
+    throw new Error(
+      'backend.http2 requires backend.https to be configured, since browsers only support HTTP/2 over TLS',
+    );
+  }
+  if (http2 === true) {
+    return {};
+  }
+
+  const cc = config.getConfig('http2');
+  return {
+    staticAssets: cc.getOptionalConfigArray('staticAssets')?.map(entry => {
+      const path = entry.getString('path').replace(/\/+$/, '');
+      if (!path.startsWith('/')) {
+        throw new Error(
+          `Invalid backend.http2.staticAssets path "${path}", must start with a slash`,
+        );
+      }
+      return {
+        path,
+        directory: resolvePath(entry.getString('directory')),
+      };
+    }),
   };
 }

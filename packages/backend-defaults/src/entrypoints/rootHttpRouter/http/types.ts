@@ -42,6 +42,41 @@ export type HttpServerOptions = {
   https?: {
     certificate: HttpServerCertificateOptions;
   };
+  /**
+   * Serve HTTP/2 to clients. Requires `https` to be set.
+   *
+   * @remarks
+   *
+   * Express does not support HTTP/2, so the server is split in two: a public
+   * HTTP/2 server that also accepts HTTP/1.1, and the Express server on a
+   * private local socket that it forwards requests to over HTTP/1.1.
+   */
+  http2?: HttpServerHttp2Options;
+};
+
+/**
+ * Options for serving HTTP/2 from an HTTP server.
+ *
+ * @public
+ */
+export type HttpServerHttp2Options = {
+  /**
+   * Directories of static files that the HTTP/2 server serves directly,
+   * without forwarding the requests to Express.
+   */
+  staticAssets?: HttpServerHttp2StaticAssetsOptions[];
+};
+
+/**
+ * A directory of static files served directly by the HTTP/2 server.
+ *
+ * @public
+ */
+export type HttpServerHttp2StaticAssetsOptions = {
+  /** The URL path that the files are served under, for example `/static`. */
+  path: string;
+  /** The directory that the files are read from. */
+  directory: string;
 };
 
 /**
