@@ -220,7 +220,8 @@ Express doesn't support HTTP/2, so with `backend.http2` enabled the backend runs
 Set `backend.http2` to `true` to forward all requests to Express. Use `staticAssets` to serve directories of static files directly from the HTTP/2 server, without going through Express. This is intended for the content-hashed files in the app's `dist/static` folder. Files served this way:
 
 - Skip all Express middleware, including authentication, logging and rate limiting.
-- Are compressed with gzip, and served with `Cache-Control: no-cache` and an `ETag`, so browsers revalidate them on each page load. This is needed because the app backend rewrites one of the files at startup to inject configuration.
+- Are compressed with gzip and served with an `ETag`. Browsers may cache them for 14 days, the same as when the app backend serves them. The app backend injects the frontend configuration into `index.html`, which it still serves itself, so the content-hashed static files never change.
+- Are revalidated on each page load (`Cache-Control: no-cache`) if the app was built without an `index.html.tmpl` template, which older versions of the Backstage CLI didn't create. For those builds the app backend writes the configuration into one of the static files at startup instead, without renaming it.
 - Fall through to Express if the file doesn't exist, which lets the app backend serve assets from older deployments.
 
 If the app uses a [public entry point](../../tutorials/enable-public-entry.md), which means the app has a `dist/public` folder, `staticAssets` is ignored for its `dist/static` folder, since those files must only be served to signed-in users.

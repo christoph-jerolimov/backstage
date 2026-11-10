@@ -187,6 +187,7 @@ describe('createHttp2Server', () => {
   it('serves static assets directly and forwards everything else', async () => {
     const mainJs = `console.log("${'x'.repeat(2000)}");`;
     mockDir.setContent({
+      'dist/index.html.tmpl': '<html></html>',
       'dist/static/main.js': mainJs,
       'dist/static/.hidden': 'secret',
       'dist/secret.txt': 'secret',
@@ -199,7 +200,7 @@ describe('createHttp2Server', () => {
     const res = await http2Request(client, { ':path': '/static/main.js' });
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toBe('text/javascript; charset=utf-8');
-    expect(res.headers['cache-control']).toBe('no-cache');
+    expect(res.headers['cache-control']).toBe('public, max-age=1209600');
     expect(res.headers['content-encoding']).toBeUndefined();
     expect(res.body.toString()).toBe(mainJs);
 
@@ -232,6 +233,19 @@ describe('createHttp2Server', () => {
       });
     }
 
+    client.close();
+  });
+
+  it('revalidates static assets of apps built without an index.html template', async () => {
+    mockDir.setContent({ 'dist/static/main.js': 'legacy' });
+    const port = await startServer(mockDir.resolve('dist/static'));
+    const client = http2.connect(`https://localhost:${port}`, {
+      ca: credentials.cert,
+    });
+
+    const res = await http2Request(client, { ':path': '/static/main.js' });
+    expect(res.body.toString()).toBe('legacy');
+    expect(res.headers['cache-control']).toBe('no-cache');
     client.close();
   });
 

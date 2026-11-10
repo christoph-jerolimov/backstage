@@ -59,6 +59,15 @@ const COMPRESSIBLE_EXTENSIONS = new Set([
 // Smaller files are not worth the compression overhead
 const MIN_COMPRESS_SIZE = 1024;
 
+/** Same as the app backend uses for content-hashed files */
+export const CACHE_CONTROL_MAX_CACHE = 'public, max-age=1209600'; // 14 days
+export const CACHE_CONTROL_REVALIDATE = 'no-cache';
+
+/** A static asset directory, with the caching to apply to its files */
+export type StaticAssetMount = HttpServerHttp2StaticAssetsOptions & {
+  cacheControl: string;
+};
+
 type Request = http.IncomingMessage | http2.Http2ServerRequest;
 type Response = http.ServerResponse | http2.Http2ServerResponse;
 
@@ -80,7 +89,7 @@ function writeHead(
 export function resolveStaticAssetPath(
   url: string | undefined,
   mounts: HttpServerHttp2StaticAssetsOptions[],
-): string | undefined {
+): { filePath: string; mount: HttpServerHttp2StaticAssetsOptions } | undefined {
   if (!url) {
     return undefined;
   }
@@ -109,7 +118,7 @@ export function resolveStaticAssetPath(
     if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
       return undefined;
     }
-    return filePath;
+    return { filePath, mount };
   }
   return undefined;
 }
@@ -122,15 +131,17 @@ export function resolveStaticAssetPath(
 export async function serveStaticAsset(
   req: Request,
   res: Response,
-  mounts: HttpServerHttp2StaticAssetsOptions[],
+  mounts: StaticAssetMount[],
 ): Promise<boolean> {
   if (mounts.length === 0 || (req.method !== 'GET' && req.method !== 'HEAD')) {
     return false;
   }
-  const filePath = resolveStaticAssetPath(req.url, mounts);
-  if (!filePath) {
+  const resolved = resolveStaticAssetPath(req.url, mounts);
+  if (!resolved) {
     return false;
   }
+  const { filePath } = resolved;
+  const { cacheControl } = resolved.mount as StaticAssetMount;
 
   let stat: fs.Stats;
   try {
@@ -147,11 +158,8 @@ export async function serveStaticAsset(
     stat.mtimeMs,
   ).toString(16)}"`;
 
-  // The app backend rewrites one of these files at startup to inject the app
-  // config, without changing its name. Browsers therefore need to revalidate
-  // every file, which is cheap since revalidations share one HTTP/2 connection.
   const headers: Record<string, string | number> = {
-    'cache-control': 'no-cache',
+    'cache-control': cacheControl,
     etag,
     'last-modified': stat.mtime.toUTCString(),
     'x-content-type-options': 'nosniff',

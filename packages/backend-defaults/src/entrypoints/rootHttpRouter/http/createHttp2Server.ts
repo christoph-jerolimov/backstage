@@ -23,7 +23,12 @@ import type * as net from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve as resolvePath } from 'node:path';
 import { createProxyServer } from 'http-proxy-3';
-import { serveStaticAsset } from './serveStaticAsset';
+import {
+  CACHE_CONTROL_MAX_CACHE,
+  CACHE_CONTROL_REVALIDATE,
+  serveStaticAsset,
+  StaticAssetMount,
+} from './serveStaticAsset';
 import {
   ExtendedHttpServer,
   HttpServerHttp2Options,
@@ -48,22 +53,42 @@ type Response = http.ServerResponse | http2.Http2ServerResponse;
  * Leaves out static asset directories that belong to an app running in
  * protected mode. In that mode the app backend only serves the main app
  * bundle to signed-in users, which a direct file server would bypass.
+ *
+ * Also picks how long browsers may cache the files. Apps built with an
+ * `index.html.tmpl` template get their config injected into `index.html`,
+ * which is served by the backend, so the content-hashed static files never
+ * change. Older builds have the config written into one of the static files
+ * at startup without renaming it, so their files must always be revalidated.
  */
-function filterStaticAssets(
+function resolveStaticAssets(
   staticAssets: HttpServerHttp2StaticAssetsOptions[],
   logger: LoggerService,
-): HttpServerHttp2StaticAssetsOptions[] {
-  return staticAssets.filter(mount => {
+): StaticAssetMount[] {
+  return staticAssets.flatMap(mount => {
     if (fs.existsSync(resolvePath(mount.directory, '..', 'public'))) {
       logger.warn(
         `Not serving ${mount.path} directly over HTTP/2, since ${mount.directory} belongs to an app with a protected entry point. Requests are forwarded to the backend instead.`,
       );
-      return false;
+      return [];
     }
-    logger.info(
-      `Serving ${mount.path} directly over HTTP/2 from ${mount.directory}`,
+    const immutable = fs.existsSync(
+      resolvePath(mount.directory, '..', 'index.html.tmpl'),
     );
-    return true;
+    logger.info(
+      `Serving ${mount.path} directly over HTTP/2 from ${mount.directory}${
+        immutable
+          ? ''
+          : ', revalidating all files since the app was built without an index.html template'
+      }`,
+    );
+    return [
+      {
+        ...mount,
+        cacheControl: immutable
+          ? CACHE_CONTROL_MAX_CACHE
+          : CACHE_CONTROL_REVALIDATE,
+      },
+    ];
   });
 }
 
@@ -112,7 +137,7 @@ export async function createHttp2Server(
   const { logger } = deps;
   const backendServer = http.createServer(listener);
   const { socketPath, cleanup } = await createBackendSocketPath();
-  const staticAssets = filterStaticAssets(
+  const staticAssets = resolveStaticAssets(
     options.http2.staticAssets ?? [],
     logger,
   );
