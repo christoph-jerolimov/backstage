@@ -7,6 +7,7 @@ import { ActionsRegistryService } from '@backstage/backend-plugin-api/alpha';
 import { ActionsService } from '@backstage/backend-plugin-api/alpha';
 import { ConnectionsService } from '@backstage/connections';
 import { MetricsService } from '@backstage/backend-plugin-api/alpha';
+import type { RootHttpRouterService } from '@backstage/backend-plugin-api';
 import { ServiceFactory } from '@backstage/backend-plugin-api';
 import { TracingService } from '@backstage/backend-plugin-api/alpha';
 
@@ -23,6 +24,15 @@ export const actionsServiceFactory: ServiceFactory<
   'plugin',
   'singleton'
 >;
+
+// @alpha
+export function addHttp2StaticAssets(
+  rootHttpRouter: RootHttpRouterService,
+  assets: {
+    path: string;
+    directory: string;
+  },
+): boolean;
 
 // @alpha
 export const connectionsServiceFactory: ServiceFactory<

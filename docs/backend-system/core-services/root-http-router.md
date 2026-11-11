@@ -226,7 +226,25 @@ Set `backend.http2` to `true` to forward all requests to Express. Use `staticAss
 
 If the app uses a [public entry point](../../tutorials/enable-public-entry.md), which means the app has a `dist/public` folder, `staticAssets` is ignored for its `dist/static` folder, since those files must only be served to signed-in users.
 
-The HTTP/2 server replaces any `X-Forwarded-*` and `Forwarded` headers sent by clients with the client's real address and protocol. If you don't set `backend.trustProxy`, it defaults to trusting this single hop, so that the client IP is used for logging and rate limiting.
+### Dynamic frontend plugins
+
+The frontend assets of [dynamic plugins](https://github.com/backstage/backstage/tree/master/packages/backend-dynamic-feature-service) are served by the backend under `/.backstage/dynamic-features/remotes/<package-name>`. You can also have the HTTP/2 server serve them directly, which is disabled by default:
+
+```yaml title="app-config.yaml"
+backend:
+  http2: true
+dynamicPlugins:
+  rootDirectory: dynamic-plugins-root
+  http2FrontendAssets:
+    exclude:
+      - '@internal/plugin-sensitive-dynamic'
+```
+
+Set `dynamicPlugins.http2FrontendAssets` to `true` to enable it for all dynamic frontend plugins, or use the object form to list the package names of plugins whose assets must always go through the backend in `exclude`. You can also disable it with `enabled: false` in the object form. The same rules as for `staticAssets` apply: the first request for each file is forwarded to the backend, and the files skip all backend middleware.
+
+Backend features can add their own directories with `addHttp2StaticAssets` from `@backstage/backend-defaults/alpha`.
+
+and `Forwarded` headers sent by clients with the client's real address and protocol. If you don't set `backend.trustProxy`, it defaults to trusting this single hop, so that the client IP is used for logging and rate limiting.
 
 ## Defining Content Security Policy (CSP) Configuration
 

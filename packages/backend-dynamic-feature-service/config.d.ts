@@ -20,5 +20,27 @@ export interface Config {
      * The local path, relative to the backstage root, that contains dynamic plugins.
      */
     rootDirectory: string;
+
+    /**
+     * Serve the frontend assets of dynamic plugins directly from the built-in
+     * HTTP/2 server, without going through the backend middleware. Requires
+     * `backend.http2` to be enabled. Experimental, disabled by default.
+     *
+     * @remarks
+     *
+     * Setting this to `true` enables it for all dynamic frontend plugins. Use
+     * the object form to leave out some plugins.
+     */
+    http2FrontendAssets?:
+      | boolean
+      | {
+          /** Whether to serve the assets directly. Defaults to `true`. */
+          enabled?: boolean;
+          /**
+           * Package names of dynamic frontend plugins whose assets should
+           * always be served by the backend.
+           */
+          exclude?: string[];
+        };
   };
 }

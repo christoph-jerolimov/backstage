@@ -18,12 +18,18 @@ import {
   createMockDirectory,
   mockServices,
 } from '@backstage/backend-test-utils';
+import type { RootHttpRouterService } from '@backstage/backend-plugin-api';
 import express from 'express';
 import * as http2 from 'node:http2';
 import * as https from 'node:https';
 import { gunzipSync } from 'node:zlib';
 import { createHttp2Server } from './createHttp2Server';
 import { MiddlewareFactory } from './MiddlewareFactory';
+import {
+  addHttp2StaticAssets,
+  getHttp2StaticAssetsAdder,
+  setHttp2StaticAssetsAdder,
+} from '../http2StaticAssets';
 import { ExtendedHttpServer } from './types';
 
 const generateCredentials = () =>
@@ -83,13 +89,13 @@ describe('createHttp2Server', () => {
 
   let longPollClosed: (reason: string) => void;
 
-  function createApp(staticDirectory?: string) {
+  function createApp(staticDirectory?: string, staticPath = '/static') {
     const app = express();
     app.set('trust proxy', 1);
     if (staticDirectory) {
       // Like the app backend, which revalidates the file with injected config
       app.use(
-        '/static',
+        staticPath,
         express.static(staticDirectory, {
           setHeaders: (res, path) => {
             res.setHeader(
@@ -127,16 +133,22 @@ describe('createHttp2Server', () => {
     return app;
   }
 
-  async function startServer(staticDirectory?: string) {
+  async function startServer(
+    staticDirectory?: string,
+    options?: { staticPath?: string; configureStaticAssets?: boolean },
+  ) {
+    const { staticPath = '/static', configureStaticAssets = true } =
+      options ?? {};
     server = await createHttp2Server(
-      createApp(staticDirectory),
+      createApp(staticDirectory, staticPath),
       {
         listen: { host: '127.0.0.1', port: 0 },
         credentials,
         http2: {
-          staticAssets: staticDirectory
-            ? [{ path: '/static', directory: staticDirectory }]
-            : [],
+          staticAssets:
+            staticDirectory && configureStaticAssets
+              ? [{ path: staticPath, directory: staticDirectory }]
+              : [],
         },
       },
       {
@@ -303,6 +315,44 @@ describe('createHttp2Server', () => {
       expect(forwarded.headers['x-powered-by']).toBe('Express');
     }
 
+    client.close();
+  });
+
+  it('serves static assets that are added at runtime', async () => {
+    mockDir.setContent({ 'plugin/dist/remote.js': 'remote' });
+    // The backend serves the directory, but it isn't configured for HTTP/2
+    const port = await startServer(mockDir.resolve('plugin/dist'), {
+      staticPath: '/remotes/my-plugin',
+      configureStaticAssets: false,
+    });
+    const client = http2.connect(`https://localhost:${port}`, {
+      ca: credentials.cert,
+    });
+
+    // The root HTTP router service links routers to the server like this
+    const router = {} as RootHttpRouterService;
+    expect(
+      addHttp2StaticAssets(router, { path: '/remotes', directory: '/' }),
+    ).toBe(false);
+    setHttp2StaticAssetsAdder(router, getHttp2StaticAssetsAdder(server!)!);
+    expect(
+      addHttp2StaticAssets(router, {
+        path: '/remotes/my-plugin/',
+        directory: mockDir.resolve('plugin/dist'),
+      }),
+    ).toBe(true);
+
+    const responses = [];
+    for (let i = 0; i < 2; i++) {
+      responses.push(
+        await http2Request(client, { ':path': '/remotes/my-plugin/remote.js' }),
+      );
+    }
+    expect(responses.map(r => r.headers['x-powered-by'])).toEqual([
+      'Express',
+      undefined,
+    ]);
+    expect(responses.map(r => r.body.toString())).toEqual(['remote', 'remote']);
     client.close();
   });
 

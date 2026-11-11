@@ -18,7 +18,9 @@ import {
   coreServices,
   createServiceFactory,
   createServiceRef,
+  RootConfigService,
 } from '@backstage/backend-plugin-api';
+import { addHttp2StaticAssets } from '@backstage/backend-defaults/alpha';
 import { createRouter } from './router';
 import { dynamicPluginsServiceRef } from '../manager/plugin-manager';
 import { spec } from '../schema/openapi/generated';
@@ -129,6 +131,29 @@ export type FrontendRemoteResolvers = {
   provider?: FrontendRemoteResolverProvider;
 };
 
+/**
+ * Reads whether the frontend assets of dynamic plugins should be served
+ * directly by the built-in HTTP/2 server, and which plugins to leave out.
+ */
+function readHttp2FrontendAssetsConfig(config: RootConfigService): {
+  enabled: boolean;
+  exclude: Set<string>;
+} {
+  const key = 'dynamicPlugins.http2FrontendAssets';
+  const value = config.getOptional(key);
+  if (value === undefined || value === false) {
+    return { enabled: false, exclude: new Set() };
+  }
+  if (value === true) {
+    return { enabled: true, exclude: new Set() };
+  }
+  const assetsConfig = config.getConfig(key);
+  return {
+    enabled: assetsConfig.getOptionalBoolean('enabled') ?? true,
+    exclude: new Set(assetsConfig.getOptionalStringArray('exclude') ?? []),
+  };
+}
+
 export const frontendRemotesServerService = createServiceFactory({
   service: dynamicPluginsFrontendServiceRef,
   deps: {
@@ -148,14 +173,36 @@ export const frontendRemotesServerService = createServiceFactory({
       provider: undefined,
     };
 
+    const http2Assets = readHttp2FrontendAssetsConfig(config);
+
     lifecycle.addStartupHook(async () => {
+      const basePath = `/${spec.info.title}`;
       rootHttpRouter.use(
-        `/${spec.info.title}`,
+        basePath,
         await createRouter({
           logger,
           config,
           dynamicPlugins,
           resolvers,
+          onFrontendAssets: http2Assets.enabled
+            ? ({ pluginName, path, directory }) => {
+                if (http2Assets.exclude.has(pluginName)) {
+                  logger.info(
+                    `Not serving the frontend assets of dynamic plugin '${pluginName}' directly over HTTP/2, since it is excluded`,
+                  );
+                  return;
+                }
+                const added = addHttp2StaticAssets(rootHttpRouter, {
+                  path: `${basePath}${path}`,
+                  directory,
+                });
+                if (!added) {
+                  logger.warn(
+                    `Not serving the frontend assets of dynamic plugin '${pluginName}' directly over HTTP/2, since the backend isn't serving HTTP/2. Enable it with backend.http2.`,
+                  );
+                }
+              }
+            : undefined,
         }),
       );
     });

@@ -33,11 +33,21 @@ export async function createRouter({
   config,
   dynamicPlugins,
   resolvers,
+  onFrontendAssets,
 }: {
   logger: LoggerService;
   config: RootConfigService;
   dynamicPlugins: DynamicPluginProvider;
   resolvers: FrontendRemoteResolvers;
+  /**
+   * Called for each directory of frontend plugin assets that is served, with
+   * the path relative to this router.
+   */
+  onFrontendAssets?: (assets: {
+    pluginName: string;
+    path: string;
+    directory: string;
+  }) => void;
 }): Promise<express.Router> {
   const externalBaseUrl = `${config.getString('backend.baseUrl')}/${
     spec.info.title
@@ -176,6 +186,11 @@ export async function createRouter({
         });
       }
       typedRouter.use(remoteAssetsPrefix, express.static(assetsPath));
+      onFrontendAssets?.({
+        pluginName: plugin.name,
+        path: remoteAssetsPrefix,
+        directory: assetsPath,
+      });
       logger.info(
         `Exposed dynamic frontend plugin '${plugin.name}' from '${assetsPath}' `,
       );

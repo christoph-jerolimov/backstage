@@ -28,6 +28,7 @@ import type {
   Response as ExpressResponse,
 } from 'express';
 import { createProxyServer } from 'http-proxy-3';
+import { setHttp2StaticAssetsAdder } from '../http2StaticAssets';
 import {
   learnStaticAsset,
   serveStaticAsset,
@@ -125,6 +126,18 @@ export async function createHttp2Server(
     options.http2.staticAssets ?? [],
     logger,
   );
+  // Backend features can add more directories at runtime
+  setHttp2StaticAssetsAdder(backendServer, mount => {
+    const path = mount.path.replace(/\/+$/, '');
+    if (!path.startsWith('/')) {
+      throw new Error(
+        `Invalid HTTP/2 static assets path "${mount.path}", must start with a slash`,
+      );
+    }
+    const directory = resolvePath(mount.directory);
+    staticAssets.push({ path, directory });
+    logger.info(`Serving ${path} directly over HTTP/2 from ${directory}`);
+  });
   // Static assets are served by the backend first, to learn which caching
   // headers to use when serving them directly.
   const staticAssetCache: StaticAssetCache = new Map();

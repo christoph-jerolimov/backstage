@@ -33,12 +33,18 @@ import {
 import * as winston from 'winston';
 import * as url from 'node:url';
 import { MESSAGE } from 'triple-beam';
+import { addHttp2StaticAssets } from '@backstage/backend-defaults/alpha';
 import { overridePackagePathResolution } from '@backstage/backend-plugin-api/testUtils';
 import { ScannedPluginPackage } from '../scanner';
 import {
   dynamicPluginsFrontendServiceRef,
   FrontendRemoteResolverProvider,
 } from '../server/frontendRemotesServer';
+
+jest.mock('@backstage/backend-defaults/alpha', () => ({
+  ...jest.requireActual('@backstage/backend-defaults/alpha'),
+  addHttp2StaticAssets: jest.fn(() => true),
+}));
 
 // these can get a bit slow in CI
 jest.setTimeout(60_000);
@@ -664,6 +670,58 @@ Require stack:
           publicPath: 'auto',
         },
       });
+    });
+
+    it('should serve the frontend assets directly over HTTP/2 when enabled, except for excluded plugins', async () => {
+      const addAssets = addHttp2StaticAssets as jest.MockedFunction<
+        typeof addHttp2StaticAssets
+      >;
+      const startWith = async (http2FrontendAssets: unknown) => {
+        addAssets.mockClear();
+        const { server } = await startTestBackend({
+          features: [
+            mockServices.rootConfig.factory({
+              data: {
+                dynamicPlugins: {
+                  rootDirectory: dynamicPluginsRootDirectory,
+                  ...(http2FrontendAssets !== undefined && {
+                    http2FrontendAssets,
+                  }),
+                },
+                backend: { baseUrl: `http://localhost:0` },
+              },
+            }),
+            dynamicPluginsFeatureLoader({
+              moduleLoader: logger =>
+                jestFreeTypescriptAwareModuleLoader({ logger }),
+            }),
+          ],
+        });
+        await server.stop();
+        return addAssets.mock.calls.map(([, assets]) => assets);
+      };
+
+      // Disabled by default
+      await expect(startWith(undefined)).resolves.toEqual([]);
+      await expect(startWith({ enabled: false })).resolves.toEqual([]);
+
+      const expected = [
+        {
+          path: '/.backstage/dynamic-features/remotes/plugin-test-dynamic',
+          directory: resolvePath(
+            dynamicPluginsRootDirectory,
+            'test-dynamic',
+            'dist',
+          ),
+        },
+      ];
+      await expect(startWith(true)).resolves.toEqual(expected);
+      await expect(startWith({ exclude: ['other-plugin'] })).resolves.toEqual(
+        expected,
+      );
+      await expect(
+        startWith({ exclude: ['plugin-test-dynamic'] }),
+      ).resolves.toEqual([]);
     });
 
     it('should allow overriding the module federation assets folder, return the Javascript remote entry, the exposed modules and additional remote intry info fields', async () => {

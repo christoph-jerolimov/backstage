@@ -30,6 +30,10 @@ import {
 } from './http';
 import { DefaultRootHttpRouter } from './DefaultRootHttpRouter';
 import { createHealthRouter } from './createHealthRouter';
+import {
+  getHttp2StaticAssetsAdder,
+  setHttp2StaticAssetsAdder,
+} from './http2StaticAssets';
 import { durationToMilliseconds } from '@backstage/types';
 import { readDurationFromConfig } from '@backstage/config';
 
@@ -109,6 +113,13 @@ const rootHttpRouterServiceFactoryWithOptions = (
         // Used for static assets that the HTTP/2 server serves directly
         requestLogging: middleware.logging(),
       });
+
+      // Lets backend features add static assets for the HTTP/2 server through
+      // the root HTTP router, see addHttp2StaticAssets
+      const addHttp2StaticAssets = getHttp2StaticAssetsAdder(server);
+      if (addHttp2StaticAssets) {
+        setHttp2StaticAssetsAdder(router, addHttp2StaticAssets);
+      }
 
       configure({
         app,
