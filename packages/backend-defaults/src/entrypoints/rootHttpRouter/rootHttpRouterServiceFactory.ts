@@ -30,6 +30,10 @@ import {
 } from './http';
 import { DefaultRootHttpRouter } from './DefaultRootHttpRouter';
 import { createHealthRouter } from './createHealthRouter';
+import {
+  getHttp2StaticAssetsAdder,
+  setHttp2StaticAssetsAdder,
+} from './http2StaticAssets';
 import { durationToMilliseconds } from '@backstage/types';
 import { readDurationFromConfig } from '@backstage/config';
 
@@ -87,7 +91,16 @@ const rootHttpRouterServiceFactoryWithOptions = (
       const logger = rootLogger.child({ service: 'rootHttpRouter' });
       const app = express();
 
-      const trustProxy = config.getOptional('backend.trustProxy');
+      const serverOptions = readHttpServerOptions(
+        config.getOptionalConfig('backend'),
+      );
+
+      // With HTTP/2 enabled, all requests reach Express through the built-in
+      // HTTP/2 server, which sets the forwarding headers. Trusting that single
+      // hop gives Express the client IP and protocol.
+      const trustProxy =
+        config.getOptional('backend.trustProxy') ??
+        (serverOptions.http2 ? 1 : undefined);
 
       const router = DefaultRootHttpRouter.create({ indexPath });
       const middleware = MiddlewareFactory.create({ config, logger });
@@ -95,11 +108,18 @@ const rootHttpRouterServiceFactoryWithOptions = (
 
       const healthRouter = createHealthRouter({ config, health });
 
-      const server = await createHttpServer(
-        app,
-        readHttpServerOptions(config.getOptionalConfig('backend')),
-        { logger },
-      );
+      const server = await createHttpServer(app, serverOptions, {
+        logger,
+        // Used for static assets that the HTTP/2 server serves directly
+        requestLogging: middleware.logging(),
+      });
+
+      // Lets backend features add static assets for the HTTP/2 server through
+      // the root HTTP router, see addHttp2StaticAssets
+      const addHttp2StaticAssets = getHttp2StaticAssetsAdder(server);
+      if (addHttp2StaticAssets) {
+        setHttp2StaticAssetsAdder(router, addHttp2StaticAssets);
+      }
 
       configure({
         app,

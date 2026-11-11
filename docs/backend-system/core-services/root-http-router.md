@@ -187,6 +187,65 @@ backend.add(
 );
 ```
 
+## Serving HTTP/2
+
+:::note
+HTTP/2 support is experimental.
+:::
+
+The backend can serve HTTP/2 to clients, which lets browsers load the many files of the app bundle over a single connection. If your backend already runs behind a reverse proxy or load balancer that serves HTTP/2, you don't need this.
+
+Browsers only support HTTP/2 over TLS, so you must also configure `backend.https`:
+
+```yaml title="app-config.yaml"
+backend:
+  baseUrl: https://backstage.example.com
+  https:
+    certificate:
+      cert:
+        $file: ./certs/cert.pem
+      key:
+        $file: ./certs/key.pem
+  http2:
+    staticAssets:
+      - path: /static
+        directory: ./node_modules/app/dist/static
+```
+
+Express doesn't support HTTP/2, so with `backend.http2` enabled the backend runs two servers in the same process:
+
+- A built-in HTTP/2 server listens on the address set in `backend.listen`. It also accepts HTTP/1.1, which is still used for WebSocket connections.
+- The Express server listens on a private local socket. The HTTP/2 server forwards requests to it over HTTP/1.1. The socket isn't reachable over the network.
+
+Set `backend.http2` to `true` to forward all requests to Express. Use `staticAssets` to serve directories of static files directly from the HTTP/2 server, without going through Express. This is intended for the content-hashed files in the app's `dist/static` folder. Files served this way:
+
+- Skip all Express middleware, including authentication and rate limiting. They are still logged by the default request logging, in the same format as requests handled by Express.
+- Use the same caching headers as the backend. The first request for each file is forwarded to the backend, and the HTTP/2 server records the `Cache-Control` and `ETag` headers of the response. Later requests for the same version of the file are served directly with the same headers. If the file changes on disk, the next request is forwarded to the backend again.
+- Are compressed with gzip.
+- Fall through to Express if the file doesn't exist, which lets the app backend serve assets from older deployments.
+
+If the app uses a [public entry point](../../tutorials/enable-public-entry.md), which means the app has a `dist/public` folder, `staticAssets` is ignored for its `dist/static` folder, since those files must only be served to signed-in users.
+
+### Dynamic frontend plugins
+
+The frontend assets of [dynamic plugins](https://github.com/backstage/backstage/tree/master/packages/backend-dynamic-feature-service) are served by the backend under `/.backstage/dynamic-features/remotes/<package-name>`. You can also have the HTTP/2 server serve them directly, which is disabled by default:
+
+```yaml title="app-config.yaml"
+backend:
+  http2: true
+dynamicPlugins:
+  rootDirectory: dynamic-plugins-root
+  http2FrontendAssets:
+    exclude:
+      - '@internal/plugin-sensitive-dynamic'
+```
+
+Set `dynamicPlugins.http2FrontendAssets` to `true` to enable it for all dynamic frontend plugins, or use the object form to list the package names of plugins whose assets must always go through the backend in `exclude`. You can also disable it with `enabled: false` in the object form. The same rules as for `staticAssets` apply: the first request for each file is forwarded to the backend, and the files skip all backend middleware.
+
+Backend features can add their own directories with `addHttp2StaticAssets` from `@backstage/backend-defaults/alpha`.
+
+and `Forwarded` headers sent by clients with the client's real address and protocol. If you don't set `backend.trustProxy`, it defaults to trusting this single hop, so that the client IP is used for logging and rate limiting.
+
 ## Defining Content Security Policy (CSP) Configuration
 
 Content Security Policy (CSP) is a crucial security feature that helps protect your Backstage instance from various attacks, particularly Cross-Site Scripting (XSS). Backstage provides a flexible way to configure CSP directives through your `app-config.yaml` file.

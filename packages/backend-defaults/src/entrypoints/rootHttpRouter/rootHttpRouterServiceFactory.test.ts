@@ -27,6 +27,7 @@ import {
   createServiceFactory,
 } from '@backstage/backend-plugin-api';
 import { BackendLifecycleImpl } from '../rootLifecycle/rootLifecycleServiceFactory';
+import { addHttp2StaticAssets } from './http2StaticAssets';
 
 async function createExpressApp(...dependencies: ServiceFactory[]) {
   let app: Express | undefined = undefined;
@@ -383,5 +384,44 @@ describe('rootHttpRouterServiceFactory', () => {
     await request(app)
       .get('/.backstage/health/v1/liveness')
       .expect(200, { status: 'ok' });
+  });
+
+  it('should let static assets be added to the HTTP/2 server through the router', async () => {
+    const credentials = await new Promise<{ key: string; cert: string }>(
+      (resolve, reject) =>
+        require('selfsigned').generate(
+          [{ name: 'commonName', value: 'localhost' }],
+          { days: 1, keySize: 2048 },
+          (err: Error, bundle: { private: string; cert: string }) =>
+            err
+              ? reject(err)
+              : resolve({ key: bundle.private, cert: bundle.cert }),
+        ),
+    );
+
+    for (const http2 of [false, true]) {
+      const { tester } = await createExpressApp(
+        mockServices.rootConfig.factory({
+          data: {
+            backend: {
+              listen: { port: 0 },
+              https: { certificate: credentials },
+              http2,
+            },
+          },
+        }),
+      );
+      const router = await tester.getSubject();
+
+      expect(
+        addHttp2StaticAssets(router, {
+          path: '/remotes/my-plugin',
+          directory: __dirname,
+        }),
+      ).toBe(http2);
+
+      const lifecycle = await tester.getService(coreServices.rootLifecycle);
+      await (lifecycle as any).shutdown();
+    }
   });
 });

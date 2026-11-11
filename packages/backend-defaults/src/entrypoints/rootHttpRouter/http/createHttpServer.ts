@@ -17,20 +17,48 @@
 import * as http from 'node:http';
 import * as https from 'node:https';
 import { RequestListener } from 'node:http';
+import type { RequestHandler } from 'express';
 import { LoggerService } from '@backstage/backend-plugin-api';
-import { HttpServerOptions, ExtendedHttpServer } from './types';
+import {
+  HttpServerCertificateOptions,
+  HttpServerOptions,
+  ExtendedHttpServer,
+} from './types';
 import { getGeneratedCertificate } from './getGeneratedCertificate';
+import { createHttp2Server } from './createHttp2Server';
 
 /**
  * Creates a Node.js HTTP or HTTPS server instance.
  *
  * @public
+ * @remarks
+ *
+ * If `http2` is set in the options, the returned server listens on a private
+ * local socket and a separate HTTP/2 server listens on the configured address,
+ * forwarding requests to it. Use `port()` to read the public port. Static
+ * assets that the HTTP/2 server serves directly bypass the listener, and are
+ * logged with the `requestLogging` middleware instead, if provided.
  */
 export async function createHttpServer(
   listener: RequestListener,
   options: HttpServerOptions,
-  deps: { logger: LoggerService },
+  deps: { logger: LoggerService; requestLogging?: RequestHandler },
 ): Promise<ExtendedHttpServer> {
+  if (options.http2) {
+    if (!options.https) {
+      throw new Error('HTTP/2 requires HTTPS to be configured');
+    }
+    return createHttp2Server(
+      listener,
+      {
+        listen: options.listen,
+        credentials: await readCredentials(options.https.certificate, deps),
+        http2: options.http2,
+      },
+      deps,
+    );
+  }
+
   const server = await createServer(listener, options, deps);
   return Object.assign(server, {
     start() {
@@ -77,6 +105,16 @@ export async function createHttpServer(
       return address.port;
     },
   });
+}
+
+async function readCredentials(
+  certificate: HttpServerCertificateOptions,
+  deps: { logger: LoggerService },
+): Promise<{ key: string | Buffer; cert: string | Buffer }> {
+  if (certificate.type === 'generated') {
+    return getGeneratedCertificate(certificate.hostname, deps.logger);
+  }
+  return { key: certificate.key, cert: certificate.cert };
 }
 
 async function createServer(

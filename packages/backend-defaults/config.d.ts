@@ -96,6 +96,47 @@ export interface Config {
         };
 
     /**
+     * Serve HTTP/2 to clients, in addition to HTTP/1.1. Requires `https` to be
+     * configured, since browsers only support HTTP/2 over TLS.
+     *
+     * @remarks
+     *
+     * Express does not support HTTP/2, so a built-in HTTP/2 server listens on
+     * the configured address and forwards requests over HTTP/1.1 to the
+     * backend, which listens on a private local socket. Forwarding headers
+     * such as `X-Forwarded-For` sent by clients are replaced, and `trustProxy`
+     * defaults to trusting this single hop.
+     *
+     * Setting this to `true` forwards all requests to the backend.
+     */
+    http2?:
+      | boolean
+      | {
+          /**
+           * Directories of static files that the HTTP/2 server serves
+           * directly, without forwarding the requests to the backend. Use
+           * this for the app's content-hashed `static` folder.
+           *
+           * The first request for each file is forwarded to the backend, and
+           * later requests for the same version of the file are served
+           * directly with the same caching headers. Files are served without
+           * any backend middleware, including authentication, but are still
+           * included in the request log. A directory is skipped if it
+           * belongs to an app with a protected entry point, which means a
+           * sibling `public` folder exists.
+           */
+          staticAssets?: Array<{
+            /** The URL path to serve the files under, for example `/static`. */
+            path: string;
+            /**
+             * The directory to read the files from, relative to the working
+             * directory of the backend.
+             */
+            directory: string;
+          }>;
+        };
+
+    /**
      * Server-level HTTP options configuration for the backend.
      * These options are passed directly to the underlying Node.js HTTP server.
      *

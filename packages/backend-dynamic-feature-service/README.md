@@ -77,6 +77,8 @@ dynamicPlugins:
   rootDirectory: dynamic-plugins-root
 ```
 
+If the backend serves HTTP/2, you can let it serve the frontend assets of dynamic plugins directly with the experimental `dynamicPlugins.http2FrontendAssets` option. See [Serving HTTP/2](https://backstage.io/docs/backend-system/core-services/root-http-router#dynamic-frontend-plugins) for details.
+
 ## Dynamic Plugin Packaging
 
 ### Package Structure Requirements
