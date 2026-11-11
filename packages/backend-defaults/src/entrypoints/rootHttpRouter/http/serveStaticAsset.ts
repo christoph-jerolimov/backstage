@@ -155,13 +155,15 @@ export function learnStaticAsset(
  * Serves a GET or HEAD request from one of the static asset directories.
  * Resolves to false if the request was not handled and should be forwarded
  * to Express instead, for example because the file does not exist, or
- * because the backend hasn't served this version of the file yet.
+ * because the backend hasn't served this version of the file yet. The
+ * `onServe` callback is called right before a response is written.
  */
 export async function serveStaticAsset(
   req: Request,
   res: Response,
   mounts: HttpServerHttp2StaticAssetsOptions[],
   cache: StaticAssetCache,
+  onServe?: () => void,
 ): Promise<boolean> {
   if (mounts.length === 0 || (req.method !== 'GET' && req.method !== 'HEAD')) {
     return false;
@@ -212,6 +214,7 @@ export async function serveStaticAsset(
       return trimmed === '*' || trimmed === etag;
     })
   ) {
+    onServe?.();
     writeHead(res, 304, headers);
     res.end();
     return true;
@@ -231,6 +234,7 @@ export async function serveStaticAsset(
     headers['content-length'] = stat.size;
   }
 
+  onServe?.();
   writeHead(res, 200, headers);
   if (req.method === 'HEAD') {
     res.end();

@@ -23,6 +23,7 @@ import * as http2 from 'node:http2';
 import * as https from 'node:https';
 import { gunzipSync } from 'node:zlib';
 import { createHttp2Server } from './createHttp2Server';
+import { MiddlewareFactory } from './MiddlewareFactory';
 import { ExtendedHttpServer } from './types';
 
 const generateCredentials = () =>
@@ -138,7 +139,13 @@ describe('createHttp2Server', () => {
             : [],
         },
       },
-      { logger },
+      {
+        logger,
+        requestLogging: MiddlewareFactory.create({
+          config: mockServices.rootConfig(),
+          logger,
+        }).logging(),
+      },
     );
     await server.start();
     return server.port();
@@ -241,6 +248,27 @@ describe('createHttp2Server', () => {
     expect(notModified.status).toBe(304);
     expect(notModified.headers['x-powered-by']).toBeUndefined();
     expect(notModified.body.length).toBe(0);
+
+    // Directly served files are logged like requests handled by Express. The
+    // test backend has no request logging, so these are the direct responses.
+    const requestLogs = logger.info.mock.calls.filter(
+      ([, meta]) => (meta as any)?.type === 'incomingRequest',
+    );
+    expect(requestLogs).toEqual([
+      [
+        expect.stringMatching(/"GET \/static\/main\.js HTTP\/2\.0" 200 2016 /),
+        expect.objectContaining({
+          method: 'GET',
+          url: '/static/main.js',
+          status: 200,
+          httpVersion: '2.0',
+        }),
+      ],
+      [
+        expect.stringMatching(/"GET \/static\/main\.js HTTP\/2\.0" 304 /),
+        expect.objectContaining({ status: 304 }),
+      ],
+    ]);
 
     const gzipped = await http2Request(client, {
       ':path': '/static/main.js',

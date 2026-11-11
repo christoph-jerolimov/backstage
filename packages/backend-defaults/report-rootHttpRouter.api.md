@@ -33,6 +33,7 @@ export function createHttpServer(
   options: HttpServerOptions,
   deps: {
     logger: LoggerService;
+    requestLogging?: RequestHandler;
   },
 ): Promise<ExtendedHttpServer>;
 

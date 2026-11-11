@@ -120,9 +120,10 @@ export interface Config {
            * The first request for each file is forwarded to the backend, and
            * later requests for the same version of the file are served
            * directly with the same caching headers. Files are served without
-           * any backend middleware, including authentication. A directory is skipped if it belongs to an app
-           * with a protected entry point, which means a sibling `public`
-           * folder exists.
+           * any backend middleware, including authentication, but are still
+           * included in the request log. A directory is skipped if it
+           * belongs to an app with a protected entry point, which means a
+           * sibling `public` folder exists.
            */
           staticAssets?: Array<{
             /** The URL path to serve the files under, for example `/static`. */

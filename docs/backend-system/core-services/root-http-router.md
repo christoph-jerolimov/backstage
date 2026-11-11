@@ -219,7 +219,7 @@ Express doesn't support HTTP/2, so with `backend.http2` enabled the backend runs
 
 Set `backend.http2` to `true` to forward all requests to Express. Use `staticAssets` to serve directories of static files directly from the HTTP/2 server, without going through Express. This is intended for the content-hashed files in the app's `dist/static` folder. Files served this way:
 
-- Skip all Express middleware, including authentication, logging and rate limiting.
+- Skip all Express middleware, including authentication and rate limiting. They are still logged by the default request logging, in the same format as requests handled by Express.
 - Use the same caching headers as the backend. The first request for each file is forwarded to the backend, and the HTTP/2 server records the `Cache-Control` and `ETag` headers of the response. Later requests for the same version of the file are served directly with the same headers. If the file changes on disk, the next request is forwarded to the backend again.
 - Are compressed with gzip.
 - Fall through to Express if the file doesn't exist, which lets the app backend serve assets from older deployments.

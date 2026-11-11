@@ -104,7 +104,11 @@ const rootHttpRouterServiceFactoryWithOptions = (
 
       const healthRouter = createHealthRouter({ config, health });
 
-      const server = await createHttpServer(app, serverOptions, { logger });
+      const server = await createHttpServer(app, serverOptions, {
+        logger,
+        // Used for static assets that the HTTP/2 server serves directly
+        requestLogging: middleware.logging(),
+      });
 
       configure({
         app,

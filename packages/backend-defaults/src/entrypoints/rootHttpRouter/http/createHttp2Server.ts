@@ -22,6 +22,11 @@ import * as http2 from 'node:http2';
 import type * as net from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve as resolvePath } from 'node:path';
+import type {
+  Request as ExpressRequest,
+  RequestHandler,
+  Response as ExpressResponse,
+} from 'express';
 import { createProxyServer } from 'http-proxy-3';
 import {
   learnStaticAsset,
@@ -111,9 +116,9 @@ export async function createHttp2Server(
     credentials: { key: string | Buffer; cert: string | Buffer };
     http2: HttpServerHttp2Options;
   },
-  deps: { logger: LoggerService },
+  deps: { logger: LoggerService; requestLogging?: RequestHandler },
 ): Promise<ExtendedHttpServer> {
-  const { logger } = deps;
+  const { logger, requestLogging } = deps;
   const backendServer = http.createServer(listener);
   const { socketPath, cleanup } = await createBackendSocketPath();
   const staticAssets = filterStaticAssets(
@@ -178,7 +183,15 @@ export async function createHttp2Server(
     { ...options.credentials, allowHTTP1: true },
     (req: Request, res: Response) => {
       stripForwardingHeaders(req);
-      serveStaticAsset(req, res, staticAssets, staticAssetCache)
+      // Requests forwarded to Express are logged there, so only the static
+      // assets that are served directly are logged here.
+      const logRequest = () =>
+        requestLogging?.(
+          req as unknown as ExpressRequest,
+          res as unknown as ExpressResponse,
+          () => {},
+        );
+      serveStaticAsset(req, res, staticAssets, staticAssetCache, logRequest)
         .then(served => {
           if (!served) {
             proxy.web(req as http.IncomingMessage, res as http.ServerResponse);
