@@ -24,10 +24,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve as resolvePath } from 'node:path';
 import { createProxyServer } from 'http-proxy-3';
 import {
-  CACHE_CONTROL_MAX_CACHE,
-  CACHE_CONTROL_REVALIDATE,
+  learnStaticAsset,
   serveStaticAsset,
-  StaticAssetMount,
+  StaticAssetCache,
 } from './serveStaticAsset';
 import {
   ExtendedHttpServer,
@@ -53,42 +52,22 @@ type Response = http.ServerResponse | http2.Http2ServerResponse;
  * Leaves out static asset directories that belong to an app running in
  * protected mode. In that mode the app backend only serves the main app
  * bundle to signed-in users, which a direct file server would bypass.
- *
- * Also picks how long browsers may cache the files. Apps built with an
- * `index.html.tmpl` template get their config injected into `index.html`,
- * which is served by the backend, so the content-hashed static files never
- * change. Older builds have the config written into one of the static files
- * at startup without renaming it, so their files must always be revalidated.
  */
-function resolveStaticAssets(
+function filterStaticAssets(
   staticAssets: HttpServerHttp2StaticAssetsOptions[],
   logger: LoggerService,
-): StaticAssetMount[] {
-  return staticAssets.flatMap(mount => {
+): HttpServerHttp2StaticAssetsOptions[] {
+  return staticAssets.filter(mount => {
     if (fs.existsSync(resolvePath(mount.directory, '..', 'public'))) {
       logger.warn(
         `Not serving ${mount.path} directly over HTTP/2, since ${mount.directory} belongs to an app with a protected entry point. Requests are forwarded to the backend instead.`,
       );
-      return [];
+      return false;
     }
-    const immutable = fs.existsSync(
-      resolvePath(mount.directory, '..', 'index.html.tmpl'),
-    );
     logger.info(
-      `Serving ${mount.path} directly over HTTP/2 from ${mount.directory}${
-        immutable
-          ? ''
-          : ', revalidating all files since the app was built without an index.html template'
-      }`,
+      `Serving ${mount.path} directly over HTTP/2 from ${mount.directory}`,
     );
-    return [
-      {
-        ...mount,
-        cacheControl: immutable
-          ? CACHE_CONTROL_MAX_CACHE
-          : CACHE_CONTROL_REVALIDATE,
-      },
-    ];
+    return true;
   });
 }
 
@@ -137,10 +116,13 @@ export async function createHttp2Server(
   const { logger } = deps;
   const backendServer = http.createServer(listener);
   const { socketPath, cleanup } = await createBackendSocketPath();
-  const staticAssets = resolveStaticAssets(
+  const staticAssets = filterStaticAssets(
     options.http2.staticAssets ?? [],
     logger,
   );
+  // Static assets are served by the backend first, to learn which caching
+  // headers to use when serving them directly.
+  const staticAssetCache: StaticAssetCache = new Map();
 
   const agent = new http.Agent({ keepAlive: true });
   const proxy = createProxyServer({
@@ -161,7 +143,9 @@ export async function createHttp2Server(
     }
   });
 
-  proxy.on('proxyRes', (proxyRes, _req, res) => {
+  proxy.on('proxyRes', (proxyRes, req, res) => {
+    learnStaticAsset(req, proxyRes, staticAssets, staticAssetCache);
+
     // Stop the backend request if the client goes away first. The proxy does
     // this itself for HTTP/1.1 clients, but HTTP/2 responses report as
     // finished once the client cancels the stream.
@@ -194,7 +178,7 @@ export async function createHttp2Server(
     { ...options.credentials, allowHTTP1: true },
     (req: Request, res: Response) => {
       stripForwardingHeaders(req);
-      serveStaticAsset(req, res, staticAssets)
+      serveStaticAsset(req, res, staticAssets, staticAssetCache)
         .then(served => {
           if (!served) {
             proxy.web(req as http.IncomingMessage, res as http.ServerResponse);

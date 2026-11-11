@@ -117,8 +117,10 @@ export interface Config {
            * directly, without forwarding the requests to the backend. Use
            * this for the app's content-hashed `static` folder.
            *
-           * Files are served without any backend middleware, including
-           * authentication. A directory is skipped if it belongs to an app
+           * The first request for each file is forwarded to the backend, and
+           * later requests for the same version of the file are served
+           * directly with the same caching headers. Files are served without
+           * any backend middleware, including authentication. A directory is skipped if it belongs to an app
            * with a protected entry point, which means a sibling `public`
            * folder exists.
            */

@@ -82,9 +82,25 @@ describe('createHttp2Server', () => {
 
   let longPollClosed: (reason: string) => void;
 
-  function createApp() {
+  function createApp(staticDirectory?: string) {
     const app = express();
     app.set('trust proxy', 1);
+    if (staticDirectory) {
+      // Like the app backend, which revalidates the file with injected config
+      app.use(
+        '/static',
+        express.static(staticDirectory, {
+          setHeaders: (res, path) => {
+            res.setHeader(
+              'Cache-Control',
+              path.endsWith('injected.js')
+                ? 'no-cache'
+                : 'public, max-age=1209600',
+            );
+          },
+        }),
+      );
+    }
     app.get('/api/echo', (req, res) => {
       res.json({
         ip: req.ip,
@@ -112,7 +128,7 @@ describe('createHttp2Server', () => {
 
   async function startServer(staticDirectory?: string) {
     server = await createHttp2Server(
-      createApp(),
+      createApp(staticDirectory),
       {
         listen: { host: '127.0.0.1', port: 0 },
         credentials,
@@ -184,11 +200,11 @@ describe('createHttp2Server', () => {
     });
   });
 
-  it('serves static assets directly and forwards everything else', async () => {
+  it('serves static assets directly with the caching headers of the backend', async () => {
     const mainJs = `console.log("${'x'.repeat(2000)}");`;
     mockDir.setContent({
-      'dist/index.html.tmpl': '<html></html>',
       'dist/static/main.js': mainJs,
+      'dist/static/injected.js': 'config',
       'dist/static/.hidden': 'secret',
       'dist/secret.txt': 'secret',
     });
@@ -197,19 +213,33 @@ describe('createHttp2Server', () => {
       ca: credentials.cert,
     });
 
-    const res = await http2Request(client, { ':path': '/static/main.js' });
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toBe('text/javascript; charset=utf-8');
-    expect(res.headers['cache-control']).toBe('public, max-age=1209600');
-    expect(res.headers['content-encoding']).toBeUndefined();
-    expect(res.body.toString()).toBe(mainJs);
+    // The first request is served by the backend, later ones directly
+    const fromBackend = await http2Request(client, {
+      ':path': '/static/main.js',
+    });
+    expect(fromBackend.status).toBe(200);
+    expect(fromBackend.headers['x-powered-by']).toBe('Express');
+    expect(fromBackend.body.toString()).toBe(mainJs);
 
-    const etag = res.headers.etag as string;
+    const direct = await http2Request(client, { ':path': '/static/main.js' });
+    expect(direct.status).toBe(200);
+    expect(direct.headers['x-powered-by']).toBeUndefined();
+    expect(direct.headers['content-type']).toBe(
+      'text/javascript; charset=utf-8',
+    );
+    expect(direct.headers['content-encoding']).toBeUndefined();
+    expect(direct.body.toString()).toBe(mainJs);
+    for (const header of ['cache-control', 'etag', 'last-modified']) {
+      expect(direct.headers[header]).toBe(fromBackend.headers[header]);
+    }
+    expect(direct.headers['cache-control']).toBe('public, max-age=1209600');
+
     const notModified = await http2Request(client, {
       ':path': '/static/main.js',
-      'if-none-match': etag,
+      'if-none-match': direct.headers.etag as string,
     });
     expect(notModified.status).toBe(304);
+    expect(notModified.headers['x-powered-by']).toBeUndefined();
     expect(notModified.body.length).toBe(0);
 
     const gzipped = await http2Request(client, {
@@ -218,6 +248,20 @@ describe('createHttp2Server', () => {
     });
     expect(gzipped.headers['content-encoding']).toBe('gzip');
     expect(gunzipSync(gzipped.body).toString()).toBe(mainJs);
+
+    // Files that the backend revalidates are also revalidated when direct
+    await http2Request(client, { ':path': '/static/injected.js' });
+    const injected = await http2Request(client, {
+      ':path': '/static/injected.js',
+    });
+    expect(injected.headers['x-powered-by']).toBeUndefined();
+    expect(injected.headers['cache-control']).toBe('no-cache');
+
+    // A changed file is served by the backend again
+    mockDir.addContent({ 'dist/static/main.js': 'changed' });
+    const changed = await http2Request(client, { ':path': '/static/main.js' });
+    expect(changed.headers['x-powered-by']).toBe('Express');
+    expect(changed.body.toString()).toBe('changed');
 
     // Missing, hidden and escaping paths are left to the backend
     for (const path of [
@@ -228,24 +272,9 @@ describe('createHttp2Server', () => {
     ]) {
       const forwarded = await http2Request(client, { ':path': path });
       expect(forwarded.status).toBe(404);
-      expect(JSON.parse(forwarded.body.toString())).toMatchObject({
-        fromBackend: true,
-      });
+      expect(forwarded.headers['x-powered-by']).toBe('Express');
     }
 
-    client.close();
-  });
-
-  it('revalidates static assets of apps built without an index.html template', async () => {
-    mockDir.setContent({ 'dist/static/main.js': 'legacy' });
-    const port = await startServer(mockDir.resolve('dist/static'));
-    const client = http2.connect(`https://localhost:${port}`, {
-      ca: credentials.cert,
-    });
-
-    const res = await http2Request(client, { ':path': '/static/main.js' });
-    expect(res.body.toString()).toBe('legacy');
-    expect(res.headers['cache-control']).toBe('no-cache');
     client.close();
   });
 
@@ -259,10 +288,10 @@ describe('createHttp2Server', () => {
       ca: credentials.cert,
     });
 
-    const res = await http2Request(client, { ':path': '/static/main.js' });
-    expect(JSON.parse(res.body.toString())).toMatchObject({
-      fromBackend: true,
-    });
+    for (let i = 0; i < 2; i++) {
+      const res = await http2Request(client, { ':path': '/static/main.js' });
+      expect(res.headers['x-powered-by']).toBe('Express');
+    }
     expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('protected entry point'),
     );

@@ -59,14 +59,14 @@ const COMPRESSIBLE_EXTENSIONS = new Set([
 // Smaller files are not worth the compression overhead
 const MIN_COMPRESS_SIZE = 1024;
 
-/** Same as the app backend uses for content-hashed files */
-export const CACHE_CONTROL_MAX_CACHE = 'public, max-age=1209600'; // 14 days
-export const CACHE_CONTROL_REVALIDATE = 'no-cache';
-
-/** A static asset directory, with the caching to apply to its files */
-export type StaticAssetMount = HttpServerHttp2StaticAssetsOptions & {
-  cacheControl: string;
-};
+/**
+ * The caching headers that the backend sent for a static asset, keyed by file
+ * path. The ETag identifies the version of the file that they apply to.
+ */
+export type StaticAssetCache = Map<
+  string,
+  { etag: string; cacheControl?: string }
+>;
 
 type Request = http.IncomingMessage | http2.Http2ServerRequest;
 type Response = http.ServerResponse | http2.Http2ServerResponse;
@@ -124,14 +124,44 @@ export function resolveStaticAssetPath(
 }
 
 /**
+ * Records the caching headers of a static asset response from the backend,
+ * so that later requests for the same version of the file can be served
+ * directly with the same headers.
+ */
+export function learnStaticAsset(
+  req: Request,
+  backendResponse: http.IncomingMessage,
+  mounts: HttpServerHttp2StaticAssetsOptions[],
+  cache: StaticAssetCache,
+) {
+  if (mounts.length === 0 || (req.method !== 'GET' && req.method !== 'HEAD')) {
+    return;
+  }
+  const { statusCode, headers } = backendResponse;
+  if (statusCode !== 200 && statusCode !== 304) {
+    return;
+  }
+  const resolved = resolveStaticAssetPath(req.url, mounts);
+  if (!resolved || typeof headers.etag !== 'string') {
+    return;
+  }
+  cache.set(resolved.filePath, {
+    etag: headers.etag,
+    cacheControl: headers['cache-control'],
+  });
+}
+
+/**
  * Serves a GET or HEAD request from one of the static asset directories.
  * Resolves to false if the request was not handled and should be forwarded
- * to Express instead, for example because the file does not exist.
+ * to Express instead, for example because the file does not exist, or
+ * because the backend hasn't served this version of the file yet.
  */
 export async function serveStaticAsset(
   req: Request,
   res: Response,
-  mounts: StaticAssetMount[],
+  mounts: HttpServerHttp2StaticAssetsOptions[],
+  cache: StaticAssetCache,
 ): Promise<boolean> {
   if (mounts.length === 0 || (req.method !== 'GET' && req.method !== 'HEAD')) {
     return false;
@@ -141,7 +171,6 @@ export async function serveStaticAsset(
     return false;
   }
   const { filePath } = resolved;
-  const { cacheControl } = resolved.mount as StaticAssetMount;
 
   let stat: fs.Stats;
   try {
@@ -153,18 +182,27 @@ export async function serveStaticAsset(
     return false;
   }
 
-  const ext = extname(filePath).toLowerCase();
-  const etag = `W/"${stat.size.toString(16)}-${Math.floor(
-    stat.mtimeMs,
-  ).toString(16)}"`;
+  // Same format as the ETag that Express generates for static files. Only
+  // serve the file if the backend has served this exact version before, so
+  // that the response gets the same caching headers as the backend uses.
+  const etag = `W/"${stat.size.toString(16)}-${stat.mtime
+    .getTime()
+    .toString(16)}"`;
+  const known = cache.get(filePath);
+  if (known?.etag !== etag) {
+    return false;
+  }
 
+  const ext = extname(filePath).toLowerCase();
   const headers: Record<string, string | number> = {
-    'cache-control': cacheControl,
     etag,
     'last-modified': stat.mtime.toUTCString(),
     'x-content-type-options': 'nosniff',
     vary: 'accept-encoding',
   };
+  if (known.cacheControl) {
+    headers['cache-control'] = known.cacheControl;
+  }
 
   const ifNoneMatch = req.headers['if-none-match'];
   if (
