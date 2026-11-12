@@ -5,6 +5,27 @@
 ```ts
 import type { Expand } from '@backstage/types';
 import type { JsonObject } from '@backstage/types';
+import { z } from 'zod/v4';
+
+// @public
+export type ConfigFromSchema<TConfigSchema extends z.ZodObject> =
+  z.infer<TConfigSchema> extends Record<string, never>
+    ? Record<never, never>
+    : z.infer<TConfigSchema>;
+
+// @public
+export type ConfiguredConnectionAuthFromSchema<
+  TAuthMethod extends ConnectionAuthMethodSchema,
+> = TAuthMethod extends ConnectionAuthMethodSchema<
+  infer TMethod,
+  infer TConfigSchema
+>
+  ? Expand<
+      {
+        method: TMethod;
+      } & ConfigFromSchema<TConfigSchema>
+    >
+  : never;
 
 // @public (undocumented)
 export type Connection<
@@ -49,18 +70,28 @@ export type Connection<
 
 // @public
 export type ConnectionAuth<
-  T extends ConnectionType,
+  T extends ConnectionTypeDefinition | ConnectionType,
   TAuthMethod extends string = string,
 > = Connection<T, TAuthMethod>['auth'];
+
+// @public
+export type ConnectionAuthMethodSchema<
+  TMethod extends string = string,
+  TConfigSchema extends z.ZodObject = z.ZodObject,
+> = {
+  method: TMethod;
+  title: string;
+  configSchema: TConfigSchema;
+};
 
 // @public (undocumented)
 export type ConnectionLookupStrategy = 'host' | 'aws';
 
-// @public (undocumented)
+// @public
 export interface ConnectionsService {
   // (undocumented)
   find<
-    TType extends ConnectionType,
+    TType extends ConnectionType | ConnectionTypeDefinition,
     TAuthMethod extends LookupConnectionType<TType>['authMethods'][number]['method'],
   >(options: {
     type: TType;
@@ -72,7 +103,7 @@ export interface ConnectionsService {
     authMethods: readonly [TAuthMethod, ...TAuthMethod[]];
   }): Promise<Connection<TType, TAuthMethod>>;
   // (undocumented)
-  find<TType extends ConnectionType>(options: {
+  find<TType extends ConnectionType | ConnectionTypeDefinition>(options: {
     type: TType;
     query: LookupConnectionType<TType> extends ConnectionTypeDefinition<
       infer IDefinition
@@ -476,10 +507,73 @@ export const connectionTypes: {
   }>;
 };
 
+// @public
+export interface ConnectionTypesRegistryService {
+  register(connectionType: ConnectionTypeDefinition): void;
+}
+
+// @public
+export function createConnectionType<
+  TType extends string,
+  TConfigSchema extends z.ZodObject,
+  const TAuthMethods extends readonly ConnectionAuthMethodSchema[],
+  TLookupStrategy extends ConnectionLookupStrategy = 'host',
+  TCardinality extends 'singleton' | 'multiton' = 'multiton',
+>(input: {
+  type: TType;
+  title: string;
+  cardinality?: TCardinality;
+  lookupStrategy?: TLookupStrategy;
+  configSchema: WithoutReservedFields<TConfigSchema>;
+  authMethods: WithoutReservedAuthMethods<TAuthMethods>;
+  matchAuth?: (
+    authMethods: Expand<
+      ConfiguredConnectionAuthFromSchema<TAuthMethods[number]> & {
+        title: string;
+      }
+    >[],
+    query: LookupStrategyQuery[TLookupStrategy],
+  ) =>
+    | Expand<
+        ConfiguredConnectionAuthFromSchema<TAuthMethods[number]> & {
+          title: string;
+        }
+      >
+    | undefined;
+  validate?: (connection: {
+    config: ConfigFromSchema<TConfigSchema>;
+    auth: readonly Expand<
+      ConfiguredConnectionAuthFromSchema<TAuthMethods[number]> & {
+        match?: {
+          plugins: string[];
+        };
+      }
+    >[];
+  }) => void;
+}): ConnectionTypeDefinition<{
+  type: TType;
+  cardinality: TCardinality;
+  lookupStrategy: TLookupStrategy;
+  query: LookupStrategyQuery[TLookupStrategy];
+  configSchema: ConfigFromSchema<TConfigSchema>;
+  auth: readonly ConfiguredConnectionAuthFromSchema<TAuthMethods[number]>[];
+}>;
+
 // @public (undocumented)
 export type LookupConnectionType<
   T extends ConnectionType | ConnectionTypeDefinition,
 > = T extends ConnectionType ? (typeof connectionTypes)[T] : T;
+
+// @public
+export type LookupStrategyQuery = {
+  host: {
+    url: string;
+  };
+  aws: {
+    accountId?: string;
+    arn?: string;
+  };
+};
 
 // @public
 export type PortableSchema<TOutput = unknown, TInput = TOutput> = {
@@ -488,6 +582,51 @@ export type PortableSchema<TOutput = unknown, TInput = TOutput> = {
     schema: JsonObject;
   };
 };
+
+// @public
+export type ReservedAuthMethodFields = 'method' | 'match' | 'title';
+
+// @public
+export type ReservedConnectionFields = 'type' | 'auth' | 'match' | 'title';
+
+// @public
+export type ReservedFieldError<K extends string> = {
+  readonly __error: `configSchema must not declare reserved field '${K}'`;
+};
+
+// @public
+export type WithoutReservedAuthMethodFields<TSchema extends z.ZodObject> =
+  Extract<keyof z.infer<TSchema>, ReservedAuthMethodFields> extends infer K
+    ? [K] extends [never]
+      ? TSchema
+      : ReservedFieldError<K & string>
+    : never;
+
+// @public
+export type WithoutReservedAuthMethods<
+  TAuthMethods extends readonly {
+    method: string;
+    title: string;
+  }[],
+> = {
+  [I in keyof TAuthMethods]: TAuthMethods[I] extends {
+    configSchema: infer TConfigSchema extends z.ZodObject;
+  }
+    ? Omit<TAuthMethods[I], 'configSchema'> & {
+        configSchema: WithoutReservedAuthMethodFields<TConfigSchema>;
+      }
+    : TAuthMethods[I];
+};
+
+// @public
+export type WithoutReservedFields<TSchema extends z.ZodObject> = Extract<
+  keyof z.infer<TSchema>,
+  ReservedConnectionFields
+> extends infer K
+  ? [K] extends [never]
+    ? TSchema
+    : ReservedFieldError<K & string>
+  : never;
 
 // (No @packageDocumentation comment for this package)
 ```

@@ -30,6 +30,20 @@ export const connectionsServiceRef = createServiceRef<
 });
 
 /**
+ * Service for registering connection types that are provided by a plugin.
+ * Registered types must be named `<pluginId>:<name>`, and can then be used in
+ * `connections` configuration and looked up through the connections service.
+ *
+ * @alpha
+ */
+export const connectionTypesRegistryServiceRef = createServiceRef<
+  import('@backstage/connections').ConnectionTypesRegistryService
+>({
+  id: 'alpha.core.connectionTypesRegistry',
+  scope: 'plugin',
+});
+
+/**
  * Service for calling distributed actions
  *
  * See {@link ActionsService}

@@ -79,6 +79,8 @@ Start with the guide that matches your task:
 - [Create or modify a connection type](./connections/05-creating-a-connection-type.md)
   covers the framework contribution path for adding and evolving canonical
   connection types.
+- [Provide connection types from a plugin](./connections/06-providing-connection-types-from-a-plugin.md)
+  shows how a backend plugin registers its own connection types.
 
 If you configure a Backstage instance, begin with
 [Configure and manage connections](./connections/02-configuring-connections.md).

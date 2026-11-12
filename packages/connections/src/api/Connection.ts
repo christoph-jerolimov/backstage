@@ -56,6 +56,6 @@ export type Connection<
  * @public
  */
 export type ConnectionAuth<
-  T extends ConnectionType,
+  T extends ConnectionTypeDefinition | ConnectionType,
   TAuthMethod extends string = string,
 > = Connection<T, TAuthMethod>['auth'];

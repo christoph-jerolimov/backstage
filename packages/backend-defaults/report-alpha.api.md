@@ -6,6 +6,7 @@
 import { ActionsRegistryService } from '@backstage/backend-plugin-api/alpha';
 import { ActionsService } from '@backstage/backend-plugin-api/alpha';
 import { ConnectionsService } from '@backstage/connections';
+import { ConnectionTypesRegistryService } from '@backstage/connections';
 import { MetricsService } from '@backstage/backend-plugin-api/alpha';
 import { ServiceFactory } from '@backstage/backend-plugin-api';
 import { TracingService } from '@backstage/backend-plugin-api/alpha';
@@ -27,6 +28,13 @@ export const actionsServiceFactory: ServiceFactory<
 // @alpha
 export const connectionsServiceFactory: ServiceFactory<
   ConnectionsService,
+  'plugin',
+  'singleton'
+>;
+
+// @alpha
+export const connectionTypesRegistryServiceFactory: ServiceFactory<
+  ConnectionTypesRegistryService,
   'plugin',
   'singleton'
 >;

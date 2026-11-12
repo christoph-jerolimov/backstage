@@ -25,7 +25,12 @@ import type {
   WithoutReservedFields,
 } from '../api/ConnectionType';
 
-type ConnectionAuthMethodSchema<
+/**
+ * The definition of an auth method as passed to {@link createConnectionType}.
+ *
+ * @public
+ */
+export type ConnectionAuthMethodSchema<
   TMethod extends string = string,
   TConfigSchema extends z.ZodObject = z.ZodObject,
 > = {
@@ -34,15 +39,27 @@ type ConnectionAuthMethodSchema<
   configSchema: TConfigSchema;
 };
 
-type ConfigFromSchema<TConfigSchema extends z.ZodObject> =
+/**
+ * The parsed configuration shape of a Zod schema passed to
+ * {@link createConnectionType}.
+ *
+ * @public
+ */
+export type ConfigFromSchema<TConfigSchema extends z.ZodObject> =
   z.infer<TConfigSchema> extends Record<string, never>
     ? Record<never, never>
     : z.infer<TConfigSchema>;
 
+/**
+ * The parsed shape of an auth entry for an auth method passed to
+ * {@link createConnectionType}.
+ *
+ * @public
+ */
 // Expand flattens the intersection into a single object literal so that
 // editor tooltips show each auth method variant as a readable flat shape
 // rather than a chain of truncated intersections.
-type ConfiguredConnectionAuthFromSchema<
+export type ConfiguredConnectionAuthFromSchema<
   TAuthMethod extends ConnectionAuthMethodSchema,
 > = TAuthMethod extends ConnectionAuthMethodSchema<
   infer TMethod,
@@ -79,6 +96,16 @@ function createPortableSchema<TSchema extends z.ZodType>(
   };
 }
 
+/**
+ * Creates a connection type definition from Zod schemas.
+ *
+ * Plugins use this to define their own connection types, which are then
+ * registered through the `ConnectionTypesRegistryService`. The `type` of a
+ * plugin-provided connection type must be namespaced with the plugin ID, in
+ * the form `<pluginId>:<name>`.
+ *
+ * @public
+ */
 export function createConnectionType<
   TType extends string,
   TConfigSchema extends z.ZodObject,

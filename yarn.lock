@@ -2671,6 +2671,7 @@ __metadata:
     "@backstage/connections": "workspace:^"
     "@backstage/errors": "workspace:^"
     "@backstage/types": "workspace:^"
+    zod: "npm:^4.0.0"
   languageName: unknown
   linkType: soft
 

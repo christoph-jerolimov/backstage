@@ -17,9 +17,45 @@
 import {
   coreServices,
   createServiceFactory,
+  createServiceRef,
 } from '@backstage/backend-plugin-api';
-import { connectionsServiceRef } from '@backstage/backend-plugin-api/alpha';
+import {
+  connectionsServiceRef,
+  connectionTypesRegistryServiceRef,
+} from '@backstage/backend-plugin-api/alpha';
 import { DefaultConnectionsService } from '@backstage/connections-node';
+
+// The connections service and the connection types registry operate on the
+// same set of connections. This internal root service holds that shared
+// state, so that each of the two public services can still be replaced.
+const rootConnectionsServiceRef = createServiceRef<DefaultConnectionsService>({
+  id: 'alpha.core.connections.root',
+  scope: 'root',
+  defaultFactory: async service =>
+    createServiceFactory({
+      service,
+      deps: {
+        rootLogger: coreServices.rootLogger,
+        rootLifecycle: coreServices.rootLifecycle,
+        config: coreServices.rootConfig,
+      },
+      async factory({ rootLogger, rootLifecycle, config }) {
+        const connectionsService = DefaultConnectionsService.create({
+          logger: rootLogger,
+          config,
+        });
+
+        // Plugins register their connection types during initialization, so
+        // entries of an unknown plugin-provided type can only be detected
+        // once startup has completed.
+        rootLifecycle.addStartupHook(() => {
+          connectionsService.warnAboutUnregisteredConnectionTypes();
+        });
+
+        return connectionsService;
+      },
+    }),
+});
 
 /**
  * Creates the default plugin-scoped connections service.
@@ -30,16 +66,29 @@ export const connectionsServiceFactory = createServiceFactory({
   service: connectionsServiceRef,
   deps: {
     pluginMetadata: coreServices.pluginMetadata,
-    rootLogger: coreServices.rootLogger,
     logger: coreServices.logger,
-    config: coreServices.rootConfig,
+    rootConnections: rootConnectionsServiceRef,
   },
-  async createRootContext({ rootLogger, config }) {
-    return DefaultConnectionsService.create({ logger: rootLogger, config });
+  async factory({ logger, pluginMetadata, rootConnections }) {
+    return rootConnections.forPlugin(pluginMetadata.getId(), { logger });
   },
+});
 
-  async factory({ logger, pluginMetadata }, connectionsService) {
-    const pluginId = pluginMetadata.getId();
-    return connectionsService.forPlugin(pluginId, { logger });
+/**
+ * Creates the default plugin-scoped connection types registry service.
+ *
+ * @alpha
+ */
+export const connectionTypesRegistryServiceFactory = createServiceFactory({
+  service: connectionTypesRegistryServiceRef,
+  deps: {
+    pluginMetadata: coreServices.pluginMetadata,
+    logger: coreServices.logger,
+    rootConnections: rootConnectionsServiceRef,
+  },
+  async factory({ logger, pluginMetadata, rootConnections }) {
+    return rootConnections.registryForPlugin(pluginMetadata.getId(), {
+      logger,
+    });
   },
 });

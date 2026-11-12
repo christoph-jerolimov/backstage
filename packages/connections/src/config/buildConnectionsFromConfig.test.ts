@@ -15,7 +15,13 @@
  */
 import { ConfigReader } from '@backstage/config';
 import { JsonObject } from '@backstage/types';
-import { buildConnectionsFromConfig } from './buildConnectionsFromConfig';
+import { z } from 'zod/v4';
+import { createConnectionType } from '../system/createConnectionType';
+import {
+  buildConnectionsFromConfig,
+  buildPluginConnectionsFromConfig,
+  getPluginConnectionTypesFromConfig,
+} from './buildConnectionsFromConfig';
 
 const rootConfig = (data: JsonObject) => new ConfigReader(data);
 
@@ -218,5 +224,172 @@ describe('buildConnectionsFromConfig', () => {
     ).toThrow(
       'Duplicate connection of type "aws"; this is a singleton connection type',
     );
+  });
+});
+
+describe('plugin-provided connection types', () => {
+  const jiraServerConnectionType = createConnectionType({
+    type: 'jira:server',
+    title: 'Jira Server',
+    configSchema: z.object({ host: z.string() }),
+    authMethods: [
+      {
+        method: 'token',
+        title: 'Token',
+        configSchema: z.object({ token: z.string() }),
+      },
+    ],
+  });
+
+  const jiraCloudConnectionType = createConnectionType({
+    type: 'jira:cloud',
+    title: 'Jira Cloud',
+    cardinality: 'singleton',
+    configSchema: z.object({ host: z.string() }),
+    authMethods: [
+      {
+        method: 'token',
+        title: 'Token',
+        configSchema: z.object({ token: z.string() }),
+      },
+    ],
+  });
+
+  const jiraServer = (host: string, extra?: JsonObject) => ({
+    type: 'jira:server',
+    host,
+    auth: [{ method: 'token', token: `${host}-token` }],
+    ...extra,
+  });
+
+  it('builds only the connections of the given type and leaves them out of the built-in list', () => {
+    const config = rootConfig({
+      connections: [
+        {
+          type: 'github',
+          host: 'github.com',
+          auth: [{ method: 'token', token: 'gh-token' }],
+        },
+        jiraServer('jira.example.com'),
+        jiraServer('jira.internal', { title: 'Internal Jira' }),
+        {
+          type: 'jira:cloud',
+          host: 'example.atlassian.net',
+          auth: [{ method: 'token', token: 'cloud-token' }],
+        },
+        {
+          type: 'other-plugin:thing',
+          anything: 'goes until the type is registered',
+        },
+      ],
+    });
+
+    expect(buildConnectionsFromConfig({ config })).toEqual([
+      expect.objectContaining({ type: 'github', host: 'github.com' }),
+    ]);
+    expect(getPluginConnectionTypesFromConfig(config)).toEqual([
+      'jira:server',
+      'jira:cloud',
+      'other-plugin:thing',
+    ]);
+    expect(getPluginConnectionTypesFromConfig(rootConfig({}))).toEqual([]);
+
+    expect(
+      buildPluginConnectionsFromConfig({
+        config,
+        connectionType: jiraServerConnectionType,
+      }),
+    ).toEqual([
+      {
+        type: 'jira:server',
+        title: 'Jira Server (jira.example.com)',
+        host: 'jira.example.com',
+        auth: [
+          {
+            method: 'token',
+            title: 'Token',
+            token: 'jira.example.com-token',
+          },
+        ],
+      },
+      expect.objectContaining({
+        type: 'jira:server',
+        title: 'Internal Jira',
+        host: 'jira.internal',
+      }),
+    ]);
+    expect(
+      buildPluginConnectionsFromConfig({
+        config,
+        connectionType: jiraCloudConnectionType,
+      }),
+    ).toEqual([
+      expect.objectContaining({ type: 'jira:cloud', title: 'Jira Cloud' }),
+    ]);
+    expect(
+      buildPluginConnectionsFromConfig({
+        config: rootConfig({}),
+        connectionType: jiraServerConnectionType,
+      }),
+    ).toEqual([]);
+  });
+
+  it('rejects invalid and duplicate connections of the given type', () => {
+    expect(() =>
+      buildPluginConnectionsFromConfig({
+        config: rootConfig({
+          connections: [{ type: 'jira:server', host: 'jira.example.com' }],
+        }),
+        connectionType: jiraServerConnectionType,
+      }),
+    ).toThrow(
+      /Invalid connection of type "jira:server" in connections config:\nConnection of type "jira:server" must configure at least one auth method/,
+    );
+    expect(() =>
+      buildPluginConnectionsFromConfig({
+        config: rootConfig({
+          connections: [
+            {
+              type: 'jira:server',
+              host: 'jira.example.com',
+              auth: [{ method: 'basic', username: 'u', password: 'p' }],
+            },
+          ],
+        }),
+        connectionType: jiraServerConnectionType,
+      }),
+    ).toThrow(/Unknown auth method "basic" for connection type "jira:server"/);
+    expect(() =>
+      buildPluginConnectionsFromConfig({
+        config: rootConfig({
+          connections: [jiraServer('jira.example.com', { unknownField: true })],
+        }),
+        connectionType: jiraServerConnectionType,
+      }),
+    ).toThrow(/Invalid connection of type "jira:server"[^]*unknownField/);
+    expect(() =>
+      buildPluginConnectionsFromConfig({
+        config: rootConfig({
+          connections: [
+            jiraServer('jira.example.com'),
+            jiraServer('jira.example.com'),
+          ],
+        }),
+        connectionType: jiraServerConnectionType,
+      }),
+    ).toThrow(
+      /Duplicate connection of type "jira:server" for host "jira.example.com"/,
+    );
+    expect(() =>
+      buildPluginConnectionsFromConfig({
+        config: rootConfig({
+          connections: [
+            { ...jiraServer('a.atlassian.net'), type: 'jira:cloud' },
+            { ...jiraServer('b.atlassian.net'), type: 'jira:cloud' },
+          ],
+        }),
+        connectionType: jiraCloudConnectionType,
+      }),
+    ).toThrow(/singleton connection type that only allows one entry/);
   });
 });

@@ -23,15 +23,31 @@ import type {
   ConnectionsService,
   ConnectionTypeDefinition,
   ConnectionType,
+  ConnectionTypesRegistryService,
   LookupConnectionType,
 } from '@backstage/connections';
 import type { ConfiguredConnection } from '@backstage/connections/config';
-import { buildConnectionsFromConfig } from '@backstage/connections/config';
-import { getConnectionType } from './lookup';
+import {
+  buildConnectionsFromConfig,
+  buildPluginConnectionsFromConfig,
+  getPluginConnectionTypesFromConfig,
+} from '@backstage/connections/config';
+import { getConnectionType, isConnectionType } from './lookup';
 import { lookupStrategies } from './lookupStrategies';
-import { NotAllowedError, NotFoundError } from '@backstage/errors';
+import {
+  ConflictError,
+  InputError,
+  NotAllowedError,
+  NotFoundError,
+} from '@backstage/errors';
 
-type ConnectionQuery<TType extends ConnectionType> =
+// The part of a plugin-provided connection type that follows the
+// `<pluginId>:` prefix.
+const PLUGIN_TYPE_NAME_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+
+type ConnectionTypeInput = ConnectionType | ConnectionTypeDefinition;
+
+type ConnectionQuery<TType extends ConnectionTypeInput> =
   LookupConnectionType<TType> extends ConnectionTypeDefinition<
     infer TDefinition
   >
@@ -57,17 +73,31 @@ function connectionIdentityOf(
   return typeof value === 'string' ? value : undefined;
 }
 
+function connectionTypeKey(type: string | { type: string }): string {
+  return typeof type === 'string' ? type : type.type;
+}
+
 class PluginConnectionsService implements ConnectionsService {
   private readonly logger: LoggerService;
-  private readonly connections: ConfiguredConnection[];
+  private readonly getConnections: () => ConfiguredConnection[];
+  private readonly resolveType: (
+    type: string,
+  ) => ConnectionTypeDefinition | undefined;
 
-  constructor(logger: LoggerService, connections: ConfiguredConnection[]) {
+  constructor(
+    logger: LoggerService,
+    // Connections are read on every lookup, since plugins can register
+    // further connection types after this service has been created.
+    getConnections: () => ConfiguredConnection[],
+    resolveType: (type: string) => ConnectionTypeDefinition | undefined,
+  ) {
     this.logger = logger;
-    this.connections = connections;
+    this.getConnections = getConnections;
+    this.resolveType = resolveType;
   }
 
   async find<
-    TType extends ConnectionType,
+    TType extends ConnectionTypeInput,
     TAuthMethod extends LookupConnectionType<TType>['authMethods'][number]['method'],
   >(options: {
     type: TType;
@@ -79,17 +109,17 @@ class PluginConnectionsService implements ConnectionsService {
     const result = await this.findOptional(options);
     if (!result) {
       throw new NotFoundError(
-        `Connection not found for type "${options.type}"`,
+        `Connection not found for type "${connectionTypeKey(options.type)}"`,
       );
     }
     return result;
   }
 
   private async findOptional<
-    TType extends ConnectionType,
+    TType extends ConnectionTypeInput,
     TAuthMethod extends LookupConnectionType<TType>['authMethods'][number]['method'],
   >({
-    type,
+    type: typeInput,
     query,
     authMethods,
   }: {
@@ -99,7 +129,13 @@ class PluginConnectionsService implements ConnectionsService {
   }): Promise<
     Connection<TType, TAuthMethod> | Omit<Connection<TType>, 'auth'> | undefined
   > {
-    const connectionType = getConnectionType(type);
+    const type = connectionTypeKey(typeInput);
+    const connectionType = this.resolveType(type);
+    if (!connectionType) {
+      throw new NotFoundError(
+        `Connection type "${type}" is not registered; the plugin that provides it must register it with the connection types registry before it can be looked up`,
+      );
+    }
     const strategy = getLookupStrategy(connectionType.lookupStrategy);
     const identity = strategy.identityFromQuery(query);
 
@@ -109,13 +145,14 @@ class PluginConnectionsService implements ConnectionsService {
       }`,
     );
 
+    const connections = this.getConnections();
     let connection: ConfiguredConnection | undefined;
     if (identity !== undefined) {
-      connection = this.connections.find(
+      connection = connections.find(
         c => c.type === type && connectionIdentityOf(strategy, c) === identity,
       );
     } else {
-      connection = this.connections.find(c => c.type === type);
+      connection = connections.find(c => c.type === type);
     }
 
     if (!connection) {
@@ -171,6 +208,10 @@ export class DefaultConnectionsService {
   private readonly logger: LoggerService;
   private readonly connections: ConfiguredConnection[];
   private readonly config: RootConfigService;
+  private readonly pluginConnectionTypes = new Map<
+    string,
+    ConnectionTypeDefinition
+  >();
 
   private constructor(logger: LoggerService, config: RootConfigService) {
     this.logger = logger;
@@ -232,7 +273,87 @@ export class DefaultConnectionsService {
     const logger = options?.logger ?? this.logger;
     return new PluginConnectionsService(
       logger,
-      this.#getConnectionsForPlugin(pluginId),
+      () => this.#getConnectionsForPlugin(pluginId),
+      type => this.#resolveConnectionType(type),
+    );
+  }
+
+  /**
+   * Returns the registry through which the given plugin, and its modules,
+   * contribute their own connection types.
+   */
+  registryForPlugin(
+    pluginId: string,
+    options?: {
+      logger: LoggerService;
+    },
+  ): ConnectionTypesRegistryService {
+    const logger = options?.logger ?? this.logger;
+    return {
+      register: connectionType => {
+        this.#registerConnectionType(pluginId, connectionType, logger);
+      },
+    };
+  }
+
+  /**
+   * Logs a warning for each plugin-provided connection type that is used in
+   * configuration but that no plugin has registered. Call this once all
+   * plugins have been initialized.
+   */
+  warnAboutUnregisteredConnectionTypes(): void {
+    for (const type of getPluginConnectionTypesFromConfig(this.config)) {
+      if (!this.pluginConnectionTypes.has(type)) {
+        this.logger.warn(
+          `Ignoring connections of type "${type}" in connections config, since no plugin in this backend has registered that connection type`,
+        );
+      }
+    }
+  }
+
+  #resolveConnectionType(type: string): ConnectionTypeDefinition | undefined {
+    if (isConnectionType(type)) {
+      return getConnectionType(type);
+    }
+    return this.pluginConnectionTypes.get(type);
+  }
+
+  #registerConnectionType(
+    pluginId: string,
+    connectionType: ConnectionTypeDefinition,
+    logger: LoggerService,
+  ): void {
+    const { type } = connectionType;
+    const prefix = `${pluginId}:`;
+
+    // The plugin ID prefix keeps plugin-provided types apart from both the
+    // built-in types and the types of every other plugin.
+    if (
+      !type.startsWith(prefix) ||
+      !PLUGIN_TYPE_NAME_PATTERN.test(type.slice(prefix.length))
+    ) {
+      throw new InputError(
+        `Invalid connection type "${type}" registered by plugin "${pluginId}"; the type must be named "${prefix}<name>", where the name consists of lowercase letters and digits in groups separated by dashes`,
+      );
+    }
+    if (this.pluginConnectionTypes.has(type)) {
+      throw new ConflictError(
+        `Connection type "${type}" has already been registered`,
+      );
+    }
+
+    const connections = buildPluginConnectionsFromConfig({
+      config: this.config,
+      connectionType,
+    });
+
+    this.pluginConnectionTypes.set(type, connectionType);
+    this.connections.push(...connections);
+
+    logger.info(
+      `Registered connection type "${type}" with ${
+        connections.length
+      } connection${connections.length === 1 ? '' : 's'} from configuration`,
     );
   }
 }

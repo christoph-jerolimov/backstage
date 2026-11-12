@@ -19,27 +19,48 @@ import type { Expand, JsonObject } from '@backstage/types';
 /** @public */
 export type ConnectionLookupStrategy = 'host' | 'aws';
 
+/**
+ * The query accepted by `ConnectionsService.find` for each lookup strategy.
+ *
+ * @public
+ */
 export type LookupStrategyQuery = {
   host: { url: string };
   aws: { accountId?: string; arn?: string };
 };
 
-// Field names the framework owns at the connection level. Connection-type
-// authors must not declare these in their `configSchema`.
+/**
+ * Field names the framework owns at the connection level. Connection-type
+ * authors must not declare these in their `configSchema`.
+ *
+ * @public
+ */
 export type ReservedConnectionFields = 'type' | 'auth' | 'match' | 'title';
 
-// Field names the framework owns at the auth method level. Connection-type
-// authors must not declare these in auth method `configSchema` objects.
+/**
+ * Field names the framework owns at the auth method level. Connection-type
+ * authors must not declare these in auth method `configSchema` objects.
+ *
+ * @public
+ */
 export type ReservedAuthMethodFields = 'method' | 'match' | 'title';
 
-// Surfaced when a configSchema declares a reserved key — the message becomes
-// part of the type error so authors see why their schema was rejected.
-type ReservedFieldError<K extends string> = {
+/**
+ * Surfaced when a configSchema declares a reserved key — the message becomes
+ * part of the type error so authors see why their schema was rejected.
+ *
+ * @public
+ */
+export type ReservedFieldError<K extends string> = {
   readonly __error: `configSchema must not declare reserved field '${K}'`;
 };
 
-// Constrain a ZodObject so its inferred shape can't collide with framework
-// keys. Resolves to a self-describing error type if a reserved key is present.
+/**
+ * Constrains a ZodObject so its inferred shape can't collide with framework
+ * keys. Resolves to a self-describing error type if a reserved key is present.
+ *
+ * @public
+ */
 export type WithoutReservedFields<TSchema extends z.ZodObject> = Extract<
   keyof z.infer<TSchema>,
   ReservedConnectionFields
@@ -49,8 +70,12 @@ export type WithoutReservedFields<TSchema extends z.ZodObject> = Extract<
     : ReservedFieldError<K & string>
   : never;
 
-// Constrain a ZodObject so its inferred shape can't collide with auth method
-// framework keys.
+/**
+ * Constrains a ZodObject so its inferred shape can't collide with auth method
+ * framework keys.
+ *
+ * @public
+ */
 export type WithoutReservedAuthMethodFields<TSchema extends z.ZodObject> =
   Extract<keyof z.infer<TSchema>, ReservedAuthMethodFields> extends infer K
     ? [K] extends [never]
@@ -58,6 +83,12 @@ export type WithoutReservedAuthMethodFields<TSchema extends z.ZodObject> =
       : ReservedFieldError<K & string>
     : never;
 
+/**
+ * Applies {@link WithoutReservedAuthMethodFields} to the schema of each auth
+ * method of a connection type.
+ *
+ * @public
+ */
 export type WithoutReservedAuthMethods<
   TAuthMethods extends readonly {
     method: string;

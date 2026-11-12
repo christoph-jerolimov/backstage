@@ -328,10 +328,18 @@ causes include:
 - More than one singleton connection.
 - A whole-connection validation failure, such as duplicate AWS account IDs.
 
+Connection types named `<pluginId>:<name>` are
+[provided by a plugin](./06-providing-connection-types-from-a-plugin.md). The
+service validates their entries when the plugin registers the type, and
+reports invalid entries as an initialization failure of that plugin. If no
+installed plugin registers the type, its entries are ignored and the backend
+logs a warning after startup.
+
 At lookup time, distinguish these outcomes:
 
-- `NotFoundError` means no configured connection matched the type and query, or
-  the type-specific authentication selector found no candidate.
+- `NotFoundError` means no configured connection matched the type and query,
+  the type-specific authentication selector found no candidate, or the
+  plugin-provided connection type is not registered.
 - `NotAllowedError` means the plugin cannot see an authentication entry or the
   selected method is not supported by the consumer.
 - `InputError` can indicate an invalid query, such as a malformed URL, or a

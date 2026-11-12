@@ -14,7 +14,9 @@ returned to a plugin.
 A _connection type_ is the shared contract for one kind of external system.
 It defines:
 
-- A unique type key, such as `github` or `aws`.
+- A unique type key, such as `github` or `aws`. Types that a plugin provides
+  are named `<pluginId>:<name>`, such as `jira:server`. See
+  [Provide connection types from a plugin](./06-providing-connection-types-from-a-plugin.md).
 - A display title.
 - Whether configuration can contain one instance or many instances.
 - A lookup strategy, which determines the query accepted by

@@ -9,6 +9,7 @@ import type { BackendPluginRegistrationPoints } from '@backstage/backend-plugin-
 import { BackstageCredentials } from '@backstage/backend-plugin-api';
 import { BasicPermission } from '@backstage/plugin-permission-common';
 import { ConnectionsService } from '@backstage/connections';
+import { ConnectionTypesRegistryService } from '@backstage/connections';
 import { JsonObject } from '@backstage/types';
 import type { JSONSchema7 } from 'json-schema';
 import { JsonValue } from '@backstage/types';
@@ -157,6 +158,13 @@ export interface ConnectionRegistration {
 // @alpha
 export const connectionsServiceRef: ServiceRef<
   ConnectionsService,
+  'plugin',
+  'singleton'
+>;
+
+// @alpha
+export const connectionTypesRegistryServiceRef: ServiceRef<
+  ConnectionTypesRegistryService,
   'plugin',
   'singleton'
 >;

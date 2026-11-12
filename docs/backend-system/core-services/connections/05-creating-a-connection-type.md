@@ -11,12 +11,11 @@ external system. A type defines the connection fields,
 [lookup query](./01-concepts.md#lookup-queries), validation, and authentication
 selection behavior.
 
-:::caution[Framework contribution path]
-Adopter-defined connection type registration is not exposed as a public API.
-`createConnectionType` and the registry are internal to the Backstage
-framework. This guide describes how to contribute a canonical built-in type to
-the Backstage repository. Do not import internal source modules into an
-external plugin or app package.
+:::note[Framework contribution path]
+This guide describes how to contribute a canonical built-in type to the
+Backstage repository. To provide a connection type from your own plugin
+without changing the framework, see
+[Provide connection types from a plugin](./06-providing-connection-types-from-a-plugin.md).
 :::
 
 ## Decide whether you need a new type
@@ -45,7 +44,7 @@ Before writing code, decide:
 
 | Decision                                              | Questions                                                                                                  |
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Type key                                              | Is the lowercase key unique and recognizable in configuration?                                             |
+| Type key                                              | Is the lowercase key unique and recognizable in configuration? Built-in keys must not contain a colon.     |
 | Title                                                 | What human-readable name should tooling display?                                                           |
 | [Cardinality](./01-concepts.md#cardinality)           | Can an adopter configure one instance or multiple independently addressable instances?                     |
 | [Lookup strategy](./01-concepts.md#lookup-strategies) | Can a resource URL identify the connection by host, or does the system need an existing non-host strategy? |

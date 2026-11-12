@@ -17,6 +17,8 @@ import { mockServices } from '@backstage/backend-test-utils';
 import { DefaultConnectionsService } from '@backstage/connections-node';
 import { withDeclaredConnections } from './withDeclaredConnections';
 import { JsonArray } from '@backstage/types';
+import { createConnectionType } from '@backstage/connections';
+import { z } from 'zod/v4';
 
 const mockConnectionsConfig = (connections: JsonArray) =>
   mockServices.rootConfig({ data: { connections } });
@@ -120,5 +122,50 @@ describe('withDeclaredConnections', () => {
         authMethods: ['token'],
       }),
     ).rejects.toThrow(/undeclared connection of type "github"/);
+  });
+
+  it('checks declarations for plugin-provided types that are looked up by definition', async () => {
+    const jiraServerConnectionType = createConnectionType({
+      type: 'jira:server',
+      title: 'Jira Server',
+      configSchema: z.object({ host: z.string() }),
+      authMethods: [
+        {
+          method: 'token',
+          title: 'Token',
+          configSchema: z.object({ token: z.string() }),
+        },
+      ],
+    });
+    const root = DefaultConnectionsService.create({
+      logger: mockServices.logger.mock(),
+      config: mockConnectionsConfig([
+        {
+          type: 'jira:server',
+          host: 'jira.example.com',
+          auth: [{ method: 'token', token: 'jira-token' }],
+        },
+      ]),
+    });
+    root.registryForPlugin('jira').register(jiraServerConnectionType);
+    const lookup = {
+      type: jiraServerConnectionType,
+      query: { url: 'https://jira.example.com/browse/ABC-1' },
+      authMethods: ['token'],
+    } as const;
+
+    await expect(
+      withDeclaredConnections(root.forPlugin('jira'), [
+        { type: 'jira:server' },
+      ]).find(lookup),
+    ).resolves.toMatchObject({ auth: { token: 'jira-token' } });
+
+    await expect(
+      withDeclaredConnections(root.forPlugin('jira'), [
+        { type: 'github' },
+      ]).find(lookup),
+    ).rejects.toThrow(
+      /undeclared connection of type "jira:server".*declareConnection\(env, \{ type: "jira:server" \}\)/,
+    );
   });
 });

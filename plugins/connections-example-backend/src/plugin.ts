@@ -20,8 +20,10 @@ import {
 import { createRouter } from './router';
 import {
   connectionsServiceRef,
+  connectionTypesRegistryServiceRef,
   declareConnection,
 } from '@backstage/backend-plugin-api/alpha';
+import { exampleServiceConnectionType } from './connectionTypes';
 
 /**
  * connectionsExampleBackendPlugin backend plugin
@@ -39,14 +41,28 @@ export const connectionsExampleBackendPlugin = createBackendPlugin({
       type: 'gitlab',
       description: 'Used by the example /find endpoint to look up GitLab hosts',
     });
+    declareConnection(reg, {
+      type: exampleServiceConnectionType.type,
+      description:
+        'Used by the example /find endpoint to look up a connection type provided by this plugin',
+    });
     reg.registerInit({
       deps: {
         httpAuth: coreServices.httpAuth,
         httpRouter: coreServices.httpRouter,
         logger: coreServices.logger,
         connections: connectionsServiceRef,
+        connectionTypesRegistry: connectionTypesRegistryServiceRef,
       },
-      async init({ httpAuth, httpRouter, connections, logger }) {
+      async init({
+        httpAuth,
+        httpRouter,
+        connections,
+        connectionTypesRegistry,
+        logger,
+      }) {
+        connectionTypesRegistry.register(exampleServiceConnectionType);
+
         httpRouter.use(
           await createRouter({
             httpAuth,

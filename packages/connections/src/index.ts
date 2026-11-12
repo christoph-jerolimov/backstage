@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 export type { ConnectionsService } from './api/ConnectionsService';
+export type { ConnectionTypesRegistryService } from './api/ConnectionTypesRegistryService';
 export type { Connection, ConnectionAuth } from './api/Connection';
 export type {
   ConnectionTypeDefinition,
   ConnectionLookupStrategy,
+  LookupStrategyQuery,
   PortableSchema,
+  ReservedAuthMethodFields,
+  ReservedConnectionFields,
+  ReservedFieldError,
+  WithoutReservedAuthMethodFields,
+  WithoutReservedAuthMethods,
+  WithoutReservedFields,
 } from './api/ConnectionType';
 export { connectionTypes } from './definitions/types';
 export type { ConnectionType, LookupConnectionType } from './definitions/types';
+export { createConnectionType } from './system/createConnectionType';
+export type {
+  ConfigFromSchema,
+  ConfiguredConnectionAuthFromSchema,
+  ConnectionAuthMethodSchema,
+} from './system/createConnectionType';

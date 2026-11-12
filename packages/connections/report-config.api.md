@@ -19,6 +19,12 @@ export function buildConnectionsFromConfig(options: {
 }): ConfiguredConnection[];
 
 // @public
+export function buildPluginConnectionsFromConfig(options: {
+  config: Config;
+  connectionType: ConnectionTypeDefinition;
+}): ConfiguredConnection[];
+
+// @public
 export type ConfiguredConnection<
   T extends
     | ConnectionTypeDefinition
@@ -448,6 +454,9 @@ export const connectionTypes: {
     }[];
   }>;
 };
+
+// @public
+export function getPluginConnectionTypesFromConfig(config: Config): string[];
 
 // @public (undocumented)
 export type LookupConnectionType<

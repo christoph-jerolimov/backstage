@@ -17,11 +17,23 @@ import { Config } from '@backstage/config';
 import { InputError, toError } from '@backstage/errors';
 import { JsonObject } from '@backstage/types';
 import { z } from 'zod/v4';
+import type { ConnectionTypeDefinition } from '../api/ConnectionType';
 import type { ConnectionType } from '../definitions/types';
 import { combineConnectionSources } from './combineConnectionSources';
 import { getLegacyIntegrations } from './getLegacyIntegrations';
-import { getConnectionType, identityFields, isConnectionType } from './lookup';
+import {
+  getConnectionType,
+  identityFields,
+  isConnectionType,
+  isPluginConnectionType,
+} from './lookup';
 import type { ConfiguredConnection } from './types';
+
+// Resolves the definition of a connection that already passed validation.
+type ConnectionTypeResolver = (type: string) => ConnectionTypeDefinition;
+
+const resolveBuiltInType: ConnectionTypeResolver = type =>
+  getConnectionType(type as ConnectionType);
 
 function describeError(error: unknown): string {
   const e = toError(error);
@@ -50,7 +62,9 @@ function connectionIdentityOf(
   return typeof value === 'string' ? value : undefined;
 }
 
-function validateConnection(connection: JsonObject): ConfiguredConnection {
+function validateBuiltInConnection(
+  connection: JsonObject,
+): ConfiguredConnection {
   if (typeof connection.type !== 'string') {
     throw new InputError(`Unrecognised connection type ${connection.type}`);
   }
@@ -59,8 +73,13 @@ function validateConnection(connection: JsonObject): ConfiguredConnection {
     throw new InputError(`Unrecognised connection type ${connection.type}`);
   }
 
-  const connectionType = getConnectionType(connection.type);
+  return validateConnection(connection, getConnectionType(connection.type));
+}
 
+function validateConnection(
+  connection: JsonObject,
+  connectionType: ConnectionTypeDefinition,
+): ConfiguredConnection {
   const rawAuth = connection.auth;
   if (!Array.isArray(rawAuth) || rawAuth.length === 0) {
     throw new InputError(
@@ -92,7 +111,7 @@ function validateConnection(connection: JsonObject): ConfiguredConnection {
   });
 
   const { type, auth: _, title, match, ...configFields } = connection;
-  const parsed = connectionType.configSchema.parse(configFields);
+  const parsed = connectionType.configSchema.parse(configFields) as object;
 
   // Let the connection type check rules that span the whole connection,
   // such as uniqueness across auth entries. Entries keep their plugin
@@ -111,10 +130,13 @@ function validateConnection(connection: JsonObject): ConfiguredConnection {
   } as ConfiguredConnection;
 }
 
-function validateConfig(raw: JsonObject[]): ConfiguredConnection[] {
+function validateConfig(
+  raw: JsonObject[],
+  validate: (connection: JsonObject) => ConfiguredConnection,
+): ConfiguredConnection[] {
   return raw.map(v => {
     try {
-      return validateConnection(v);
+      return validate(v);
     } catch (e) {
       const type = typeof v.type === 'string' ? v.type : 'unknown';
       throw new InputError(
@@ -129,7 +151,7 @@ function validateConfig(raw: JsonObject[]): ConfiguredConnection[] {
 function validateLegacy(raw: JsonObject[]): ConfiguredConnection[] {
   return raw.map(v => {
     try {
-      return validateConnection(v);
+      return validateBuiltInConnection(v);
     } catch (e) {
       const type = typeof v.type === 'string' ? v.type : 'unknown';
       throw new InputError(
@@ -182,7 +204,10 @@ function dedupeLegacy(
   return result;
 }
 
-function assignDefaultTitles(connections: ConfiguredConnection[]): void {
+function assignDefaultTitles(
+  connections: ConfiguredConnection[],
+  resolveType: ConnectionTypeResolver,
+): void {
   const typeCounts = new Map<string, number>();
   for (const c of connections) {
     const type = c.type as ConnectionType;
@@ -191,7 +216,7 @@ function assignDefaultTitles(connections: ConfiguredConnection[]): void {
   for (const c of connections) {
     if (!c.title) {
       const type = c.type as ConnectionType;
-      const connectionType = getConnectionType(type);
+      const connectionType = resolveType(type);
       const displayName = connectionType.title;
       const identity = connectionIdentityOf(
         identityFields[connectionType.lookupStrategy],
@@ -205,10 +230,13 @@ function assignDefaultTitles(connections: ConfiguredConnection[]): void {
   }
 }
 
-function assignDefaultAuthTitles(connections: ConfiguredConnection[]): void {
+function assignDefaultAuthTitles(
+  connections: ConfiguredConnection[],
+  resolveType: ConnectionTypeResolver,
+): void {
   for (const c of connections) {
     const type = c.type as ConnectionType;
-    const connectionType = getConnectionType(type);
+    const connectionType = resolveType(type);
     for (const auth of c.auth) {
       const authMethod = connectionType.authMethods.find(
         am => am.method === auth.method,
@@ -225,6 +253,54 @@ function assignDefaultAuthTitles(connections: ConfiguredConnection[]): void {
   }
 }
 
+// Singleton connection types (e.g. aws) allow at most one connection in
+// the config. Multiton types (e.g. github) allow many, keyed by their
+// identity field so each must be unique.
+function assertUniqueConnections(
+  connections: ConfiguredConnection[],
+  resolveType: ConnectionTypeResolver,
+): void {
+  const singletonsSeen = new Set<string>();
+  const identitiesSeen = new Set<string>();
+  for (const c of connections) {
+    const connectionType = resolveType(c.type);
+
+    if (connectionType.cardinality === 'singleton') {
+      if (singletonsSeen.has(c.type)) {
+        throw new InputError(
+          `Duplicate connection of type "${c.type}"; this is a singleton connection type that only allows one entry`,
+        );
+      }
+      singletonsSeen.add(c.type);
+    } else {
+      const identityField = identityFields[connectionType.lookupStrategy];
+      const identity = connectionIdentityOf(identityField, c);
+      if (identity !== undefined) {
+        const key = `${c.type} ${identity}`;
+        if (identitiesSeen.has(key)) {
+          throw new InputError(
+            `Duplicate connection of type "${c.type}" for ${identityField} "${identity}"`,
+          );
+        }
+        identitiesSeen.add(key);
+      }
+    }
+  }
+}
+
+function readRawConnections(config: Config): JsonObject[] {
+  const rawConnections = config.getOptional('connections');
+  if (rawConnections === undefined) {
+    return [];
+  }
+  if (!Array.isArray(rawConnections)) {
+    throw new InputError(
+      'Expected "connections" config to be an array of connection objects',
+    );
+  }
+  return rawConnections as JsonObject[];
+}
+
 /**
  * Builds the effective list of connections from configuration.
  *
@@ -239,6 +315,10 @@ function assignDefaultAuthTitles(connections: ConfiguredConnection[]): void {
  *
  * The returned connections are fully validated against each connection type's
  * schemas and have default connection and auth method titles assigned.
+ *
+ * Entries of a plugin-provided connection type, named `<pluginId>:<name>`,
+ * are skipped. Use `buildPluginConnectionsFromConfig` to build those once
+ * the definition of the type is known.
  *
  * An `InputError` is thrown if any part of the configuration is invalid, for
  * example when a connection fails schema validation or when multiple
@@ -269,15 +349,12 @@ export function buildConnectionsFromConfig(options: {
   }
   const legacy = dedupeLegacy(validateLegacy(rawLegacy), logger);
 
-  const rawConnections = config.getOptional('connections');
-  if (rawConnections !== undefined && !Array.isArray(rawConnections)) {
-    throw new InputError(
-      'Expected "connections" config to be an array of connection objects',
-    );
-  }
-
+  // Connection types provided by plugins are not known here. Their entries
+  // are validated once the owning plugin has registered the type, see
+  // `buildPluginConnectionsFromConfig`.
   const fromConfig = validateConfig(
-    (rawConnections as JsonObject[] | undefined) ?? [],
+    readRawConnections(config).filter(c => !isPluginConnectionType(c.type)),
+    validateBuiltInConnection,
   );
 
   logger?.debug(
@@ -294,38 +371,51 @@ export function buildConnectionsFromConfig(options: {
 
   const connections = combineConnectionSources(legacy, fromConfig, logger);
 
-  // Singleton connection types (e.g. aws) allow at most one connection in
-  // the config. Multiton types (e.g. github) allow many, keyed by their
-  // identity field so each must be unique.
-  const singletonsSeen = new Set<string>();
-  const identitiesSeen = new Set<string>();
-  for (const c of connections) {
-    const connectionType = getConnectionType(c.type as ConnectionType);
+  assertUniqueConnections(connections, resolveBuiltInType);
 
-    if (connectionType.cardinality === 'singleton') {
-      if (singletonsSeen.has(c.type)) {
-        throw new InputError(
-          `Duplicate connection of type "${c.type}"; this is a singleton connection type that only allows one entry`,
-        );
-      }
-      singletonsSeen.add(c.type);
-    } else {
-      const identityField = identityFields[connectionType.lookupStrategy];
-      const identity = connectionIdentityOf(identityField, c);
-      if (identity !== undefined) {
-        const key = `${c.type} ${identity}`;
-        if (identitiesSeen.has(key)) {
-          throw new InputError(
-            `Duplicate connection of type "${c.type}" for ${identityField} "${identity}"`,
-          );
-        }
-        identitiesSeen.add(key);
-      }
-    }
-  }
-
-  assignDefaultTitles(connections);
-  assignDefaultAuthTitles(connections);
+  assignDefaultTitles(connections, resolveBuiltInType);
+  assignDefaultAuthTitles(connections, resolveBuiltInType);
 
   return connections;
+}
+
+/**
+ * Builds the connections of a single plugin-provided connection type from
+ * the `connections` configuration. Entries of any other type are ignored.
+ *
+ * @public
+ */
+export function buildPluginConnectionsFromConfig(options: {
+  config: Config;
+  connectionType: ConnectionTypeDefinition;
+}): ConfiguredConnection[] {
+  const { config, connectionType } = options;
+  const resolveType: ConnectionTypeResolver = () => connectionType;
+
+  const connections = validateConfig(
+    readRawConnections(config).filter(c => c.type === connectionType.type),
+    c => validateConnection(c, connectionType),
+  );
+
+  assertUniqueConnections(connections, resolveType);
+  assignDefaultTitles(connections, resolveType);
+  assignDefaultAuthTitles(connections, resolveType);
+
+  return connections;
+}
+
+/**
+ * Lists the plugin-provided connection types that have at least one entry
+ * in the `connections` configuration.
+ *
+ * @public
+ */
+export function getPluginConnectionTypesFromConfig(config: Config): string[] {
+  return [
+    ...new Set(
+      readRawConnections(config).flatMap(c =>
+        isPluginConnectionType(c.type) ? [c.type] : [],
+      ),
+    ),
+  ];
 }

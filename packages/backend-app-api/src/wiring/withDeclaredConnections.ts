@@ -33,7 +33,9 @@ export function withDeclaredConnections(
   };
   return {
     async find(options: Parameters<ConnectionsService['find']>[0]) {
-      assertDeclared(options.type);
+      // Plugin-provided connection types are looked up by their definition.
+      const type: string | { type: string } = options.type;
+      assertDeclared(typeof type === 'string' ? type : type.type);
       return service.find(options);
     },
   } as ConnectionsService;

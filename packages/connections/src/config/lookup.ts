@@ -50,3 +50,11 @@ export const identityFields: Record<
   host: 'host',
   aws: undefined,
 };
+
+/**
+ * Connection types provided by plugins are namespaced as `<pluginId>:<name>`,
+ * which keeps them apart from the built-in types that never contain a colon.
+ */
+export function isPluginConnectionType(value: unknown): value is string {
+  return typeof value === 'string' && value.includes(':');
+}

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { mockServices } from '@backstage/backend-test-utils';
-import { connectionTypes } from '@backstage/connections';
+import { connectionTypes, createConnectionType } from '@backstage/connections';
+import { z } from 'zod/v4';
 import { DefaultConnectionsService } from './DefaultConnectionsService';
 import { JsonArray, JsonObject } from '@backstage/types';
 
@@ -1331,5 +1332,215 @@ describe('DefaultConnectionsService', () => {
         }),
       ).toThrow(/singleton connection type that only allows one entry/);
     });
+  });
+});
+
+describe('plugin-provided connection types', () => {
+  const jiraServerConnectionType = createConnectionType({
+    type: 'jira:server',
+    title: 'Jira Server',
+    configSchema: z.object({ host: z.string() }),
+    authMethods: [
+      {
+        method: 'none',
+        title: 'None',
+        configSchema: z.object({}),
+      },
+      {
+        method: 'token',
+        title: 'Token',
+        configSchema: z.object({ token: z.string() }),
+      },
+    ],
+    matchAuth(authMethods) {
+      return (
+        authMethods.find(auth => auth.method === 'token') ??
+        authMethods.find(auth => auth.method === 'none')
+      );
+    },
+  });
+
+  const config = () =>
+    mockConnectionsConfig([
+      {
+        type: 'github',
+        host: 'github.com',
+        auth: [{ method: 'token', token: 'gh-token' }],
+      },
+      {
+        type: 'jira:server',
+        host: 'jira.example.com',
+        auth: [
+          { method: 'none' },
+          {
+            method: 'token',
+            token: 'scaffolder-token',
+            match: { plugins: ['scaffolder'] },
+          },
+          { method: 'token', token: 'default-token' },
+        ],
+      },
+      {
+        type: 'jira:server',
+        host: 'jira.internal',
+        match: { plugins: ['jira'] },
+        auth: [{ method: 'token', token: 'internal-token' }],
+      },
+      {
+        type: 'not-installed:thing',
+        host: 'thing.example.com',
+        auth: [{ method: 'token', token: 'thing-token' }],
+      },
+    ]);
+
+  it('makes configured connections of a registered type available to lookups', async () => {
+    const logger = mockServices.logger.mock();
+    const service = DefaultConnectionsService.create({
+      logger,
+      config: config(),
+    });
+    // Services handed out before the type is registered see it afterwards.
+    const jira = service.forPlugin('jira');
+    const scaffolder = service.forPlugin('scaffolder');
+
+    await expect(
+      jira.find({
+        type: jiraServerConnectionType,
+        query: { url: 'https://jira.example.com/browse/ABC-1' },
+        authMethods: ['token'],
+      }),
+    ).rejects.toThrow(
+      'Connection type "jira:server" is not registered; the plugin that provides it must register it with the connection types registry before it can be looked up',
+    );
+
+    service.registryForPlugin('jira').register(jiraServerConnectionType);
+
+    const connection = await jira.find({
+      type: jiraServerConnectionType,
+      query: { url: 'https://jira.example.com/browse/ABC-1' },
+      authMethods: ['token'],
+    });
+    // The result is typed from the definition, without any casting.
+    const token: string = connection.auth.token;
+    const host: string = connection.host;
+    expect({ host, token }).toEqual({
+      host: 'jira.example.com',
+      token: 'default-token',
+    });
+    expect(connection).toMatchObject({
+      type: 'jira:server',
+      title: 'Jira Server (jira.example.com)',
+      auth: { method: 'token', title: 'Token' },
+    });
+
+    // Plugin scoping applies in the same way as for built-in types.
+    await expect(
+      scaffolder.find({
+        type: jiraServerConnectionType,
+        query: { url: 'https://jira.example.com/browse/ABC-1' },
+        authMethods: ['token'],
+      }),
+    ).resolves.toMatchObject({ auth: { token: 'scaffolder-token' } });
+    await expect(
+      jira.find({
+        type: jiraServerConnectionType,
+        query: { url: 'https://jira.internal/browse/ABC-1' },
+        authMethods: ['token'],
+      }),
+    ).resolves.toMatchObject({ auth: { token: 'internal-token' } });
+    await expect(
+      scaffolder.find({
+        type: jiraServerConnectionType,
+        query: { url: 'https://jira.internal/browse/ABC-1' },
+        authMethods: ['token'],
+      }),
+    ).rejects.toThrow('Connection not found for type "jira:server"');
+
+    const metadata = await jira.find({
+      type: jiraServerConnectionType,
+      query: { url: 'https://jira.example.com' },
+    });
+    expect(metadata).toMatchObject({ host: 'jira.example.com' });
+    expect(metadata).not.toHaveProperty('auth');
+
+    // Built-in types are unaffected.
+    await expect(
+      jira.find({
+        type: 'github',
+        query: { url: 'https://github.com/backstage/backstage' },
+        authMethods: ['token'],
+      }),
+    ).resolves.toMatchObject({ auth: { token: 'gh-token' } });
+
+    expect(logger.warn).not.toHaveBeenCalled();
+    service.warnAboutUnregisteredConnectionTypes();
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Ignoring connections of type "not-installed:thing" in connections config, since no plugin in this backend has registered that connection type',
+    );
+  });
+
+  it('only accepts types that are namespaced with the ID of the registering plugin', () => {
+    const service = DefaultConnectionsService.create({
+      logger: mockServices.logger.mock(),
+      config: config(),
+    });
+    const createType = (type: string) =>
+      createConnectionType({
+        type,
+        title: 'Test',
+        configSchema: z.object({ host: z.string() }),
+        authMethods: [
+          { method: 'none', title: 'None', configSchema: z.object({}) },
+        ],
+      });
+
+    for (const type of [
+      'jira',
+      'github',
+      'jira:',
+      'jira:Server',
+      'jira:server:v2',
+      'jira-cloud:server',
+      'other:server',
+      'plugin:jira',
+    ]) {
+      expect(() =>
+        service.registryForPlugin('jira').register(createType(type)),
+      ).toThrow(
+        `Invalid connection type "${type}" registered by plugin "jira"; the type must be named "jira:<name>"`,
+      );
+    }
+
+    service.registryForPlugin('jira').register(createType('jira:data-center'));
+    expect(() =>
+      service
+        .registryForPlugin('jira')
+        .register(createType('jira:data-center')),
+    ).toThrow('Connection type "jira:data-center" has already been registered');
+  });
+
+  it('rejects registration when the configuration for the type is invalid', async () => {
+    const service = DefaultConnectionsService.create({
+      logger: mockServices.logger.mock(),
+      config: mockConnectionsConfig([
+        {
+          type: 'jira:server',
+          host: 'jira.example.com',
+          auth: [{ method: 'token' }],
+        },
+      ]),
+    });
+
+    expect(() =>
+      service.registryForPlugin('jira').register(jiraServerConnectionType),
+    ).toThrow(/Invalid connection of type "jira:server" in connections config/);
+
+    await expect(
+      service.forPlugin('jira').find({
+        type: jiraServerConnectionType,
+        query: { url: 'https://jira.example.com' },
+      }),
+    ).rejects.toThrow(/Connection type "jira:server" is not registered/);
   });
 });
