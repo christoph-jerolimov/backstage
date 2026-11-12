@@ -15,10 +15,24 @@
  */
 export type { ConnectionsService } from './api/ConnectionsService';
 export type { Connection, ConnectionAuth } from './api/Connection';
+export type { ConnectionsRegistryService } from './api/ConnectionsRegistryService';
 export type {
   ConnectionTypeDefinition,
   ConnectionLookupStrategy,
+  LookupStrategyQuery,
   PortableSchema,
+  ReservedAuthMethodFields,
+  ReservedConnectionFields,
+  ReservedFieldError,
+  WithoutReservedAuthMethodFields,
+  WithoutReservedAuthMethods,
+  WithoutReservedFields,
 } from './api/ConnectionType';
+export { createConnectionType } from './system/createConnectionType';
+export type {
+  ConfigFromSchema,
+  ConfiguredConnectionAuthFromSchema,
+  ConnectionAuthMethodSchema,
+} from './system/createConnectionType';
 export { connectionTypes } from './definitions/types';
 export type { ConnectionType, LookupConnectionType } from './definitions/types';

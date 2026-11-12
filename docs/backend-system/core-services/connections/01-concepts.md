@@ -27,6 +27,12 @@ For example, the `github` type is a multi-instance, host-based type. Its
 connection fields include `host`, `apiBaseUrl`, and `rawBaseUrl`. Its
 authentication methods are `none`, `token`, and `app`.
 
+Backstage provides a set of
+[built-in connection types](./04-built-in-connection-types.md). Backend plugins
+and modules can
+[register additional connection types](./06-registering-a-connection-type.md)
+for systems that have no built-in type.
+
 The exported `ConnectionType` descriptor contains runtime metadata such as
 `lookupStrategy`, `configSchema`, and `authMethods`. The query and returned
 authentication shapes are inferred through its generic definition; they are
@@ -52,7 +58,7 @@ The framework owns these connection-level fields:
 
 | Field   | Required | Purpose                                                 |
 | ------- | -------- | ------------------------------------------------------- |
-| `type`  | Yes      | Selects a built-in connection type.                     |
+| `type`  | Yes      | Selects a built-in or registered connection type.       |
 | `title` | No       | Gives the connection a human-readable name.             |
 | `auth`  | Yes      | Contains one or more configured authentication entries. |
 | `match` | No       | Restricts the complete connection to named plugin IDs.  |

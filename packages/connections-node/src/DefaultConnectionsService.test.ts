@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { mockServices } from '@backstage/backend-test-utils';
-import { connectionTypes } from '@backstage/connections';
+import { connectionTypes, createConnectionType } from '@backstage/connections';
+import { z } from 'zod/v4';
+import { DefaultConnectionsRegistryService } from './DefaultConnectionsRegistryService';
 import { DefaultConnectionsService } from './DefaultConnectionsService';
 import { JsonArray, JsonObject } from '@backstage/types';
 
@@ -1330,6 +1332,167 @@ describe('DefaultConnectionsService', () => {
           ]),
         }),
       ).toThrow(/singleton connection type that only allows one entry/);
+    });
+  });
+
+  describe('registered connection types', () => {
+    const artifactoryConnectionType = createConnectionType({
+      type: 'artifactory',
+      title: 'Artifactory',
+      configSchema: z.object({ host: z.string() }),
+      authMethods: [
+        {
+          method: 'token',
+          title: 'Token',
+          configSchema: z.object({ token: z.string() }),
+        },
+      ],
+    });
+    const artifactoryConfig = {
+      type: 'artifactory',
+      host: 'artifactory.example.com',
+      auth: [
+        { method: 'token', token: 'catalog', match: { plugins: ['catalog'] } },
+        { method: 'token', token: 'default' },
+      ],
+    };
+    const githubConfig = {
+      type: 'github',
+      host: 'github.com',
+      auth: [{ method: 'token', token: 'gh' }],
+    };
+
+    it('resolves connections of a type registered after the service was created', async () => {
+      const registry = DefaultConnectionsRegistryService.create();
+      const service = DefaultConnectionsService.create({
+        logger: mockServices.logger.mock(),
+        config: mockConnectionsConfig([artifactoryConfig, githubConfig]),
+        registry,
+      });
+      const catalog = service.forPlugin('catalog');
+      const query = { url: 'https://artifactory.example.com/repo' };
+
+      // Built-in types are unaffected by entries of other types
+      await expect(
+        catalog.find({
+          type: 'github',
+          query: { url: 'https://github.com/backstage/backstage' },
+          authMethods: ['token'],
+        }),
+      ).resolves.toMatchObject({ host: 'github.com', auth: { token: 'gh' } });
+
+      await expect(
+        catalog.find({ type: artifactoryConnectionType, query }),
+      ).rejects.toThrow(
+        'Unknown connection type "artifactory"; it is neither a built-in connection type nor registered with the connections registry',
+      );
+
+      registry.register(artifactoryConnectionType);
+
+      // The definition gives a fully typed result
+      const connection = await catalog.find({
+        type: artifactoryConnectionType,
+        query,
+        authMethods: ['token'],
+      });
+      expect(connection.type).toBe('artifactory');
+      expect(connection.title).toBe('Artifactory');
+      expect(connection.host).toBe('artifactory.example.com');
+      expect(connection.auth).toMatchObject({
+        method: 'token',
+        title: 'Token',
+        token: 'catalog',
+      });
+
+      // The key alone works too, at the cost of a cast
+      const byKey = await service.forPlugin('scaffolder').find({
+        type: 'artifactory' as unknown as typeof artifactoryConnectionType,
+        query,
+        authMethods: ['token'],
+      });
+      expect(byKey.auth.token).toBe('default');
+
+      const info = await catalog.find({
+        type: artifactoryConnectionType,
+        query,
+      });
+      expect(info).toEqual({
+        type: 'artifactory',
+        title: 'Artifactory',
+        host: 'artifactory.example.com',
+      });
+
+      await expect(
+        catalog.find({
+          type: artifactoryConnectionType,
+          query: { url: 'https://other.example.com' },
+        }),
+      ).rejects.toThrow('Connection not found for type "artifactory"');
+    });
+
+    it('uses the registered definition rather than the one passed to find', async () => {
+      const registry = DefaultConnectionsRegistryService.create();
+      registry.register(artifactoryConnectionType);
+      const service = DefaultConnectionsService.create({
+        logger: mockServices.logger.mock(),
+        config: mockConnectionsConfig([artifactoryConfig]),
+        registry,
+      });
+      const matchAuth = jest.fn();
+
+      const connection = await service.forPlugin('scaffolder').find({
+        type: { ...artifactoryConnectionType, matchAuth } as any,
+        query: { url: 'https://artifactory.example.com/repo' },
+        authMethods: ['token'],
+      });
+
+      expect(connection.auth.token).toBe('default');
+      expect(matchAuth).not.toHaveBeenCalled();
+    });
+
+    it('rejects connections of other types when created without a registry', () => {
+      expect(() =>
+        DefaultConnectionsService.create({
+          logger: mockServices.logger.mock(),
+          config: mockConnectionsConfig([artifactoryConfig]),
+        }),
+      ).toThrow(/Unrecognised connection type artifactory/);
+    });
+
+    it('reports invalid and unregistered connections when verifying', async () => {
+      const registry = DefaultConnectionsRegistryService.create();
+      registry.register(artifactoryConnectionType);
+      const logger = mockServices.logger.mock();
+      const service = DefaultConnectionsService.create({
+        logger,
+        config: mockConnectionsConfig([
+          { ...artifactoryConfig, host: 5 },
+          githubConfig,
+          { type: 'nexus', host: 'nexus.example.com', auth: [] },
+        ]),
+        registry,
+      });
+
+      service.verifyConfiguredConnections();
+
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledWith(
+        'Ignoring configured connections of type "nexus"; it is neither a built-in connection type nor registered with the connections registry',
+      );
+      expect(logger.error).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Invalid connection of type "artifactory" in connections config',
+        ),
+      );
+      await expect(
+        service.forPlugin('catalog').find({
+          type: artifactoryConnectionType,
+          query: { url: 'https://artifactory.example.com/repo' },
+        }),
+      ).rejects.toThrow(
+        'Invalid connection of type "artifactory" in connections config',
+      );
     });
   });
 });

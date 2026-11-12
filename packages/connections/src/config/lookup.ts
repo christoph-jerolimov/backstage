@@ -13,36 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ConnectionLookupStrategy } from '../api/ConnectionType';
-import { connectionTypes } from '../definitions/types';
 import type {
-  ConnectionType,
-  LookupConnectionType,
-} from '../definitions/types';
+  ConnectionLookupStrategy,
+  ConnectionTypeDefinition,
+} from '../api/ConnectionType';
+import { connectionTypes } from '../definitions/types';
 
-const connectionTypesMap = new Map(Object.entries(connectionTypes));
+export const connectionTypesMap: ReadonlyMap<string, ConnectionTypeDefinition> =
+  new Map(Object.entries(connectionTypes));
 
-export function getConnectionType<T extends ConnectionType>(
-  key: T,
-): LookupConnectionType<T> {
-  return connectionTypesMap.get(key) as LookupConnectionType<T>;
-}
-
-export function isConnectionType(
-  value: string | undefined,
-): value is ConnectionType {
-  if (!value) return false;
-
-  return connectionTypesMap.has(value);
-}
-
-/**
- * The connection field that holds the identity of each connection, per lookup
- * strategy, used to key connections of multiton connection types. Mirrors the
- * `identityField` of each strategy definition in the connections-node
- * package's lookupStrategies; the Record over ConnectionLookupStrategy keeps both sides
- * exhaustive.
- */
 export const identityFields: Record<
   ConnectionLookupStrategy,
   string | undefined

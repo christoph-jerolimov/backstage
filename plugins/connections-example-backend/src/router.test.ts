@@ -15,6 +15,7 @@
  */
 
 import { mockServices } from '@backstage/backend-test-utils';
+import { connectionTypes } from '@backstage/connections';
 import express from 'express';
 import request from 'supertest';
 import { createRouter } from './router';
@@ -26,6 +27,12 @@ describe('createRouter', () => {
     const router = await createRouter({
       connections: {
         find: jest.fn(),
+      },
+      connectionsRegistry: {
+        register: jest.fn(),
+        getConnectionType: type =>
+          Object.values(connectionTypes).find(t => t.type === type),
+        listConnectionTypes: () => Object.values(connectionTypes),
       },
       httpAuth: mockServices.httpAuth.mock(),
       logger: mockServices.logger.mock(),

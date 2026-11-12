@@ -15,6 +15,9 @@
  */
 import { ConfigReader } from '@backstage/config';
 import { JsonObject } from '@backstage/types';
+import { z } from 'zod/v4';
+import { connectionTypes } from '../definitions/types';
+import { createConnectionType } from '../system/createConnectionType';
 import { buildConnectionsFromConfig } from './buildConnectionsFromConfig';
 
 const rootConfig = (data: JsonObject) => new ConfigReader(data);
@@ -218,5 +221,76 @@ describe('buildConnectionsFromConfig', () => {
     ).toThrow(
       'Duplicate connection of type "aws"; this is a singleton connection type',
     );
+  });
+
+  it('builds only the connections of the given connection types', () => {
+    const artifactoryConnectionType = createConnectionType({
+      type: 'artifactory',
+      title: 'Artifactory',
+      configSchema: z.object({ host: z.string() }),
+      authMethods: [
+        {
+          method: 'token',
+          title: 'Token',
+          configSchema: z.object({ token: z.string() }),
+        },
+      ],
+    });
+    const artifactory = (host: string, token: string | number = 't') => ({
+      type: 'artifactory',
+      host,
+      auth: [{ method: 'token', token }],
+    });
+    const config = (connections: JsonObject[]) =>
+      rootConfig({
+        integrations: { github: [{ host: 'github.com', token: 'legacy' }] },
+        connections,
+      });
+
+    // Without the option, only built-in types are accepted
+    expect(() =>
+      buildConnectionsFromConfig({ config: config([artifactory('a.com')]) }),
+    ).toThrow(/Unrecognised connection type artifactory/);
+
+    // Built-in types skip entries that belong to other types
+    expect(
+      buildConnectionsFromConfig({
+        config: config([artifactory('a.com')]),
+        connectionTypes: Object.values(connectionTypes),
+      }),
+    ).toEqual([expect.objectContaining({ type: 'github', title: 'GitHub' })]);
+
+    // A given type gets the same validation, titles, and uniqueness rules
+    expect(
+      buildConnectionsFromConfig({
+        config: config([artifactory('a.com'), artifactory('b.com')]),
+        connectionTypes: [artifactoryConnectionType],
+      }),
+    ).toEqual([
+      {
+        type: 'artifactory',
+        title: 'Artifactory (a.com)',
+        host: 'a.com',
+        auth: [{ method: 'token', title: 'Token', token: 't' }],
+      },
+      {
+        type: 'artifactory',
+        title: 'Artifactory (b.com)',
+        host: 'b.com',
+        auth: [{ method: 'token', title: 'Token', token: 't' }],
+      },
+    ]);
+    expect(() =>
+      buildConnectionsFromConfig({
+        config: config([artifactory('a.com', 1)]),
+        connectionTypes: [artifactoryConnectionType],
+      }),
+    ).toThrow(/Invalid connection of type "artifactory" in connections config/);
+    expect(() =>
+      buildConnectionsFromConfig({
+        config: config([artifactory('a.com'), artifactory('a.com')]),
+        connectionTypes: [artifactoryConnectionType],
+      }),
+    ).toThrow(/Duplicate connection of type "artifactory" for host "a.com"/);
   });
 });

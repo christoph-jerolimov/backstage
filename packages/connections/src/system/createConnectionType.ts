@@ -25,7 +25,12 @@ import type {
   WithoutReservedFields,
 } from '../api/ConnectionType';
 
-type ConnectionAuthMethodSchema<
+/**
+ * An auth method declaration passed to {@link createConnectionType}.
+ *
+ * @public
+ */
+export type ConnectionAuthMethodSchema<
   TMethod extends string = string,
   TConfigSchema extends z.ZodObject = z.ZodObject,
 > = {
@@ -34,15 +39,27 @@ type ConnectionAuthMethodSchema<
   configSchema: TConfigSchema;
 };
 
-type ConfigFromSchema<TConfigSchema extends z.ZodObject> =
+/**
+ * The configuration shape inferred from a connection or auth method schema.
+ *
+ * @public
+ */
+export type ConfigFromSchema<TConfigSchema extends z.ZodObject> =
   z.infer<TConfigSchema> extends Record<string, never>
     ? Record<never, never>
     : z.infer<TConfigSchema>;
 
-// Expand flattens the intersection into a single object literal so that
-// editor tooltips show each auth method variant as a readable flat shape
-// rather than a chain of truncated intersections.
-type ConfiguredConnectionAuthFromSchema<
+/**
+ * The resolved auth entry shape for an auth method declaration.
+ *
+ * @remarks
+ *
+ * The intersection is flattened into a single object literal so that editor
+ * tooltips show each auth method variant as a readable flat shape.
+ *
+ * @public
+ */
+export type ConfiguredConnectionAuthFromSchema<
   TAuthMethod extends ConnectionAuthMethodSchema,
 > = TAuthMethod extends ConnectionAuthMethodSchema<
   infer TMethod,
@@ -79,6 +96,36 @@ function createPortableSchema<TSchema extends z.ZodType>(
   };
 }
 
+/**
+ * Creates a connection type definition.
+ *
+ * @remarks
+ *
+ * The built-in connection types are created with this function. Backend
+ * plugins and modules can use it to define additional connection types and
+ * register them with the connections registry service. Pass the returned
+ * definition as the `type` of `ConnectionsService.find` to get a fully typed
+ * result for a registered connection type.
+ *
+ * @example
+ *
+ * ```ts
+ * export const artifactoryConnectionType = createConnectionType({
+ *   type: 'artifactory',
+ *   title: 'Artifactory',
+ *   configSchema: z.object({ host: z.string() }),
+ *   authMethods: [
+ *     {
+ *       method: 'token',
+ *       title: 'Token',
+ *       configSchema: z.object({ token: z.string() }),
+ *     },
+ *   ],
+ * });
+ * ```
+ *
+ * @public
+ */
 export function createConnectionType<
   TType extends string,
   TConfigSchema extends z.ZodObject,
@@ -95,12 +142,25 @@ export function createConnectionType<
   matchAuth,
   validate,
 }: {
+  /** The key used as `type` in configuration and in lookups. */
   type: TType;
+  /** Human-readable name of the connection type. */
   title: string;
+  /**
+   * Whether configuration can hold one connection of this type or several.
+   * Defaults to `'multiton'`.
+   */
   cardinality?: TCardinality;
+  /** How a lookup query identifies a connection. Defaults to `'host'`. */
   lookupStrategy?: TLookupStrategy;
+  /** Schema for the connection fields shared by every auth method. */
   configSchema: WithoutReservedFields<TConfigSchema>;
+  /** The supported auth methods. At least one is required. */
   authMethods: WithoutReservedAuthMethods<TAuthMethods>;
+  /**
+   * Selects the auth entry to return for a query. Defaults to the first
+   * entry available to the requesting plugin.
+   */
   matchAuth?: (
     authMethods: Expand<
       ConfiguredConnectionAuthFromSchema<TAuthMethods[number]> & {
@@ -115,10 +175,12 @@ export function createConnectionType<
         }
       >
     | undefined;
-  // Checks the connection as a whole once every schema has accepted its own
-  // part — for rules like "only one entry may be the fallback" that no
-  // single entry can verify. Entries include their plugin `match` so that
-  // rules can take scoping into account. Throwing rejects the connection.
+  /**
+   * Checks the connection as a whole once every schema has accepted its own
+   * part, for rules like "only one entry may be the fallback" that no single
+   * entry can verify. Entries include their plugin `match` so that rules can
+   * take scoping into account. Throwing rejects the connection.
+   */
   validate?: (connection: {
     config: ConfigFromSchema<TConfigSchema>;
     auth: readonly Expand<

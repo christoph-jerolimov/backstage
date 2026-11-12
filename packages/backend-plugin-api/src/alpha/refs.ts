@@ -30,6 +30,22 @@ export const connectionsServiceRef = createServiceRef<
 });
 
 /**
+ * Service for registering additional connection types, and for reading the
+ * connection types known to the backend.
+ *
+ * See {@link https://backstage.io/docs/backend-system/core-services/connections/creating-a-connection-type | the service docs}
+ * for more information.
+ *
+ * @alpha
+ */
+export const connectionsRegistryServiceRef = createServiceRef<
+  import('@backstage/connections').ConnectionsRegistryService
+>({
+  id: 'alpha.core.connectionsRegistry',
+  scope: 'root',
+});
+
+/**
  * Service for calling distributed actions
  *
  * See {@link ActionsService}

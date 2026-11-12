@@ -121,4 +121,25 @@ describe('withDeclaredConnections', () => {
       }),
     ).rejects.toThrow(/undeclared connection of type "github"/);
   });
+
+  it('checks the declaration of a connection type passed as its definition', async () => {
+    const find = jest.fn().mockResolvedValue({ type: 'artifactory' });
+    const wrapped = withDeclaredConnections({ find }, [
+      { type: 'artifactory' },
+    ]);
+    const options = (type: string) => ({
+      type: { type } as unknown as 'github',
+      query: { url: 'https://artifactory.example.com' },
+    });
+
+    await expect(wrapped.find(options('artifactory'))).resolves.toEqual({
+      type: 'artifactory',
+    });
+    expect(find).toHaveBeenCalledWith(options('artifactory'));
+
+    await expect(wrapped.find(options('nexus'))).rejects.toThrow(
+      /undeclared connection of type "nexus"/,
+    );
+    expect(find).toHaveBeenCalledTimes(1);
+  });
 });

@@ -33,7 +33,10 @@ export function withDeclaredConnections(
   };
   return {
     async find(options: Parameters<ConnectionsService['find']>[0]) {
-      assertDeclared(options.type);
+      // A registered connection type can be passed as its definition
+      // rather than its key.
+      const type: string | { type: string } = options.type;
+      assertDeclared(typeof type === 'string' ? type : type?.type);
       return service.find(options);
     },
   } as ConnectionsService;

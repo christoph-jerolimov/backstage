@@ -16,11 +16,24 @@
 import { ConnectionType, LookupConnectionType } from '../definitions';
 import { Connection } from './Connection';
 import { ConnectionTypeDefinition } from './ConnectionType';
+import type { ConnectionsRegistryService } from './ConnectionsRegistryService';
 
-/** @public */
+/**
+ * Looks up the connections available to a plugin.
+ *
+ * @remarks
+ *
+ * Built-in connection types are addressed by their key, for example
+ * `type: 'github'`. Connection types registered through the
+ * {@link ConnectionsRegistryService} are addressed by passing the registered
+ * definition as `type`, which gives the same typed query, auth methods, and
+ * result as the built-in types.
+ *
+ * @public
+ */
 export interface ConnectionsService {
   find<
-    TType extends ConnectionType,
+    TType extends ConnectionType | ConnectionTypeDefinition,
     TAuthMethod extends LookupConnectionType<TType>['authMethods'][number]['method'],
   >(options: {
     type: TType;
@@ -32,7 +45,7 @@ export interface ConnectionsService {
     authMethods: readonly [TAuthMethod, ...TAuthMethod[]];
   }): Promise<Connection<TType, TAuthMethod>>;
 
-  find<TType extends ConnectionType>(options: {
+  find<TType extends ConnectionType | ConnectionTypeDefinition>(options: {
     type: TType;
     query: LookupConnectionType<TType> extends ConnectionTypeDefinition<
       infer IDefinition

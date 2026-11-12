@@ -16,6 +16,7 @@ export function buildConnectionsFromConfig(options: {
     info(message: string): void;
     debug(message: string): void;
   };
+  connectionTypes?: readonly ConnectionTypeDefinition[];
 }): ConfiguredConnection[];
 
 // @public
@@ -52,7 +53,7 @@ export type ConfiguredConnectionAuth<M> = M extends {
     >
   : never;
 
-// @public (undocumented)
+// @public
 export type ConnectionLookupStrategy = 'host' | 'aws';
 
 // @public (undocumented)

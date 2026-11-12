@@ -19,6 +19,7 @@ import {
 } from '@backstage/backend-plugin-api';
 import { createRouter } from './router';
 import {
+  connectionsRegistryServiceRef,
   connectionsServiceRef,
   declareConnection,
 } from '@backstage/backend-plugin-api/alpha';
@@ -45,12 +46,20 @@ export const connectionsExampleBackendPlugin = createBackendPlugin({
         httpRouter: coreServices.httpRouter,
         logger: coreServices.logger,
         connections: connectionsServiceRef,
+        connectionsRegistry: connectionsRegistryServiceRef,
       },
-      async init({ httpAuth, httpRouter, connections, logger }) {
+      async init({
+        httpAuth,
+        httpRouter,
+        connections,
+        connectionsRegistry,
+        logger,
+      }) {
         httpRouter.use(
           await createRouter({
             httpAuth,
             connections,
+            connectionsRegistry,
             logger,
           }),
         );

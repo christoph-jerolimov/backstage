@@ -19,3 +19,4 @@ export { actionsServiceFactory } from './entrypoints/actions';
 export { metricsServiceFactory } from './entrypoints/metrics';
 export { tracingServiceFactory } from './entrypoints/tracing';
 export { connectionsServiceFactory } from './entrypoints/connections/connectionsServiceFactory';
+export { connectionsRegistryServiceFactory } from './entrypoints/connections/connectionsRegistryServiceFactory';

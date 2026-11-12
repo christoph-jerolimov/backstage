@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  LookupConnectionType,
-  ConnectionType,
-  connectionTypes,
-} from '@backstage/connections';
 
-const connectionTypesMap = new Map(Object.entries(connectionTypes));
+import { createServiceFactory } from '@backstage/backend-plugin-api';
+import { connectionsRegistryServiceRef } from '@backstage/backend-plugin-api/alpha';
+import { DefaultConnectionsRegistryService } from '@backstage/connections-node';
 
-export function getConnectionType<T extends ConnectionType>(
-  key: T,
-): LookupConnectionType<T> {
-  return connectionTypesMap.get(key) as LookupConnectionType<T>;
-}
-
-export function isConnectionType(
-  value: string | undefined,
-): value is ConnectionType {
-  if (!value) return false;
-
-  return connectionTypesMap.has(value);
-}
+/**
+ * Registry of the connection types known to the backend, where plugins and
+ * modules can register additional connection types.
+ *
+ * @alpha
+ */
+export const connectionsRegistryServiceFactory = createServiceFactory({
+  service: connectionsRegistryServiceRef,
+  deps: {},
+  async factory() {
+    return DefaultConnectionsRegistryService.create();
+  },
+});

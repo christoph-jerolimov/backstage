@@ -17,22 +17,23 @@
 
 import express from 'express';
 import Router from 'express-promise-router';
-import { connectionsServiceRef } from '@backstage/backend-plugin-api/alpha';
-import { connectionTypes, type ConnectionType } from '@backstage/connections';
+import {
+  connectionsRegistryServiceRef,
+  connectionsServiceRef,
+} from '@backstage/backend-plugin-api/alpha';
+import { type ConnectionType } from '@backstage/connections';
 import {
   type HttpAuthService,
   type LoggerService,
 } from '@backstage/backend-plugin-api';
 import { NotFoundError } from '@backstage/errors';
 
-function isConnectionType(type: string): type is ConnectionType {
-  return Object.prototype.hasOwnProperty.call(connectionTypes, type);
-}
-
 export async function createRouter({
   connections,
+  connectionsRegistry,
 }: {
   connections: typeof connectionsServiceRef.T;
+  connectionsRegistry: typeof connectionsRegistryServiceRef.T;
   httpAuth: HttpAuthService;
   logger: LoggerService;
 }): Promise<express.Router> {
@@ -40,13 +41,17 @@ export async function createRouter({
   router.use(express.json());
 
   router.get('/schema/:type', async (req, res) => {
-    const type = req.params.type;
-    if (!isConnectionType(type)) {
+    // The registry holds the built-in connection types as well as the ones
+    // registered by plugins.
+    const connectionType = connectionsRegistry.getConnectionType(
+      req.params.type,
+    );
+    if (!connectionType) {
       res.status(404).json('Cannot find connection type');
       return;
     }
 
-    res.status(200).json(connectionTypes[type].configSchema.schema().schema);
+    res.status(200).json(connectionType.configSchema.schema().schema);
   });
 
   router.get('/find', async (req, res) => {

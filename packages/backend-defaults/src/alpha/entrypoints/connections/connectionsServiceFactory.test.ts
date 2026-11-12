@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-import { connectionsServiceRef } from '@backstage/backend-plugin-api/alpha';
+import {
+  connectionsRegistryServiceRef,
+  connectionsServiceRef,
+  declareConnection,
+} from '@backstage/backend-plugin-api/alpha';
+import {
+  coreServices,
+  createBackendPlugin,
+} from '@backstage/backend-plugin-api';
+import { createConnectionType } from '@backstage/connections';
+import { z } from 'zod/v4';
 import {
   mockServices,
   ServiceFactoryTester,
+  startTestBackend,
 } from '@backstage/backend-test-utils';
 import { defaultServiceFactories } from '../../../CreateBackend';
+import { connectionsRegistryServiceFactory } from './connectionsRegistryServiceFactory';
 import { connectionsServiceFactory } from './connectionsServiceFactory';
 
 describe('connectionsServiceFactory', () => {
@@ -77,5 +89,89 @@ describe('connectionsServiceFactory', () => {
       query: { url: 'https://github.com/example/repo' },
     });
     expect(metadata).not.toHaveProperty('auth');
+  });
+
+  it('resolves connections of types registered by plugins', async () => {
+    expect(defaultServiceFactories).toContain(
+      connectionsRegistryServiceFactory,
+    );
+    expect(connectionsRegistryServiceFactory.service).toBe(
+      connectionsRegistryServiceRef,
+    );
+    expect(connectionsRegistryServiceRef.id).toBe(
+      'alpha.core.connectionsRegistry',
+    );
+
+    const artifactoryConnectionType = createConnectionType({
+      type: 'artifactory',
+      title: 'Artifactory',
+      configSchema: z.object({ host: z.string() }),
+      authMethods: [
+        {
+          method: 'token',
+          title: 'Token',
+          configSchema: z.object({ token: z.string() }),
+        },
+      ],
+    });
+    const logger = mockServices.rootLogger.mock();
+    logger.child.mockReturnValue(logger);
+    const found: unknown[] = [];
+
+    await startTestBackend({
+      features: [
+        logger.factory,
+        mockServices.rootConfig.factory({
+          data: {
+            connections: [
+              {
+                type: 'artifactory',
+                host: 'artifactory.example.com',
+                auth: [{ method: 'token', token: 'secret' }],
+              },
+              { type: 'nexus', host: 'nexus.example.com', auth: [] },
+            ],
+          },
+        }),
+        createBackendPlugin({
+          pluginId: 'owner',
+          register(reg) {
+            reg.registerInit({
+              deps: { registry: connectionsRegistryServiceRef },
+              async init({ registry }) {
+                registry.register(artifactoryConnectionType);
+              },
+            });
+          },
+        }),
+        createBackendPlugin({
+          pluginId: 'consumer',
+          register(reg) {
+            declareConnection(reg, { type: 'artifactory' });
+            reg.registerInit({
+              deps: {
+                connections: connectionsServiceRef,
+                lifecycle: coreServices.lifecycle,
+              },
+              async init({ connections, lifecycle }) {
+                lifecycle.addStartupHook(async () => {
+                  const connection = await connections.find({
+                    type: artifactoryConnectionType,
+                    query: { url: 'https://artifactory.example.com/repo' },
+                    authMethods: ['token'],
+                  });
+                  found.push(connection.auth.token);
+                });
+              },
+            });
+          },
+        }),
+      ],
+    });
+
+    expect(found).toEqual(['secret']);
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Ignoring configured connections of type "nexus"; it is neither a built-in connection type nor registered with the connections registry',
+    );
   });
 });

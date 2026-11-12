@@ -18,7 +18,10 @@ import {
   coreServices,
   createServiceFactory,
 } from '@backstage/backend-plugin-api';
-import { connectionsServiceRef } from '@backstage/backend-plugin-api/alpha';
+import {
+  connectionsRegistryServiceRef,
+  connectionsServiceRef,
+} from '@backstage/backend-plugin-api/alpha';
 import { DefaultConnectionsService } from '@backstage/connections-node';
 
 /**
@@ -33,9 +36,21 @@ export const connectionsServiceFactory = createServiceFactory({
     rootLogger: coreServices.rootLogger,
     logger: coreServices.logger,
     config: coreServices.rootConfig,
+    rootLifecycle: coreServices.rootLifecycle,
+    registry: connectionsRegistryServiceRef,
   },
-  async createRootContext({ rootLogger, config }) {
-    return DefaultConnectionsService.create({ logger: rootLogger, config });
+  async createRootContext({ rootLogger, config, rootLifecycle, registry }) {
+    const connectionsService = DefaultConnectionsService.create({
+      logger: rootLogger,
+      config,
+      registry,
+    });
+    // Plugins register their connection types during startup, so connections
+    // of those types can only be checked once startup has completed.
+    rootLifecycle.addStartupHook(() =>
+      connectionsService.verifyConfiguredConnections(),
+    );
+    return connectionsService;
   },
 
   async factory({ logger, pluginMetadata }, connectionsService) {

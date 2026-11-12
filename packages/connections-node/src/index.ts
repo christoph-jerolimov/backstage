@@ -21,3 +21,4 @@
  */
 
 export { DefaultConnectionsService } from './DefaultConnectionsService';
+export { DefaultConnectionsRegistryService } from './DefaultConnectionsRegistryService';

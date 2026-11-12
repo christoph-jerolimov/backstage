@@ -17,26 +17,33 @@ import {
   LoggerService,
   RootConfigService,
 } from '@backstage/backend-plugin-api';
-import type {
-  Connection,
-  ConnectionLookupStrategy,
-  ConnectionsService,
-  ConnectionTypeDefinition,
-  ConnectionType,
-  LookupConnectionType,
+import {
+  connectionTypes,
+  type ConnectionLookupStrategy,
+  type ConnectionsRegistryService,
+  type ConnectionsService,
+  type ConnectionTypeDefinition,
 } from '@backstage/connections';
 import type { ConfiguredConnection } from '@backstage/connections/config';
 import { buildConnectionsFromConfig } from '@backstage/connections/config';
-import { getConnectionType } from './lookup';
 import { lookupStrategies } from './lookupStrategies';
-import { NotAllowedError, NotFoundError } from '@backstage/errors';
+import { InputError, NotAllowedError, NotFoundError } from '@backstage/errors';
 
-type ConnectionQuery<TType extends ConnectionType> =
-  LookupConnectionType<TType> extends ConnectionTypeDefinition<
-    infer TDefinition
-  >
-    ? TDefinition['query']
-    : never;
+const builtInConnectionTypes: ReadonlyMap<string, ConnectionTypeDefinition> =
+  new Map(Object.entries(connectionTypes));
+
+// The typing of lookups is carried entirely by the overloads of
+// ConnectionsService; the implementation only sees the erased shape.
+type FindOptions = {
+  type: string | ConnectionTypeDefinition;
+  query: unknown;
+  authMethods?: readonly string[];
+};
+
+type ResolvedConnectionType = {
+  connectionType: ConnectionTypeDefinition;
+  connections: ConfiguredConnection[];
+};
 
 function getLookupStrategy<K extends ConnectionLookupStrategy>(
   name: K,
@@ -57,49 +64,65 @@ function connectionIdentityOf(
   return typeof value === 'string' ? value : undefined;
 }
 
-class PluginConnectionsService implements ConnectionsService {
-  private readonly logger: LoggerService;
-  private readonly connections: ConfiguredConnection[];
+// Filter connections and auth methods by plugin scope. Auth entries
+// explicitly matched to this plugin are ordered before unscoped entries
+// so that plugin-specific credentials take precedence.
+function filterConnectionsForPlugin(
+  connections: ConfiguredConnection[],
+  pluginId: string,
+): ConfiguredConnection[] {
+  return connections.flatMap(connection => {
+    if (connection.match && !connection.match.plugins.includes(pluginId)) {
+      return [];
+    }
 
-  constructor(logger: LoggerService, connections: ConfiguredConnection[]) {
+    const pluginMatched = connection.auth.filter(a =>
+      a.match?.plugins.includes(pluginId),
+    );
+    const unmatched = connection.auth.filter(a => !a.match);
+
+    return [{ ...connection, auth: [...pluginMatched, ...unmatched] }];
+  });
+}
+
+class PluginConnectionsService {
+  private readonly logger: LoggerService;
+  private readonly pluginId: string;
+  private readonly resolve: (type: string) => ResolvedConnectionType;
+
+  constructor(
+    logger: LoggerService,
+    pluginId: string,
+    resolve: (type: string) => ResolvedConnectionType,
+  ) {
     this.logger = logger;
-    this.connections = connections;
+    this.pluginId = pluginId;
+    this.resolve = resolve;
   }
 
-  async find<
-    TType extends ConnectionType,
-    TAuthMethod extends LookupConnectionType<TType>['authMethods'][number]['method'],
-  >(options: {
-    type: TType;
-    query: ConnectionQuery<TType>;
-    authMethods?: readonly [TAuthMethod, ...TAuthMethod[]];
-  }): Promise<
-    Connection<TType, TAuthMethod> | Omit<Connection<TType>, 'auth'>
-  > {
-    const result = await this.findOptional(options);
+  async find(options: FindOptions): Promise<object> {
+    // A registered connection type can be passed as its definition. Only its
+    // key is used; the definition itself always comes from the registry.
+    const type =
+      typeof options.type === 'string' ? options.type : options.type?.type;
+    const result = await this.findOptional({ ...options, type });
     if (!result) {
-      throw new NotFoundError(
-        `Connection not found for type "${options.type}"`,
-      );
+      throw new NotFoundError(`Connection not found for type "${type}"`);
     }
     return result;
   }
 
-  private async findOptional<
-    TType extends ConnectionType,
-    TAuthMethod extends LookupConnectionType<TType>['authMethods'][number]['method'],
-  >({
+  private async findOptional({
     type,
     query,
     authMethods,
-  }: {
-    type: TType;
-    query: ConnectionQuery<TType>;
-    authMethods?: readonly [TAuthMethod, ...TAuthMethod[]];
-  }): Promise<
-    Connection<TType, TAuthMethod> | Omit<Connection<TType>, 'auth'> | undefined
-  > {
-    const connectionType = getConnectionType(type);
+  }: FindOptions & { type: string }): Promise<object | undefined> {
+    const resolved = this.resolve(type);
+    const connectionType = resolved.connectionType;
+    const connections = filterConnectionsForPlugin(
+      resolved.connections,
+      this.pluginId,
+    );
     const strategy = getLookupStrategy(connectionType.lookupStrategy);
     const identity = strategy.identityFromQuery(query);
 
@@ -111,11 +134,11 @@ class PluginConnectionsService implements ConnectionsService {
 
     let connection: ConfiguredConnection | undefined;
     if (identity !== undefined) {
-      connection = this.connections.find(
+      connection = connections.find(
         c => c.type === type && connectionIdentityOf(strategy, c) === identity,
       );
     } else {
-      connection = this.connections.find(c => c.type === type);
+      connection = connections.find(c => c.type === type);
     }
 
     if (!connection) {
@@ -124,7 +147,7 @@ class PluginConnectionsService implements ConnectionsService {
 
     if (!authMethods) {
       const { auth: _, ...info } = connection;
-      return info as Omit<Connection<TType>, 'auth'>;
+      return info;
     }
 
     if (connection.auth.length === 0) {
@@ -147,7 +170,7 @@ class PluginConnectionsService implements ConnectionsService {
       return undefined;
     }
 
-    if (!(authMethods as readonly string[]).includes(selected.method)) {
+    if (!authMethods.includes(selected.method)) {
       throw new NotAllowedError(
         `Connection not found for type "${type}" with auth method "${selected.method}"`,
       );
@@ -162,7 +185,7 @@ class PluginConnectionsService implements ConnectionsService {
     return {
       ...connection,
       auth: selected,
-    } as Connection<TType, TAuthMethod>;
+    };
   }
 }
 
@@ -171,10 +194,22 @@ export class DefaultConnectionsService {
   private readonly logger: LoggerService;
   private readonly connections: ConfiguredConnection[];
   private readonly config: RootConfigService;
+  private readonly registry?: ConnectionsRegistryService;
+  // Connections of registered types are built on first use, since plugins
+  // can register their connection types at any point during startup.
+  readonly #registeredConnections = new Map<
+    ConnectionTypeDefinition,
+    ConfiguredConnection[]
+  >();
 
-  private constructor(logger: LoggerService, config: RootConfigService) {
+  private constructor(
+    logger: LoggerService,
+    config: RootConfigService,
+    registry?: ConnectionsRegistryService,
+  ) {
     this.logger = logger;
     this.config = config;
+    this.registry = registry;
     this.connections = [];
     this.#registerConnectionsFromConfig();
   }
@@ -182,8 +217,18 @@ export class DefaultConnectionsService {
   static create(options: {
     logger: LoggerService;
     config: RootConfigService;
+    /**
+     * The registry holding connection types registered by plugins. Without
+     * it only the built-in connection types are available, and a connection
+     * of any other type in configuration is rejected.
+     */
+    registry?: ConnectionsRegistryService;
   }): DefaultConnectionsService {
-    return new DefaultConnectionsService(options.logger, options.config);
+    return new DefaultConnectionsService(
+      options.logger,
+      options.config,
+      options.registry,
+    );
   }
 
   #registerConnectionsFromConfig(): void {
@@ -191,6 +236,11 @@ export class DefaultConnectionsService {
       ...buildConnectionsFromConfig({
         config: this.config,
         logger: this.logger,
+        // Connections of other types are left for the registered connection
+        // types, which may not have been registered yet.
+        connectionTypes: this.registry
+          ? [...builtInConnectionTypes.values()]
+          : undefined,
       }),
     );
 
@@ -205,22 +255,73 @@ export class DefaultConnectionsService {
     );
   }
 
-  #getConnectionsForPlugin(pluginId: string): ConfiguredConnection[] {
-    // Filter connections and auth methods by plugin scope. Auth entries
-    // explicitly matched to this plugin are ordered before unscoped entries
-    // so that plugin-specific credentials take precedence.
-    return this.connections.flatMap(connection => {
-      if (connection.match && !connection.match.plugins.includes(pluginId)) {
-        return [];
-      }
+  #resolveConnectionType(type: string): ResolvedConnectionType {
+    const builtIn = builtInConnectionTypes.get(type);
+    if (builtIn) {
+      return { connectionType: builtIn, connections: this.connections };
+    }
 
-      const pluginMatched = connection.auth.filter(a =>
-        a.match?.plugins.includes(pluginId),
+    const connectionType = this.registry?.getConnectionType(type);
+    if (!connectionType) {
+      throw new InputError(
+        `Unknown connection type "${type}"; it is neither a built-in connection type nor registered with the connections registry`,
       );
-      const unmatched = connection.auth.filter(a => !a.match);
+    }
 
-      return [{ ...connection, auth: [...pluginMatched, ...unmatched] }];
-    });
+    let connections = this.#registeredConnections.get(connectionType);
+    if (!connections) {
+      connections = buildConnectionsFromConfig({
+        config: this.config,
+        logger: this.logger,
+        connectionTypes: [connectionType],
+      });
+      this.#registeredConnections.set(connectionType, connections);
+      this.logger.info(
+        `Loaded ${connections.length} connection${
+          connections.length === 1 ? '' : 's'
+        } of registered type "${type}" from configuration`,
+      );
+    }
+    return { connectionType, connections };
+  }
+
+  /**
+   * Checks the configured connections whose type is not built-in, once all
+   * plugins have had the chance to register their connection types.
+   *
+   * @remarks
+   *
+   * Connections of a registered type are validated, and a connection whose
+   * type was never registered is reported, since it is otherwise ignored.
+   * Problems are logged rather than thrown.
+   */
+  verifyConfiguredConnections(): void {
+    const raw = this.config.getOptional('connections');
+    if (!Array.isArray(raw)) {
+      return;
+    }
+
+    const types = new Set<string>();
+    for (const entry of raw) {
+      const type = (entry as { type?: unknown } | null)?.type;
+      if (typeof type === 'string' && !builtInConnectionTypes.has(type)) {
+        types.add(type);
+      }
+    }
+
+    for (const type of types) {
+      if (!this.registry?.getConnectionType(type)) {
+        this.logger.warn(
+          `Ignoring configured connections of type "${type}"; it is neither a built-in connection type nor registered with the connections registry`,
+        );
+        continue;
+      }
+      try {
+        this.#resolveConnectionType(type);
+      } catch (error) {
+        this.logger.error(String(error));
+      }
+    }
   }
 
   forPlugin(
@@ -230,9 +331,10 @@ export class DefaultConnectionsService {
     },
   ): ConnectionsService {
     const logger = options?.logger ?? this.logger;
-    return new PluginConnectionsService(
-      logger,
-      this.#getConnectionsForPlugin(pluginId),
-    );
+    // The overloads of ConnectionsService cannot be expressed by a single
+    // implementation signature, so the typing is applied here.
+    return new PluginConnectionsService(logger, pluginId, type =>
+      this.#resolveConnectionType(type),
+    ) as unknown as ConnectionsService;
   }
 }
