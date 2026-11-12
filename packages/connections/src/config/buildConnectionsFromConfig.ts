@@ -17,11 +17,44 @@ import { Config } from '@backstage/config';
 import { InputError, toError } from '@backstage/errors';
 import { JsonObject } from '@backstage/types';
 import { z } from 'zod/v4';
-import type { ConnectionType } from '../definitions/types';
+import type { ConnectionTypeDefinition } from '../api/ConnectionType';
+import { connectionTypes as builtInConnectionTypes } from '../definitions/types';
 import { combineConnectionSources } from './combineConnectionSources';
 import { getLegacyIntegrations } from './getLegacyIntegrations';
-import { getConnectionType, identityFields, isConnectionType } from './lookup';
+import { identityFields } from './lookup';
 import type { ConfiguredConnection } from './types';
+
+type ConnectionTypes = ReadonlyMap<string, ConnectionTypeDefinition>;
+
+// Combines the built-in connection types with any additional ones. A type
+// key can only be defined once, so that every consumer of a given key in
+// configuration agrees on its contract.
+function resolveConnectionTypes(
+  additional: readonly ConnectionTypeDefinition[] | undefined,
+): ConnectionTypes {
+  const types = new Map<string, ConnectionTypeDefinition>(
+    Object.entries(builtInConnectionTypes),
+  );
+  for (const connectionType of additional ?? []) {
+    const existing = types.get(connectionType.type);
+    if (existing && existing !== connectionType) {
+      throw new InputError(
+        `Connection type "${connectionType.type}" is already defined`,
+      );
+    }
+    types.set(connectionType.type, connectionType);
+  }
+  return types;
+}
+
+// Every validated connection has a type that is present in the set of types
+// that it was validated against.
+function connectionTypeOf(
+  types: ConnectionTypes,
+  connection: ConfiguredConnection,
+): ConnectionTypeDefinition {
+  return types.get(connection.type)!;
+}
 
 function describeError(error: unknown): string {
   const e = toError(error);
@@ -50,16 +83,18 @@ function connectionIdentityOf(
   return typeof value === 'string' ? value : undefined;
 }
 
-function validateConnection(connection: JsonObject): ConfiguredConnection {
+function validateConnection(
+  connection: JsonObject,
+  types: ConnectionTypes,
+): ConfiguredConnection {
   if (typeof connection.type !== 'string') {
     throw new InputError(`Unrecognised connection type ${connection.type}`);
   }
 
-  if (!isConnectionType(connection.type)) {
+  const connectionType = types.get(connection.type);
+  if (!connectionType) {
     throw new InputError(`Unrecognised connection type ${connection.type}`);
   }
-
-  const connectionType = getConnectionType(connection.type);
 
   const rawAuth = connection.auth;
   if (!Array.isArray(rawAuth) || rawAuth.length === 0) {
@@ -92,7 +127,7 @@ function validateConnection(connection: JsonObject): ConfiguredConnection {
   });
 
   const { type, auth: _, title, match, ...configFields } = connection;
-  const parsed = connectionType.configSchema.parse(configFields);
+  const parsed = connectionType.configSchema.parse(configFields) as object;
 
   // Let the connection type check rules that span the whole connection,
   // such as uniqueness across auth entries. Entries keep their plugin
@@ -111,10 +146,13 @@ function validateConnection(connection: JsonObject): ConfiguredConnection {
   } as ConfiguredConnection;
 }
 
-function validateConfig(raw: JsonObject[]): ConfiguredConnection[] {
+function validateConfig(
+  raw: JsonObject[],
+  types: ConnectionTypes,
+): ConfiguredConnection[] {
   return raw.map(v => {
     try {
-      return validateConnection(v);
+      return validateConnection(v, types);
     } catch (e) {
       const type = typeof v.type === 'string' ? v.type : 'unknown';
       throw new InputError(
@@ -126,10 +164,13 @@ function validateConfig(raw: JsonObject[]): ConfiguredConnection[] {
   });
 }
 
-function validateLegacy(raw: JsonObject[]): ConfiguredConnection[] {
+function validateLegacy(
+  raw: JsonObject[],
+  types: ConnectionTypes,
+): ConfiguredConnection[] {
   return raw.map(v => {
     try {
-      return validateConnection(v);
+      return validateConnection(v, types);
     } catch (e) {
       const type = typeof v.type === 'string' ? v.type : 'unknown';
       throw new InputError(
@@ -148,13 +189,14 @@ function validateLegacy(raw: JsonObject[]): ConfiguredConnection[] {
 // duplicates are dropped with a warning rather than rejected at startup.
 function dedupeLegacy(
   legacy: ConfiguredConnection[],
+  types: ConnectionTypes,
   logger?: { warn(message: string): void },
 ): ConfiguredConnection[] {
   const seen = new Set<string>();
   const result: ConfiguredConnection[] = [];
 
   for (const connection of legacy) {
-    const connectionType = getConnectionType(connection.type as ConnectionType);
+    const connectionType = connectionTypeOf(types, connection);
 
     let key = connection.type as string;
     if (connectionType.cardinality !== 'singleton') {
@@ -182,16 +224,19 @@ function dedupeLegacy(
   return result;
 }
 
-function assignDefaultTitles(connections: ConfiguredConnection[]): void {
+function assignDefaultTitles(
+  connections: ConfiguredConnection[],
+  types: ConnectionTypes,
+): void {
   const typeCounts = new Map<string, number>();
   for (const c of connections) {
-    const type = c.type as ConnectionType;
+    const type = c.type as string;
     typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1);
   }
   for (const c of connections) {
     if (!c.title) {
-      const type = c.type as ConnectionType;
-      const connectionType = getConnectionType(type);
+      const type = c.type as string;
+      const connectionType = connectionTypeOf(types, c);
       const displayName = connectionType.title;
       const identity = connectionIdentityOf(
         identityFields[connectionType.lookupStrategy],
@@ -205,10 +250,13 @@ function assignDefaultTitles(connections: ConfiguredConnection[]): void {
   }
 }
 
-function assignDefaultAuthTitles(connections: ConfiguredConnection[]): void {
+function assignDefaultAuthTitles(
+  connections: ConfiguredConnection[],
+  types: ConnectionTypes,
+): void {
   for (const c of connections) {
-    const type = c.type as ConnectionType;
-    const connectionType = getConnectionType(type);
+    const type = c.type as string;
+    const connectionType = connectionTypeOf(types, c);
     for (const auth of c.auth) {
       const authMethod = connectionType.authMethods.find(
         am => am.method === auth.method,
@@ -244,6 +292,13 @@ function assignDefaultAuthTitles(connections: ConfiguredConnection[]): void {
  * example when a connection fails schema validation or when multiple
  * connections of the same type resolve to the same identity.
  *
+ * Connections are validated against the built-in connection types along with
+ * any additional `connectionTypes`. A connection of any other type is rejected
+ * with an `InputError`, unless `onUnknownConnectionType` is provided. In that
+ * case the connections of each unknown type are left out of the result and
+ * passed to the callback instead, which makes it possible to validate them
+ * later on, once their connection type is known.
+ *
  * @public
  */
 export function buildConnectionsFromConfig(options: {
@@ -254,8 +309,19 @@ export function buildConnectionsFromConfig(options: {
     info(message: string): void;
     debug(message: string): void;
   };
+  /**
+   * Connection types to recognize in addition to the built-in ones.
+   */
+  connectionTypes?: readonly ConnectionTypeDefinition[];
+  /**
+   * Called once for each connection type in the `connections` config that is
+   * neither built-in nor among `connectionTypes`, with the unvalidated
+   * connections of that type.
+   */
+  onUnknownConnectionType?: (type: string, connections: JsonObject[]) => void;
 }): ConfiguredConnection[] {
-  const { config, logger } = options;
+  const { config, logger, onUnknownConnectionType } = options;
+  const types = resolveConnectionTypes(options.connectionTypes);
 
   // Conversion itself can throw, e.g. for config values of an unexpected
   // type, so it gets the same error context as the validation below.
@@ -267,7 +333,7 @@ export function buildConnectionsFromConfig(options: {
       `Failed to convert legacy integrations config:\n${describeError(e)}`,
     );
   }
-  const legacy = dedupeLegacy(validateLegacy(rawLegacy), logger);
+  const legacy = dedupeLegacy(validateLegacy(rawLegacy, types), types, logger);
 
   const rawConnections = config.getOptional('connections');
   if (rawConnections !== undefined && !Array.isArray(rawConnections)) {
@@ -276,9 +342,23 @@ export function buildConnectionsFromConfig(options: {
     );
   }
 
-  const fromConfig = validateConfig(
-    (rawConnections as JsonObject[] | undefined) ?? [],
-  );
+  let explicit = (rawConnections as JsonObject[] | undefined) ?? [];
+  if (onUnknownConnectionType) {
+    const unknown = new Map<string, JsonObject[]>();
+    explicit = explicit.filter(connection => {
+      const type = connection?.type;
+      if (typeof type !== 'string' || types.has(type)) {
+        return true;
+      }
+      unknown.set(type, [...(unknown.get(type) ?? []), connection]);
+      return false;
+    });
+    for (const [type, connections] of unknown) {
+      onUnknownConnectionType(type, connections);
+    }
+  }
+
+  const fromConfig = validateConfig(explicit, types);
 
   logger?.debug(
     `Connections configuration resolved ${legacy.length} connection${
@@ -300,7 +380,7 @@ export function buildConnectionsFromConfig(options: {
   const singletonsSeen = new Set<string>();
   const identitiesSeen = new Set<string>();
   for (const c of connections) {
-    const connectionType = getConnectionType(c.type as ConnectionType);
+    const connectionType = connectionTypeOf(types, c);
 
     if (connectionType.cardinality === 'singleton') {
       if (singletonsSeen.has(c.type)) {
@@ -324,8 +404,8 @@ export function buildConnectionsFromConfig(options: {
     }
   }
 
-  assignDefaultTitles(connections);
-  assignDefaultAuthTitles(connections);
+  assignDefaultTitles(connections, types);
+  assignDefaultAuthTitles(connections, types);
 
   return connections;
 }

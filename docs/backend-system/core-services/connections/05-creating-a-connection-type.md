@@ -1,7 +1,7 @@
 ---
 id: creating-a-connection-type
 title: Create or modify a connection type
-description: Add and evolve canonical connection types in the Backstage framework
+description: Add connection types from a plugin and evolve the built-in connection types
 ---
 
 A [connection type](./01-concepts.md#connection-type) is the canonical contract
@@ -11,13 +11,16 @@ external system. A type defines the connection fields,
 [lookup query](./01-concepts.md#lookup-queries), validation, and authentication
 selection behavior.
 
-:::caution[Framework contribution path]
-Adopter-defined connection type registration is not exposed as a public API.
-`createConnectionType` and the registry are internal to the Backstage
-framework. This guide describes how to contribute a canonical built-in type to
-the Backstage repository. Do not import internal source modules into an
-external plugin or app package.
-:::
+There are two ways to add a type:
+
+- Contribute a built-in type to the Backstage repository, when the external
+  system is widely used across the Backstage ecosystem. Most of this guide
+  follows that path.
+- Register a type from your own plugin or module, without changing Backstage.
+  See [Register a type from a plugin](#register-a-type-from-a-plugin).
+
+The guidance on designing the contract, schemas, and authentication selection
+applies to both.
 
 ## Decide whether you need a new type
 
@@ -179,7 +182,7 @@ Keep selection deterministic and document the priority. The service checks
 the selected method against the consumer's `authMethods` list after selection.
 It does not call `matchAuth` again to find a method the consumer supports.
 
-## Register the type
+## Register a built-in type
 
 Add the definition to the `connectionTypes` registry in
 `packages/connections/src/definitions/types.ts`:
@@ -205,6 +208,125 @@ import type { Connection } from '@backstage/connections';
 
 type AcmeTokenConnection = Connection<'acme', 'token'>;
 ```
+
+## Register a type from a plugin
+
+A plugin or module can add a type without changing Backstage by registering
+it with the connections registry service. Registered types are configured
+under `connections` and validated in the same way as built-in types.
+
+### Define and export the type
+
+Create the type with `createConnectionType` from `@backstage/connections`.
+Schemas are declared with version 4 of `zod`. Export the type from a package
+that every consumer can depend on, such as a node library for the external
+system, because consumers pass the definition to `ConnectionsService.find`:
+
+```ts title="plugins/acme-node/src/AcmeConnectionType.ts"
+import { createConnectionType } from '@backstage/connections';
+import { z } from 'zod/v4';
+
+/** @public */
+export const AcmeConnectionType = createConnectionType({
+  type: 'acme',
+  title: 'Acme',
+  configSchema: z.object({
+    host: z.string(),
+    apiBaseUrl: z.string().optional(),
+  }),
+  authMethods: [
+    {
+      method: 'token',
+      title: 'Token',
+      configSchema: z.object({
+        token: z.string(),
+      }),
+    },
+  ],
+});
+```
+
+Choose a type key that is unlikely to collide with other plugins, since keys
+are shared by the whole backend.
+
+### Register and use the type
+
+Request `connectionsRegistryServiceRef` from
+`@backstage/backend-plugin-api/alpha` and register the type during
+initialization, before looking up connections. A plugin or module that looks
+up the type also adds a
+[connection declaration](./01-concepts.md#connection-declaration) with the type
+key, and passes the definition as the `type` of the lookup:
+
+```ts
+import { createBackendPlugin } from '@backstage/backend-plugin-api';
+import {
+  connectionsRegistryServiceRef,
+  connectionsServiceRef,
+  declareConnection,
+} from '@backstage/backend-plugin-api/alpha';
+import { AcmeConnectionType } from '@internal/plugin-acme-node';
+
+export const acmePlugin = createBackendPlugin({
+  pluginId: 'acme',
+  register(reg) {
+    declareConnection(reg, {
+      type: 'acme',
+      description: 'Reads projects from Acme',
+    });
+
+    reg.registerInit({
+      deps: {
+        connections: connectionsServiceRef,
+        connectionsRegistry: connectionsRegistryServiceRef,
+      },
+      async init({ connections, connectionsRegistry }) {
+        connectionsRegistry.register(AcmeConnectionType);
+
+        const connection = await connections.find({
+          type: AcmeConnectionType,
+          query: { url: 'https://acme.example.com/projects/1' },
+          authMethods: ['token'],
+        });
+        // connection.host, connection.apiBaseUrl, and connection.auth.token
+        // are typed from the definition.
+      },
+    });
+  },
+});
+```
+
+Adopters then configure the type like any other:
+
+```yaml title="app-config.yaml"
+connections:
+  - type: acme
+    host: acme.example.com
+    auth:
+      - method: token
+        token: ${ACME_TOKEN}
+```
+
+Registration has the following behavior:
+
+- A registered type is available to every plugin in the backend, not only the
+  plugin that registered it. [Plugin scoping](./01-concepts.md#plugin-scoping)
+  applies to its connections as usual.
+- Every plugin and module that uses a type registers it. Registering the same
+  type more than once is allowed, so consumers don't depend on the
+  initialization order of other plugins.
+- Registration fails if the key is already used by a different definition,
+  including a built-in type.
+- Configured connections of the type are validated during registration. If any
+  of them are invalid, `register` throws and the type remains unavailable,
+  which fails the startup of the plugin that registered it.
+- Looking up a type that has not been registered throws `InputError`.
+- Connections of a type that no plugin registers are ignored. The service logs
+  a warning for each such type once the backend has started.
+
+Registered types use the `host` or `aws`
+[lookup strategies](./01-concepts.md#lookup-strategies). Legacy `integrations`
+configuration is only converted for built-in types.
 
 ## Test the type
 

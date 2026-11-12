@@ -33,7 +33,10 @@ export function withDeclaredConnections(
   };
   return {
     async find(options: Parameters<ConnectionsService['find']>[0]) {
-      assertDeclared(options.type);
+      // Types that are not built in are passed as their definition.
+      assertDeclared(
+        typeof options.type === 'string' ? options.type : options.type.type,
+      );
       return service.find(options);
     },
   } as ConnectionsService;

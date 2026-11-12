@@ -19,13 +19,18 @@ import type { Expand, JsonObject } from '@backstage/types';
 import type {
   ConnectionTypeDefinition,
   ConnectionLookupStrategy,
-  LookupStrategyQuery,
+  ConnectionLookupStrategyQuery,
   PortableSchema,
   WithoutReservedAuthMethods,
-  WithoutReservedFields,
+  WithoutReservedConnectionFields,
 } from '../api/ConnectionType';
 
-type ConnectionAuthMethodSchema<
+/**
+ * The declaration of an auth method passed to {@link createConnectionType}.
+ *
+ * @public
+ */
+export type ConnectionAuthMethodSchema<
   TMethod extends string = string,
   TConfigSchema extends z.ZodObject = z.ZodObject,
 > = {
@@ -34,21 +39,32 @@ type ConnectionAuthMethodSchema<
   configSchema: TConfigSchema;
 };
 
-type ConfigFromSchema<TConfigSchema extends z.ZodObject> =
+/**
+ * The parsed configuration fields of a `configSchema`.
+ *
+ * @public
+ */
+export type ConnectionConfigFromSchema<TConfigSchema extends z.ZodObject> =
   z.infer<TConfigSchema> extends Record<string, never>
     ? Record<never, never>
     : z.infer<TConfigSchema>;
 
+/**
+ * The parsed auth entry of an auth method, consisting of its `method` along
+ * with the fields of its `configSchema`.
+ *
+ * @public
+ */
 // Expand flattens the intersection into a single object literal so that
 // editor tooltips show each auth method variant as a readable flat shape
 // rather than a chain of truncated intersections.
-type ConfiguredConnectionAuthFromSchema<
+export type ConnectionAuthFromSchema<
   TAuthMethod extends ConnectionAuthMethodSchema,
 > = TAuthMethod extends ConnectionAuthMethodSchema<
   infer TMethod,
   infer TConfigSchema
 >
-  ? Expand<{ method: TMethod } & ConfigFromSchema<TConfigSchema>>
+  ? Expand<{ method: TMethod } & ConnectionConfigFromSchema<TConfigSchema>>
   : never;
 
 function createPortableSchema<TSchema extends z.ZodType>(
@@ -79,6 +95,19 @@ function createPortableSchema<TSchema extends z.ZodType>(
   };
 }
 
+/**
+ * Creates a connection type, which defines the configuration fields,
+ * authentication methods, and lookup behavior of one kind of external system.
+ *
+ * @remarks
+ *
+ * Schemas are declared with `zod` version 4. Connection types that are not
+ * built into Backstage need to be registered with the
+ * {@link ConnectionsRegistryService} before they can be configured and looked
+ * up.
+ *
+ * @public
+ */
 export function createConnectionType<
   TType extends string,
   TConfigSchema extends z.ZodObject,
@@ -99,18 +128,18 @@ export function createConnectionType<
   title: string;
   cardinality?: TCardinality;
   lookupStrategy?: TLookupStrategy;
-  configSchema: WithoutReservedFields<TConfigSchema>;
+  configSchema: WithoutReservedConnectionFields<TConfigSchema>;
   authMethods: WithoutReservedAuthMethods<TAuthMethods>;
   matchAuth?: (
     authMethods: Expand<
-      ConfiguredConnectionAuthFromSchema<TAuthMethods[number]> & {
+      ConnectionAuthFromSchema<TAuthMethods[number]> & {
         title: string;
       }
     >[],
-    query: LookupStrategyQuery[TLookupStrategy],
+    query: ConnectionLookupStrategyQuery[TLookupStrategy],
   ) =>
     | Expand<
-        ConfiguredConnectionAuthFromSchema<TAuthMethods[number]> & {
+        ConnectionAuthFromSchema<TAuthMethods[number]> & {
           title: string;
         }
       >
@@ -120,9 +149,9 @@ export function createConnectionType<
   // single entry can verify. Entries include their plugin `match` so that
   // rules can take scoping into account. Throwing rejects the connection.
   validate?: (connection: {
-    config: ConfigFromSchema<TConfigSchema>;
+    config: ConnectionConfigFromSchema<TConfigSchema>;
     auth: readonly Expand<
-      ConfiguredConnectionAuthFromSchema<TAuthMethods[number]> & {
+      ConnectionAuthFromSchema<TAuthMethods[number]> & {
         match?: { plugins: string[] };
       }
     >[];
@@ -131,9 +160,9 @@ export function createConnectionType<
   type: TType;
   cardinality: TCardinality;
   lookupStrategy: TLookupStrategy;
-  query: LookupStrategyQuery[TLookupStrategy];
-  configSchema: ConfigFromSchema<TConfigSchema>;
-  auth: readonly ConfiguredConnectionAuthFromSchema<TAuthMethods[number]>[];
+  query: ConnectionLookupStrategyQuery[TLookupStrategy];
+  configSchema: ConnectionConfigFromSchema<TConfigSchema>;
+  auth: readonly ConnectionAuthFromSchema<TAuthMethods[number]>[];
 }> {
   const validatedAuthMethods = authMethods as TAuthMethods;
   if (validatedAuthMethods.length < 1) {
@@ -168,8 +197,8 @@ export function createConnectionType<
     type: TType;
     cardinality: TCardinality;
     lookupStrategy: TLookupStrategy;
-    query: LookupStrategyQuery[TLookupStrategy];
-    configSchema: ConfigFromSchema<TConfigSchema>;
-    auth: readonly ConfiguredConnectionAuthFromSchema<TAuthMethods[number]>[];
+    query: ConnectionLookupStrategyQuery[TLookupStrategy];
+    configSchema: ConnectionConfigFromSchema<TConfigSchema>;
+    auth: readonly ConnectionAuthFromSchema<TAuthMethods[number]>[];
   }>;
 }

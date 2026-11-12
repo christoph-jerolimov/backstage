@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { mockServices } from '@backstage/backend-test-utils';
+import { createConnectionType } from '@backstage/connections';
 import { DefaultConnectionsService } from '@backstage/connections-node';
+import { z } from 'zod/v4';
 import { withDeclaredConnections } from './withDeclaredConnections';
 import { JsonArray } from '@backstage/types';
 
@@ -120,5 +122,36 @@ describe('withDeclaredConnections', () => {
         authMethods: ['token'],
       }),
     ).rejects.toThrow(/undeclared connection of type "github"/);
+  });
+
+  it('checks declarations for connection types passed as a definition', async () => {
+    const acmeConnectionType = createConnectionType({
+      type: 'acme',
+      title: 'Acme',
+      configSchema: z.object({ host: z.string() }),
+      authMethods: [
+        { method: 'none', title: 'None', configSchema: z.object({}) },
+      ],
+    });
+    const root = DefaultConnectionsService.create({
+      logger: mockServices.logger.mock(),
+      config: mockConnectionsConfig([
+        { type: 'acme', host: 'acme.com', auth: [{ method: 'none' }] },
+      ]),
+    });
+    root.registryForPlugin('catalog').register(acmeConnectionType);
+    const find = (declared: string) =>
+      withDeclaredConnections(root.forPlugin('catalog'), [
+        { type: declared },
+      ]).find({
+        type: acmeConnectionType,
+        query: { url: 'https://acme.com/project' },
+        authMethods: ['none'],
+      });
+
+    await expect(find('acme')).resolves.toMatchObject({ host: 'acme.com' });
+    await expect(find('github')).rejects.toThrow(
+      /undeclared connection of type "acme".*declareConnection/,
+    );
   });
 });

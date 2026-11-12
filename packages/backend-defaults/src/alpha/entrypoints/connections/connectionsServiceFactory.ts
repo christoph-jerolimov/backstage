@@ -19,7 +19,7 @@ import {
   createServiceFactory,
 } from '@backstage/backend-plugin-api';
 import { connectionsServiceRef } from '@backstage/backend-plugin-api/alpha';
-import { DefaultConnectionsService } from '@backstage/connections-node';
+import { rootConnectionsServiceRef } from './rootConnectionsServiceRef';
 
 /**
  * Creates the default plugin-scoped connections service.
@@ -30,16 +30,10 @@ export const connectionsServiceFactory = createServiceFactory({
   service: connectionsServiceRef,
   deps: {
     pluginMetadata: coreServices.pluginMetadata,
-    rootLogger: coreServices.rootLogger,
     logger: coreServices.logger,
-    config: coreServices.rootConfig,
+    rootConnections: rootConnectionsServiceRef,
   },
-  async createRootContext({ rootLogger, config }) {
-    return DefaultConnectionsService.create({ logger: rootLogger, config });
-  },
-
-  async factory({ logger, pluginMetadata }, connectionsService) {
-    const pluginId = pluginMetadata.getId();
-    return connectionsService.forPlugin(pluginId, { logger });
+  async factory({ logger, pluginMetadata, rootConnections }) {
+    return rootConnections.forPlugin(pluginMetadata.getId(), { logger });
   },
 });

@@ -62,6 +62,7 @@ export {
   metricsServiceRef,
   tracingServiceRef,
   connectionsServiceRef,
+  connectionsRegistryServiceRef,
 } from './refs';
 
 export type { ConnectionRegistration } from '../wiring/types';

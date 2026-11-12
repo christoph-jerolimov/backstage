@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { mockServices } from '@backstage/backend-test-utils';
-import { connectionTypes } from '@backstage/connections';
+import { connectionTypes, createConnectionType } from '@backstage/connections';
+import { z } from 'zod/v4';
 import { DefaultConnectionsService } from './DefaultConnectionsService';
 import { JsonArray, JsonObject } from '@backstage/types';
 
@@ -1330,6 +1331,152 @@ describe('DefaultConnectionsService', () => {
           ]),
         }),
       ).toThrow(/singleton connection type that only allows one entry/);
+    });
+  });
+
+  describe('registered connection types', () => {
+    const createAcmeConnectionType = () =>
+      createConnectionType({
+        type: 'acme',
+        title: 'Acme',
+        configSchema: z.object({ host: z.string() }),
+        authMethods: [
+          {
+            method: 'token',
+            title: 'Token',
+            configSchema: z.object({ token: z.string() }),
+          },
+        ],
+      });
+    const acmeConnectionType = createAcmeConnectionType();
+
+    it('loads connections of a type once it is registered', async () => {
+      const logger = mockServices.logger.mock();
+      const service = DefaultConnectionsService.create({
+        logger,
+        config: mockConnectionsConfig([
+          {
+            type: 'github',
+            host: 'github.com',
+            auth: [{ method: 'token', token: 'gh-token' }],
+          },
+          {
+            type: 'acme',
+            host: 'acme.com',
+            auth: [
+              {
+                method: 'token',
+                token: 'catalog-token',
+                match: { plugins: ['catalog'] },
+              },
+              { method: 'token', token: 'default-token' },
+            ],
+          },
+          {
+            type: 'acme',
+            host: 'internal.acme.com',
+            match: { plugins: ['scaffolder'] },
+            auth: [{ method: 'token', token: 'internal-token' }],
+          },
+          { type: 'other', whatever: true },
+        ]),
+      });
+      const catalog = service.forPlugin('catalog');
+      const find = (
+        connections: typeof catalog,
+        url: string = 'https://acme.com/project',
+      ) =>
+        connections.find({
+          type: acmeConnectionType,
+          query: { url },
+          authMethods: ['token'],
+        });
+
+      // Built-in types are unaffected by connections of unknown types, which
+      // cannot be looked up until their type is registered.
+      await expect(
+        catalog.find({
+          type: 'github',
+          query: { url: 'https://github.com/backstage/backstage' },
+        }),
+      ).resolves.toMatchObject({ host: 'github.com' });
+      await expect(find(catalog)).rejects.toThrow(
+        'Connection type "acme" is not registered',
+      );
+
+      // Registration applies to the whole backend, including services that
+      // were created earlier, and can be repeated by every user of the type.
+      service.registryForPlugin('scaffolder').register(acmeConnectionType);
+      service.registryForPlugin('catalog').register(acmeConnectionType);
+      service.registryForPlugin('catalog').register(createAcmeConnectionType());
+
+      await expect(find(catalog)).resolves.toMatchObject({
+        type: 'acme',
+        host: 'acme.com',
+        title: 'Acme (acme.com)',
+        auth: { method: 'token', token: 'catalog-token', title: 'Token' },
+      });
+      const scaffolder = service.forPlugin('scaffolder');
+      await expect(find(scaffolder)).resolves.toMatchObject({
+        auth: { token: 'default-token' },
+      });
+      await expect(
+        find(scaffolder, 'https://internal.acme.com/project'),
+      ).resolves.toMatchObject({ auth: { token: 'internal-token' } });
+      await expect(
+        find(catalog, 'https://internal.acme.com/project'),
+      ).rejects.toThrow('Connection not found for type "acme"');
+
+      // Only the types that nobody registered are reported.
+      expect(logger.warn).not.toHaveBeenCalled();
+      service.warnAboutUnregisteredConnectionTypes();
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Ignoring 1 connection of type "other"'),
+      );
+    });
+
+    it('rejects conflicting types and invalid connections on registration', async () => {
+      const service = DefaultConnectionsService.create({
+        logger: mockServices.logger.mock(),
+        config: mockConnectionsConfig([
+          { type: 'acme', auth: [{ method: 'token', token: 'token' }] },
+        ]),
+      });
+      const registry = service.registryForPlugin('catalog');
+
+      // Every plugin that registers the type is told about invalid config,
+      // and the type stays unavailable.
+      for (let i = 0; i < 2; i++) {
+        expect(() => registry.register(acmeConnectionType)).toThrow(
+          /Invalid connection of type "acme" in connections config:[\s\S]*host/,
+        );
+      }
+      await expect(
+        service.forPlugin('catalog').find({
+          type: acmeConnectionType,
+          query: { url: 'https://acme.com' },
+        }),
+      ).rejects.toThrow('Connection type "acme" is not registered');
+
+      // A type key belongs to a single contract, built-in or registered.
+      const conflicting = (type: string) =>
+        createConnectionType({
+          type,
+          title: 'Conflict',
+          configSchema: z.object({ host: z.string() }),
+          authMethods: [
+            { method: 'none', title: 'None', configSchema: z.object({}) },
+          ],
+        });
+      expect(() => registry.register(conflicting('github'))).toThrow(
+        'Plugin "catalog" attempted to register connection type "github", but a different connection type is already registered with that key',
+      );
+      registry.register(conflicting('unconfigured'));
+      registry.register(connectionTypes.github);
+      expect(() =>
+        registry.register({ ...conflicting('unconfigured'), title: 'Other' }),
+      ).toThrow(/a different connection type is already registered/);
     });
   });
 });

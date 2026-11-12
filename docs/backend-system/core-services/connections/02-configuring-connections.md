@@ -321,12 +321,20 @@ The same rule applies to the converted legacy top-level `aws` configuration.
 The service reports invalid configuration during backend startup. Common
 causes include:
 
-- An unknown connection type or authentication method.
+- An unknown authentication method.
 - A missing required field.
 - An empty or missing `auth` array.
 - Two connections with the same type and host.
 - More than one singleton connection.
 - A whole-connection validation failure, such as duplicate AWS account IDs.
+
+Connections of a
+[type registered by a plugin](./05-creating-a-connection-type.md#register-a-type-from-a-plugin)
+are validated when that plugin registers the type, so an invalid connection
+fails the startup of that plugin. A connection whose type is neither built in
+nor registered by any installed plugin is ignored, and the service logs a
+warning naming the type once the backend has started. Check the type for
+typos, or install the plugin that provides it.
 
 At lookup time, distinguish these outcomes:
 
@@ -335,7 +343,8 @@ At lookup time, distinguish these outcomes:
 - `NotAllowedError` means the plugin cannot see an authentication entry or the
   selected method is not supported by the consumer.
 - `InputError` can indicate an invalid query, such as a malformed URL, or a
-  lookup for a connection type the plugin did not declare.
+  lookup for a connection type the plugin did not declare or that has not been
+  registered.
 
 See [Consume connections](./03-consuming-connections.md) for error handling in
 plugin code.

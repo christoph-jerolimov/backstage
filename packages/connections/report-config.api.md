@@ -5,7 +5,7 @@
 ```ts
 import { Config } from '@backstage/config';
 import type { Expand } from '@backstage/types';
-import type { JsonObject } from '@backstage/types';
+import { JsonObject } from '@backstage/types';
 
 // @public
 export function buildConnectionsFromConfig(options: {
@@ -16,6 +16,8 @@ export function buildConnectionsFromConfig(options: {
     info(message: string): void;
     debug(message: string): void;
   };
+  connectionTypes?: readonly ConnectionTypeDefinition[];
+  onUnknownConnectionType?: (type: string, connections: JsonObject[]) => void;
 }): ConfiguredConnection[];
 
 // @public

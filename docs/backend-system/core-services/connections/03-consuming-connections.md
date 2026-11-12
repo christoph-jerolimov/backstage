@@ -210,6 +210,29 @@ The AWS connection type derives the account number from the ARN and selects an
 exact account entry when one exists. Otherwise, it returns the entry marked
 `mainAccount`, when configured.
 
+## Look up a type registered by a plugin
+
+Types that are not built in are identified by their definition instead of a
+type key. Import the definition from the package that provides it, register it
+with the connections registry service, and pass it as the `type`:
+
+```ts
+import { AcmeConnectionType } from '@internal/plugin-acme-node';
+
+connectionsRegistry.register(AcmeConnectionType);
+
+const connection = await connections.find({
+  type: AcmeConnectionType,
+  query: { url: 'https://acme.example.com/projects/1' },
+  authMethods: ['token'],
+});
+```
+
+The [connection declaration](./01-concepts.md#connection-declaration) uses the
+type key, such as `declareConnection(reg, { type: 'acme' })`. See
+[Register a type from a plugin](./05-creating-a-connection-type.md#register-a-type-from-a-plugin)
+for the complete example.
+
 ## Type functions that accept connections
 
 Use the public contracts from `@backstage/connections` when a helper, client

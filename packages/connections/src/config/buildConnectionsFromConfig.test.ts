@@ -15,6 +15,8 @@
  */
 import { ConfigReader } from '@backstage/config';
 import { JsonObject } from '@backstage/types';
+import { z } from 'zod/v4';
+import { createConnectionType } from '../system/createConnectionType';
 import { buildConnectionsFromConfig } from './buildConnectionsFromConfig';
 
 const rootConfig = (data: JsonObject) => new ConfigReader(data);
@@ -218,5 +220,112 @@ describe('buildConnectionsFromConfig', () => {
     ).toThrow(
       'Duplicate connection of type "aws"; this is a singleton connection type',
     );
+  });
+
+  it('supports additional connection types and deferring unknown ones', () => {
+    const acmeConnectionType = createConnectionType({
+      type: 'acme',
+      title: 'Acme',
+      configSchema: z.object({ host: z.string() }),
+      authMethods: [
+        {
+          method: 'token',
+          title: 'Token',
+          configSchema: z.object({ token: z.string() }),
+        },
+      ],
+    });
+    const acme = (host: string) => ({
+      type: 'acme',
+      host,
+      auth: [{ method: 'token', token: `${host}-token` }],
+    });
+    const github = {
+      type: 'github',
+      host: 'github.com',
+      auth: [{ method: 'token', token: 'gh-token' }],
+    };
+
+    // Without the type, its connections are rejected.
+    expect(() =>
+      buildConnectionsFromConfig({
+        config: rootConfig({ connections: [github, acme('acme.com')] }),
+      }),
+    ).toThrow(
+      /Invalid connection of type "acme" in connections config:[\s\S]*Unrecognised connection type acme/,
+    );
+
+    // Additional types get the same validation and defaults as built-in ones.
+    expect(
+      buildConnectionsFromConfig({
+        config: rootConfig({
+          connections: [github, acme('acme.com'), acme('acme.org')],
+        }),
+        connectionTypes: [acmeConnectionType],
+      }),
+    ).toMatchObject([
+      { type: 'github', title: 'GitHub' },
+      {
+        type: 'acme',
+        host: 'acme.com',
+        title: 'Acme (acme.com)',
+        auth: [{ method: 'token', token: 'acme.com-token', title: 'Token' }],
+      },
+      { type: 'acme', host: 'acme.org', title: 'Acme (acme.org)' },
+    ]);
+    expect(() =>
+      buildConnectionsFromConfig({
+        config: rootConfig({
+          connections: [acme('acme.com'), { type: 'acme' }],
+        }),
+        connectionTypes: [acmeConnectionType],
+      }),
+    ).toThrow(/Invalid connection of type "acme" in connections config/);
+    expect(() =>
+      buildConnectionsFromConfig({
+        config: rootConfig({
+          connections: [acme('acme.com'), acme('acme.com')],
+        }),
+        connectionTypes: [acmeConnectionType],
+      }),
+    ).toThrow('Duplicate connection of type "acme" for host "acme.com"');
+
+    // An additional type cannot take over the key of another type.
+    expect(() =>
+      buildConnectionsFromConfig({
+        config: rootConfig({}),
+        connectionTypes: [
+          createConnectionType({
+            type: 'github',
+            title: 'Not GitHub',
+            configSchema: z.object({ host: z.string() }),
+            authMethods: [
+              { method: 'none', title: 'None', configSchema: z.object({}) },
+            ],
+          }),
+        ],
+      }),
+    ).toThrow('Connection type "github" is already defined');
+
+    // Unknown types can be handed off instead of being rejected, without
+    // being validated in any way.
+    const onUnknownConnectionType = jest.fn();
+    expect(
+      buildConnectionsFromConfig({
+        config: rootConfig({
+          connections: [
+            acme('acme.com'),
+            github,
+            { type: 'other', anything: true },
+            acme('acme.org'),
+          ],
+        }),
+        onUnknownConnectionType,
+      }),
+    ).toMatchObject([{ type: 'github' }]);
+    expect(onUnknownConnectionType.mock.calls).toEqual([
+      ['acme', [acme('acme.com'), acme('acme.org')]],
+      ['other', [{ type: 'other', anything: true }]],
+    ]);
   });
 });
