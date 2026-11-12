@@ -13,27 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ConnectionLookupStrategy } from '../api/ConnectionType';
-import { connectionTypes } from '../definitions/types';
+import { InputError } from '@backstage/errors';
 import type {
-  ConnectionType,
-  LookupConnectionType,
-} from '../definitions/types';
+  ConnectionLookupStrategy,
+  ConnectionTypeDefinition,
+} from '../api/ConnectionType';
+import { connectionTypes } from '../definitions/types';
 
-const connectionTypesMap = new Map(Object.entries(connectionTypes));
+/**
+ * The connection types to resolve configuration against, keyed by their
+ * `type`.
+ */
+export type ConnectionTypeLookup = ReadonlyMap<
+  string,
+  ConnectionTypeDefinition
+>;
 
-export function getConnectionType<T extends ConnectionType>(
-  key: T,
-): LookupConnectionType<T> {
-  return connectionTypesMap.get(key) as LookupConnectionType<T>;
-}
+/**
+ * Creates the lookup of all connection types that configuration is resolved
+ * against: the built-in types plus any additional ones, which must not reuse
+ * the key of another type.
+ */
+export function createConnectionTypeLookup(
+  additionalTypes: readonly ConnectionTypeDefinition[] = [],
+): ConnectionTypeLookup {
+  const builtInTypes = new Map<string, ConnectionTypeDefinition>(
+    Object.entries(connectionTypes),
+  );
+  const lookup = new Map(builtInTypes);
 
-export function isConnectionType(
-  value: string | undefined,
-): value is ConnectionType {
-  if (!value) return false;
+  for (const connectionType of additionalTypes) {
+    const existing = lookup.get(connectionType.type);
+    if (existing === connectionType) {
+      continue;
+    }
+    if (existing) {
+      throw new InputError(
+        builtInTypes.has(connectionType.type)
+          ? `Connection type "${connectionType.type}" conflicts with the built-in connection type of the same name`
+          : `Connection type "${connectionType.type}" is defined more than once`,
+      );
+    }
+    lookup.set(connectionType.type, connectionType);
+  }
 
-  return connectionTypesMap.has(value);
+  return lookup;
 }
 
 /**

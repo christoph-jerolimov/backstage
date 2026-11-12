@@ -27,6 +27,11 @@ For example, the `github` type is a multi-instance, host-based type. Its
 connection fields include `host`, `apiBaseUrl`, and `rawBaseUrl`. Its
 authentication methods are `none`, `token`, and `app`.
 
+The framework provides [built-in types](./04-built-in-connection-types.md)
+for common systems. A backend plugin can
+[register additional types](./06-registering-a-connection-type.md) for systems
+that have no built-in type.
+
 The exported `ConnectionType` descriptor contains runtime metadata such as
 `lookupStrategy`, `configSchema`, and `authMethods`. The query and returned
 authentication shapes are inferred through its generic definition; they are
@@ -50,12 +55,12 @@ connections:
 
 The framework owns these connection-level fields:
 
-| Field   | Required | Purpose                                                 |
-| ------- | -------- | ------------------------------------------------------- |
-| `type`  | Yes      | Selects a built-in connection type.                     |
-| `title` | No       | Gives the connection a human-readable name.             |
-| `auth`  | Yes      | Contains one or more configured authentication entries. |
-| `match` | No       | Restricts the complete connection to named plugin IDs.  |
+| Field   | Required | Purpose                                                  |
+| ------- | -------- | -------------------------------------------------------- |
+| `type`  | Yes      | Selects a built-in or plugin-registered connection type. |
+| `title` | No       | Gives the connection a human-readable name.              |
+| `auth`  | Yes      | Contains one or more configured authentication entries.  |
+| `match` | No       | Restricts the complete connection to named plugin IDs.   |
 
 All other fields come from the selected type's connection schema. For a
 host-based type, this normally includes `host` and may include API or content

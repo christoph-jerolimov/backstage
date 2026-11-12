@@ -11,12 +11,13 @@ external system. A type defines the connection fields,
 [lookup query](./01-concepts.md#lookup-queries), validation, and authentication
 selection behavior.
 
-:::caution[Framework contribution path]
-Adopter-defined connection type registration is not exposed as a public API.
-`createConnectionType` and the registry are internal to the Backstage
-framework. This guide describes how to contribute a canonical built-in type to
-the Backstage repository. Do not import internal source modules into an
-external plugin or app package.
+:::note[Framework contribution path]
+This guide describes how to contribute a canonical built-in type to the
+Backstage repository. To define a connection type in your own plugin without
+changing the framework, see
+[Register a connection type from a plugin](./06-registering-a-connection-type.md).
+The guidance on this page for designing, testing, and evolving a type applies
+to both paths.
 :::
 
 ## Decide whether you need a new type

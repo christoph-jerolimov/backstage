@@ -188,6 +188,27 @@ The application fields are static credentials, not an installation token. The
 `createClientWithGitHubApp` layer is separate from the connection service and
 is responsible for token exchange and caching.
 
+## Look up a plugin-defined connection type
+
+Built-in types are identified by their key. A type that a plugin registers
+with the connections registry service is identified by its definition, which
+gives the lookup the same inference for the query and the result:
+
+```ts
+import { acmeConnectionType } from '@internal/plugin-acme-node';
+
+const connection = await connections.find({
+  type: acmeConnectionType,
+  query: { url: 'https://acme.example.com/projects/backstage' },
+  authMethods: ['token'],
+});
+```
+
+Declare the type with its key, `declareConnection(reg, { type: acmeConnectionType.type })`.
+See [Register a connection type from a plugin](./06-registering-a-connection-type.md)
+for how to define and register a type, and for how to share one between
+plugins.
+
 ## Look up an AWS account
 
 The `aws` type accepts an account number, an ARN, or both:

@@ -25,7 +25,13 @@ import type {
   WithoutReservedFields,
 } from '../api/ConnectionType';
 
-type ConnectionAuthMethodSchema<
+/**
+ * The declaration of one auth method of a connection type, as passed to
+ * {@link createConnectionType}.
+ *
+ * @public
+ */
+export type ConnectionAuthMethodSchema<
   TMethod extends string = string,
   TConfigSchema extends z.ZodObject = z.ZodObject,
 > = {
@@ -34,15 +40,27 @@ type ConnectionAuthMethodSchema<
   configSchema: TConfigSchema;
 };
 
-type ConfigFromSchema<TConfigSchema extends z.ZodObject> =
+/**
+ * The configuration shape that a `configSchema` passed to
+ * {@link createConnectionType} produces.
+ *
+ * @public
+ */
+export type ConfigFromSchema<TConfigSchema extends z.ZodObject> =
   z.infer<TConfigSchema> extends Record<string, never>
     ? Record<never, never>
     : z.infer<TConfigSchema>;
 
+/**
+ * The shape of an auth entry of a connection type: the fields declared by the
+ * auth method's `configSchema` plus its `method` key.
+ *
+ * @public
+ */
 // Expand flattens the intersection into a single object literal so that
 // editor tooltips show each auth method variant as a readable flat shape
 // rather than a chain of truncated intersections.
-type ConfiguredConnectionAuthFromSchema<
+export type ConfiguredConnectionAuthFromSchema<
   TAuthMethod extends ConnectionAuthMethodSchema,
 > = TAuthMethod extends ConnectionAuthMethodSchema<
   infer TMethod,
@@ -79,6 +97,39 @@ function createPortableSchema<TSchema extends z.ZodType>(
   };
 }
 
+/**
+ * Creates a connection type: the definition of the connection fields,
+ * authentication methods, and lookup behavior of one kind of external system.
+ *
+ * @remarks
+ *
+ * Schemas are declared with Zod v4, imported from `zod/v4`. Register the
+ * returned definition through the {@link ConnectionsRegistryService} to make
+ * connections of the type configurable, and pass it as the `type` of a
+ * {@link ConnectionsService} lookup to find them.
+ *
+ * @example
+ *
+ * ```ts
+ * import { z } from 'zod/v4';
+ * import { createConnectionType } from '@backstage/connections';
+ *
+ * export const acmeConnectionType = createConnectionType({
+ *   type: 'acme',
+ *   title: 'Acme',
+ *   configSchema: z.object({ host: z.string() }),
+ *   authMethods: [
+ *     {
+ *       method: 'token',
+ *       title: 'Token',
+ *       configSchema: z.object({ token: z.string() }),
+ *     },
+ *   ],
+ * });
+ * ```
+ *
+ * @public
+ */
 export function createConnectionType<
   TType extends string,
   TConfigSchema extends z.ZodObject,

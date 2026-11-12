@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { mockServices } from '@backstage/backend-test-utils';
+import { createConnectionType } from '@backstage/connections';
 import { DefaultConnectionsService } from '@backstage/connections-node';
+import { z } from 'zod/v4';
 import { withDeclaredConnections } from './withDeclaredConnections';
 import { JsonArray } from '@backstage/types';
 
@@ -120,5 +122,51 @@ describe('withDeclaredConnections', () => {
         authMethods: ['token'],
       }),
     ).rejects.toThrow(/undeclared connection of type "github"/);
+  });
+
+  it('requires a declaration for connection types that are looked up by their definition', async () => {
+    const acmeConnectionType = createConnectionType({
+      type: 'acme',
+      title: 'Acme',
+      configSchema: z.object({ host: z.string() }),
+      authMethods: [
+        {
+          method: 'token',
+          title: 'Token',
+          configSchema: z.object({ token: z.string() }),
+        },
+      ],
+    });
+    const root = DefaultConnectionsService.create({
+      logger: mockServices.logger.mock(),
+      config: mockConnectionsConfig([
+        githubConnection,
+        {
+          type: 'acme',
+          host: 'acme.test',
+          auth: [{ method: 'token', token: 'acme-token' }],
+        },
+      ]),
+    });
+    root.registryForPlugin('acme').registerConnectionType(acmeConnectionType);
+    const pluginService = root.forPlugin('acme');
+    const find = (service: typeof pluginService) =>
+      service.find({
+        type: acmeConnectionType,
+        query: { url: 'https://acme.test/project' },
+        authMethods: ['token'],
+      });
+
+    await expect(
+      find(withDeclaredConnections(pluginService, [{ type: 'acme' }])),
+    ).resolves.toMatchObject({
+      host: 'acme.test',
+      auth: { token: 'acme-token' },
+    });
+    await expect(
+      find(withDeclaredConnections(pluginService, [{ type: 'github' }])),
+    ).rejects.toThrow(
+      /undeclared connection of type "acme".*declareConnection/,
+    );
   });
 });

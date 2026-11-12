@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { mockServices } from '@backstage/backend-test-utils';
-import { connectionTypes } from '@backstage/connections';
+import { connectionTypes, createConnectionType } from '@backstage/connections';
+import { z } from 'zod/v4';
 import { DefaultConnectionsService } from './DefaultConnectionsService';
 import { JsonArray, JsonObject } from '@backstage/types';
 
@@ -1330,6 +1331,273 @@ describe('DefaultConnectionsService', () => {
           ]),
         }),
       ).toThrow(/singleton connection type that only allows one entry/);
+    });
+  });
+
+  describe('registered connection types', () => {
+    const acmeConnectionType = createConnectionType({
+      type: 'acme',
+      title: 'Acme',
+      configSchema: z.object({ host: z.string() }),
+      authMethods: [
+        { method: 'none', title: 'None', configSchema: z.object({}) },
+        {
+          method: 'token',
+          title: 'Token',
+          configSchema: z.object({ token: z.string() }),
+        },
+      ],
+      matchAuth(authMethods) {
+        return (
+          authMethods.find(auth => auth.method === 'token') ??
+          authMethods.find(auth => auth.method === 'none')
+        );
+      },
+    });
+
+    const acmeConnections = [
+      {
+        type: 'acme',
+        host: 'a.acme.test',
+        auth: [
+          { method: 'none' },
+          {
+            method: 'token',
+            token: 'catalog-token',
+            match: { plugins: ['catalog'] },
+          },
+        ],
+      },
+      {
+        type: 'acme',
+        host: 'b.acme.test',
+        match: { plugins: ['scaffolder'] },
+        auth: [{ method: 'token', token: 'b-token' }],
+      },
+    ];
+
+    it('resolves configured connections once their type is registered', async () => {
+      const logger = mockServices.logger.mock();
+      const service = DefaultConnectionsService.create({
+        logger: mockServices.logger.mock(),
+        config: mockConnectionsConfig([
+          {
+            type: 'github',
+            host: 'github.com',
+            auth: [{ method: 'token', token: 'gh-token' }],
+          },
+          ...acmeConnections,
+          {
+            type: 'other',
+            host: 'other.test',
+            auth: [{ method: 'token', token: 'other-token' }],
+          },
+        ]),
+      });
+
+      // Plugin-scoped services created before the registration pick up the
+      // connections that the registration makes available.
+      const catalog = service.forPlugin('catalog');
+      const scaffolder = service.forPlugin('scaffolder');
+      const findAcme = (
+        connections: typeof catalog,
+        url = 'https://a.acme.test/project',
+      ) =>
+        connections.find({
+          type: acmeConnectionType,
+          query: { url },
+          authMethods: ['none', 'token'],
+        });
+
+      expect(service.getUnregisteredConnectionTypes()).toEqual([
+        'acme',
+        'other',
+      ]);
+      await expect(findAcme(catalog)).rejects.toThrow(
+        'Connection type "acme" is not registered. Register it with the connections registry service before looking up connections of this type.',
+      );
+      await expect(
+        catalog.find({
+          type: 'github',
+          query: { url: 'https://github.com/backstage/backstage' },
+          authMethods: ['token'],
+        }),
+      ).resolves.toMatchObject({ auth: { token: 'gh-token' } });
+
+      service
+        .registryForPlugin('acme', { logger })
+        .registerConnectionType(acmeConnectionType);
+
+      expect(logger.info).toHaveBeenCalledWith(
+        'Registered connection type "acme" and loaded 2 connections of that type from configuration',
+      );
+      expect(service.getUnregisteredConnectionTypes()).toEqual(['other']);
+
+      // Lookups apply the same plugin scoping, auth selection, and default
+      // titles as for built-in types.
+      const connection = await findAcme(catalog);
+      expect(connection).toEqual({
+        type: 'acme',
+        title: 'Acme (a.acme.test)',
+        host: 'a.acme.test',
+        auth: {
+          method: 'token',
+          title: 'Token',
+          token: 'catalog-token',
+          match: { plugins: ['catalog'] },
+        },
+      });
+      await expect(findAcme(scaffolder)).resolves.toMatchObject({
+        auth: { method: 'none', title: 'None' },
+      });
+      await expect(
+        findAcme(scaffolder, 'https://b.acme.test/project'),
+      ).resolves.toMatchObject({ host: 'b.acme.test' });
+      await expect(
+        findAcme(catalog, 'https://b.acme.test/project'),
+      ).rejects.toThrow('Connection not found for type "acme"');
+      await expect(
+        catalog.find({
+          type: acmeConnectionType,
+          query: { url: 'https://a.acme.test/project' },
+          authMethods: ['none'],
+        }),
+      ).rejects.toThrow(
+        'Connection not found for type "acme" with auth method "token"',
+      );
+      await expect(
+        catalog.find({
+          type: acmeConnectionType,
+          query: { url: 'https://a.acme.test/project' },
+        }),
+      ).resolves.toEqual({
+        type: 'acme',
+        title: 'Acme (a.acme.test)',
+        host: 'a.acme.test',
+      });
+
+      // Built-in connections are unaffected by the registration.
+      await expect(
+        service.forPlugin('catalog').find({
+          type: 'github',
+          query: { url: 'https://github.com/backstage/backstage' },
+          authMethods: ['token'],
+        }),
+      ).resolves.toMatchObject({ auth: { token: 'gh-token' } });
+    });
+
+    it('allows the same definition to be registered again but rejects conflicting ones', () => {
+      const logger = mockServices.logger.mock();
+      const service = DefaultConnectionsService.create({
+        logger: mockServices.logger.mock(),
+        config: mockConnectionsConfig([]),
+      });
+      const otherDefinition = () =>
+        createConnectionType({
+          type: 'acme',
+          title: 'Other Acme',
+          configSchema: z.object({ host: z.string() }),
+          authMethods: [
+            { method: 'none', title: 'None', configSchema: z.object({}) },
+          ],
+        });
+
+      service
+        .registryForPlugin('acme')
+        .registerConnectionType(acmeConnectionType);
+      service
+        .registryForPlugin('scaffolder', { logger })
+        .registerConnectionType(acmeConnectionType);
+      expect(logger.info).not.toHaveBeenCalled();
+
+      expect(() =>
+        service
+          .registryForPlugin('scaffolder')
+          .registerConnectionType(otherDefinition()),
+      ).toThrow(
+        'Plugin "scaffolder" attempted to register the connection type "acme", which plugin "acme" has already registered with a different definition',
+      );
+      expect(() =>
+        service
+          .registryForPlugin('scaffolder')
+          .registerConnectionType({ ...otherDefinition(), type: 'github' }),
+      ).toThrow(
+        'Plugin "scaffolder" attempted to register the connection type "github", which is a built-in connection type',
+      );
+      expect(() =>
+        service
+          .registryForPlugin('scaffolder')
+          .registerConnectionType({ type: 'broken' } as any),
+      ).toThrow(
+        'Invalid connection type, expected a definition created with createConnectionType',
+      );
+      expect(() =>
+        service.registryForPlugin('scaffolder').registerConnectionType({
+          ...otherDefinition(),
+          type: 'future',
+          lookupStrategy: 'region',
+        } as any),
+      ).toThrow(
+        'Connection type "future" uses the unsupported lookup strategy "region"',
+      );
+    });
+
+    it('rejects a registration when the configured connections of the type are invalid', async () => {
+      const service = DefaultConnectionsService.create({
+        logger: mockServices.logger.mock(),
+        config: mockConnectionsConfig([
+          {
+            type: 'acme',
+            host: 'a.acme.test',
+            auth: [{ method: 'token' }],
+          },
+          {
+            type: 'widget',
+            host: 'widget.test',
+            auth: [{ method: 'none' }],
+          },
+        ]),
+      });
+      const widgetConnectionType = createConnectionType({
+        type: 'widget',
+        title: 'Widget',
+        configSchema: z.object({ host: z.string() }),
+        authMethods: [
+          { method: 'none', title: 'None', configSchema: z.object({}) },
+        ],
+      });
+
+      expect(() =>
+        service
+          .registryForPlugin('acme')
+          .registerConnectionType(acmeConnectionType),
+      ).toThrow(
+        /Invalid connection of type "acme" in connections config:.*token/s,
+      );
+
+      // The failed registration leaves the type unregistered, and does not
+      // get in the way of other plugins registering their types.
+      expect(service.getUnregisteredConnectionTypes()).toEqual([
+        'acme',
+        'widget',
+      ]);
+      service
+        .registryForPlugin('widget')
+        .registerConnectionType(widgetConnectionType);
+      expect(service.getUnregisteredConnectionTypes()).toEqual(['acme']);
+      await expect(
+        service.forPlugin('widget').find({
+          type: widgetConnectionType,
+          query: { url: 'https://widget.test' },
+          authMethods: ['none'],
+        }),
+      ).resolves.toMatchObject({ host: 'widget.test', title: 'Widget' });
+      await expect(
+        service.forPlugin('widget').find({
+          type: acmeConnectionType,
+          query: { url: 'https://a.acme.test' },
+        }),
+      ).rejects.toThrow('Connection type "acme" is not registered');
     });
   });
 });

@@ -16,6 +16,8 @@ export function buildConnectionsFromConfig(options: {
     info(message: string): void;
     debug(message: string): void;
   };
+  connectionTypes?: readonly ConnectionTypeDefinition[];
+  onUnknownType?: (type: string) => void;
 }): ConfiguredConnection[];
 
 // @public

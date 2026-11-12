@@ -33,7 +33,11 @@ export function withDeclaredConnections(
   };
   return {
     async find(options: Parameters<ConnectionsService['find']>[0]) {
-      assertDeclared(options.type);
+      // A lookup names a built-in type by its key and any other type by its
+      // definition, both of which are declared by the key.
+      assertDeclared(
+        typeof options.type === 'string' ? options.type : options.type.type,
+      );
       return service.find(options);
     },
   } as ConnectionsService;
