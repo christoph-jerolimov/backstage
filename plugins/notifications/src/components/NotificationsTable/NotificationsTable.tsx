@@ -13,28 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import throttle from 'lodash/throttle';
 import { Notification } from '@backstage/plugin-notifications-common';
 import {
   Button,
+  Cell,
   Checkbox,
+  Column,
+  ColumnConfig,
   Dialog,
   DialogBody,
   DialogFooter,
   DialogHeader,
   Flex,
+  SearchField,
+  Table,
   Text,
+  VisuallyHidden,
 } from '@backstage/ui';
 import { RiRssFill } from '@remixicon/react';
 import { useApi } from '@backstage/core-plugin-api';
 import { toastApiRef } from '@backstage/frontend-plugin-api';
-import {
-  Link,
-  Table,
-  TableColumn,
-  TableProps,
-} from '@backstage/core-components';
+import { Link } from '@backstage/core-components';
 import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 import { notificationsTranslationRef } from '../../translation';
 
@@ -49,11 +57,20 @@ import styles from './NotificationsTable.module.css';
 
 const ThrottleDelayMs = 1000;
 
+const DefaultPageSizeOptions = [5, 10, 20];
+
+const SelectionColumnWidth = 80;
+const ActionsColumnWidth = 136;
+
 /** @public */
-export type NotificationsTableProps = Pick<
-  TableProps,
-  'onPageChange' | 'onRowsPerPageChange' | 'page' | 'totalCount' | 'title'
-> & {
+export type NotificationsTableProps = {
+  title?: string | ReactElement;
+  /** The zero-based index of the current page. */
+  page?: number;
+  /** The total number of notifications across all pages. */
+  totalCount?: number;
+  onPageChange?: (page: number, pageSize: number) => void;
+  onRowsPerPageChange?: (pageSize: number) => void;
   markAsReadOnLinkOpen?: boolean;
   isLoading?: boolean;
   isUnread: boolean;
@@ -69,17 +86,21 @@ export const NotificationsTable = ({
   title,
   markAsReadOnLinkOpen,
   isLoading,
-  notifications = [],
+  notifications: notificationsProp,
   highlightedNotificationId,
   isUnread,
   onUpdate,
   setContainsText,
   onPageChange,
   onRowsPerPageChange,
-  page,
+  page = 0,
   pageSize,
   totalCount,
 }: NotificationsTableProps) => {
+  const notifications = useMemo(
+    () => notificationsProp ?? [],
+    [notificationsProp],
+  );
   const { t } = useTranslationRef(notificationsTranslationRef);
   const notificationsApi = useApi(notificationsApiRef);
   const toastApi = useApi(toastApiRef);
@@ -149,8 +170,13 @@ export const NotificationsTable = ({
   }, []);
 
   const throttledContainsTextHandler = useMemo(
-    () => throttle(setContainsText, ThrottleDelayMs),
-    [setContainsText],
+    () =>
+      throttle((search: string) => {
+        setContainsText(search);
+        // The current page may not exist in the filtered result.
+        onPageChange?.(0, pageSize);
+      }, ThrottleDelayMs),
+    [setContainsText, onPageChange, pageSize],
   );
 
   useEffect(() => {
@@ -193,135 +219,167 @@ export const NotificationsTable = ({
     focusedHighlightedIdRef.current = highlightedNotificationId;
   }, [highlightedNotificationId, notifications]);
 
-  const compactColumns = useMemo((): TableColumn<Notification>[] => {
+  const compactColumns = useMemo((): ColumnConfig<Notification>[] => {
     const showToolbar = notifications.length > 0;
     return [
       {
         /* selection column */
-        width: '1rem',
-        cellStyle: { paddingRight: '2.5rem' },
-        title: showToolbar ? (
-          <SelectAll
-            count={selectedNotifications.size}
-            totalCount={notifications.length}
-            onSelectAll={() =>
-              onNotificationsSelectChange(
-                notifications.map(notification => notification.id),
-                selectedNotifications.size !== notifications.length,
-              )
-            }
-          />
-        ) : undefined,
-        render: (notification: Notification) => (
-          <Checkbox
-            aria-label="Select notification"
-            isSelected={selectedNotifications.has(notification.id)}
-            onChange={checked =>
-              onNotificationsSelectChange([notification.id], checked)
-            }
-          />
+        id: 'selection',
+        label: t('table.columns.selection'),
+        width: SelectionColumnWidth,
+        header: () => (
+          <Column id="selection" width={SelectionColumnWidth}>
+            {showToolbar ? (
+              <SelectAll
+                count={selectedNotifications.size}
+                totalCount={notifications.length}
+                onSelectAll={() =>
+                  onNotificationsSelectChange(
+                    notifications.map(notification => notification.id),
+                    selectedNotifications.size !== notifications.length,
+                  )
+                }
+              />
+            ) : (
+              <VisuallyHidden>{t('table.columns.selection')}</VisuallyHidden>
+            )}
+          </Column>
+        ),
+        cell: (notification: Notification) => (
+          <Cell>
+            <Checkbox
+              // Opt out of the row selection checkbox slots provided by the table
+              slot={null}
+              aria-label="Select notification"
+              isSelected={selectedNotifications.has(notification.id)}
+              onChange={checked =>
+                onNotificationsSelectChange([notification.id], checked)
+              }
+            />
+          </Cell>
         ),
       },
       {
         /* compact-data column */
-        customFilterAndSearch: () =>
-          true /* Keep sorting&filtering on backend due to pagination. */,
-        cellStyle: { paddingLeft: 0 },
-        render: (notification: Notification) => {
+        id: 'notification',
+        label: t('table.columns.notification'),
+        isRowHeader: true,
+        header: () => (
+          <Column id="notification" isRowHeader>
+            <VisuallyHidden>{t('table.columns.notification')}</VisuallyHidden>
+          </Column>
+        ),
+        cell: (notification: Notification) => {
           const isHighlighted = highlightedNotificationId === notification.id;
           // Compact content
           return (
-            <div
-              id={`notification-${notification.id}`}
-              tabIndex={isHighlighted ? -1 : undefined}
-              className={
-                isHighlighted ? styles.highlightedNotification : undefined
-              }
+            <Cell
+              textValue={notification.payload.title}
+              className={styles.notificationCell}
             >
-              <Flex gap="4" align="center">
-                <div className={styles.severityItem}>
-                  <NotificationIcon notification={notification} />
-                </div>
-                <Flex direction="column" gap="1">
-                  <Text variant="body-medium">
-                    {notification.payload.link ? (
-                      <Link
-                        to={notification.payload.link}
-                        onClick={() => {
-                          if (markAsReadOnLinkOpen && !notification.read) {
-                            onSwitchReadStatus([notification.id], true);
-                          }
-                        }}
-                      >
-                        {notification.payload.title}
-                      </Link>
-                    ) : (
-                      notification.payload.title
-                    )}
-                  </Text>
-                  {notification.payload.description ? (
-                    <NotificationDescription
-                      description={notification.payload.description}
-                    />
-                  ) : null}
-
-                  <Text variant="body-small" color="secondary">
-                    {!notification.user && (
-                      <RiRssFill size={14} className={styles.broadcastIcon} />
-                    )}
-                    {notification.origin && (
-                      <>
-                        <span className={styles.notificationInfoRow}>
-                          {notification.origin}
-                        </span>
-                        &bull;
-                      </>
-                    )}
-                    {notification.payload.topic && (
-                      <>
-                        <span className={styles.notificationInfoRow}>
-                          {notification.payload.topic}
-                        </span>
-                        &bull;
-                      </>
-                    )}
-                    {notification.created && (
-                      <RelativeTime
-                        value={notification.created}
-                        className={styles.notificationInfoRow}
+              <div
+                id={`notification-${notification.id}`}
+                tabIndex={isHighlighted ? -1 : undefined}
+                className={
+                  isHighlighted ? styles.highlightedNotification : undefined
+                }
+              >
+                <Flex gap="4" align="center">
+                  <div className={styles.severityItem}>
+                    <NotificationIcon notification={notification} />
+                  </div>
+                  <Flex direction="column" gap="1">
+                    <Text variant="body-medium">
+                      {notification.payload.link ? (
+                        <Link
+                          to={notification.payload.link}
+                          onClick={() => {
+                            if (markAsReadOnLinkOpen && !notification.read) {
+                              onSwitchReadStatus([notification.id], true);
+                            }
+                          }}
+                        >
+                          {notification.payload.title}
+                        </Link>
+                      ) : (
+                        notification.payload.title
+                      )}
+                    </Text>
+                    {notification.payload.description ? (
+                      <NotificationDescription
+                        description={notification.payload.description}
                       />
-                    )}
-                  </Text>
+                    ) : null}
+
+                    <Text variant="body-small" color="secondary">
+                      {!notification.user && (
+                        <RiRssFill size={14} className={styles.broadcastIcon} />
+                      )}
+                      {notification.origin && (
+                        <>
+                          <span className={styles.notificationInfoRow}>
+                            {notification.origin}
+                          </span>
+                          &bull;
+                        </>
+                      )}
+                      {notification.payload.topic && (
+                        <>
+                          <span className={styles.notificationInfoRow}>
+                            {notification.payload.topic}
+                          </span>
+                          &bull;
+                        </>
+                      )}
+                      {notification.created && (
+                        <RelativeTime
+                          value={notification.created}
+                          className={styles.notificationInfoRow}
+                        />
+                      )}
+                    </Text>
+                  </Flex>
                 </Flex>
-              </Flex>
-            </div>
+              </div>
+            </Cell>
           );
         },
       },
       {
         /* actions column */
-        width: '1rem',
-        title: showToolbar ? (
-          <BulkActions
-            notifications={notifications}
-            selectedNotifications={selectedNotifications}
-            isUnread={isUnread}
-            onSwitchReadStatus={onSwitchReadStatus}
-            onSwitchSavedStatus={onSwitchSavedStatus}
-            onMarkAllRead={onMarkAllRead}
-          />
-        ) : undefined,
-        render: (notification: Notification) => (
-          <BulkActions
-            notifications={[notification]}
-            selectedNotifications={new Set([notification.id])}
-            onSwitchReadStatus={onSwitchReadStatus}
-            onSwitchSavedStatus={onSwitchSavedStatus}
-          />
+        id: 'actions',
+        label: t('table.columns.actions'),
+        width: ActionsColumnWidth,
+        header: () => (
+          <Column id="actions" width={ActionsColumnWidth}>
+            {showToolbar ? (
+              <BulkActions
+                notifications={notifications}
+                selectedNotifications={selectedNotifications}
+                isUnread={isUnread}
+                onSwitchReadStatus={onSwitchReadStatus}
+                onSwitchSavedStatus={onSwitchSavedStatus}
+                onMarkAllRead={onMarkAllRead}
+              />
+            ) : (
+              <VisuallyHidden>{t('table.columns.actions')}</VisuallyHidden>
+            )}
+          </Column>
+        ),
+        cell: (notification: Notification) => (
+          <Cell>
+            <BulkActions
+              notifications={[notification]}
+              selectedNotifications={new Set([notification.id])}
+              onSwitchReadStatus={onSwitchReadStatus}
+              onSwitchSavedStatus={onSwitchSavedStatus}
+            />
+          </Cell>
         ),
       },
     ];
   }, [
+    t,
     notifications,
     selectedNotifications,
     isUnread,
@@ -333,40 +391,75 @@ export const NotificationsTable = ({
     highlightedNotificationId,
   ]);
 
+  const pageSizeOptions = useMemo(
+    () =>
+      [...new Set([...DefaultPageSizeOptions, pageSize])]
+        .sort((a, b) => a - b)
+        .map(value => ({
+          value,
+          label: `${value} ${t('table.pagination.labelRowsSelect')}`,
+        })),
+    [pageSize, t],
+  );
+
+  const offset = page * pageSize;
+  const hasNextPage =
+    totalCount === undefined
+      ? notifications.length >= pageSize
+      : offset + pageSize < totalCount;
+
+  const getPaginationLabel = useCallback(
+    () =>
+      t('table.pagination.labelDisplayedRows')
+        .replace('{from}', String(offset + 1))
+        .replace(
+          '{to}',
+          String(Math.min(offset + pageSize, totalCount ?? Infinity)),
+        )
+        .replace('{count}', String(totalCount ?? 0)),
+    [t, offset, pageSize, totalCount],
+  );
+
   return (
     <>
-      <Table<Notification>
-        isLoading={isLoading}
-        options={{
-          padding: 'dense',
-          search: true,
-          paging: true,
-          pageSize,
-          header: true,
-          sorting: false,
-        }}
-        title={title}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        page={page}
-        totalCount={totalCount}
-        onSearchChange={throttledContainsTextHandler}
-        data={notifications}
-        columns={compactColumns}
-        localization={{
-          body: {
-            emptyDataSourceMessage: t('table.emptyMessage'),
-          },
-          pagination: {
-            firstTooltip: t('table.pagination.firstTooltip'),
-            labelDisplayedRows: t('table.pagination.labelDisplayedRows'),
-            labelRowsSelect: t('table.pagination.labelRowsSelect'),
-            lastTooltip: t('table.pagination.lastTooltip'),
-            nextTooltip: t('table.pagination.nextTooltip'),
-            previousTooltip: t('table.pagination.previousTooltip'),
-          },
-        }}
-      />
+      <Flex direction="column" gap="2">
+        <Flex justify="between" align="center" gap="4">
+          {typeof title === 'string' ? (
+            <Text as="h2" variant="title-x-small">
+              {title}
+            </Text>
+          ) : (
+            title ?? <div />
+          )}
+          <SearchField
+            className={styles.search}
+            size="small"
+            aria-label={t('table.searchPlaceholder')}
+            placeholder={t('table.searchPlaceholder')}
+            onChange={throttledContainsTextHandler}
+          />
+        </Flex>
+        <Table<Notification>
+          columnConfig={compactColumns}
+          data={isLoading && !notificationsProp ? undefined : notifications}
+          isPending={isLoading}
+          isStale={isLoading && !!notificationsProp}
+          emptyState={t('table.emptyMessage')}
+          pagination={{
+            type: 'page',
+            pageSize,
+            pageSizeOptions,
+            offset,
+            totalCount,
+            hasPreviousPage: page > 0,
+            hasNextPage,
+            onPreviousPage: () => onPageChange?.(page - 1, pageSize),
+            onNextPage: () => onPageChange?.(page + 1, pageSize),
+            onPageSizeChange: onRowsPerPageChange,
+            getLabel: getPaginationLabel,
+          }}
+        />
+      </Flex>
       <Dialog
         isOpen={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}

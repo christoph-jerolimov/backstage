@@ -15,7 +15,7 @@
  */
 
 import { renderInTestApp, TestApiProvider } from '@backstage/test-utils';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { toastApiRef } from '@backstage/frontend-plugin-api';
 import { Notification } from '@backstage/plugin-notifications-common';
 import { NotificationsApi, notificationsApiRef } from '../../api';
@@ -104,5 +104,55 @@ describe('NotificationsPage deep linking', () => {
       await screen.findByText('Important notification'),
     ).toBeInTheDocument();
     expect(notificationsApi.getNotification).not.toHaveBeenCalled();
+  });
+
+  it('renders the table with pagination and filtering', async () => {
+    notificationsApi.getNotifications.mockResolvedValue({
+      notifications: [testNotification],
+      totalCount: 12,
+    });
+
+    await renderInTestApp(
+      <TestApiProvider
+        apis={[
+          [notificationsApiRef, notificationsApi],
+          [toastApiRef, { post: jest.fn() }],
+        ]}
+      >
+        <NotificationsPage />
+      </TestApiProvider>,
+      {
+        routeEntries: ['/notifications'],
+      },
+    );
+
+    expect(
+      await screen.findByText('Important notification'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Unread notifications (12)')).toBeInTheDocument();
+    expect(screen.getByText('1-5 of 12')).toBeInTheDocument();
+    expect(
+      screen.getByRole('checkbox', { name: 'Select notification' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Previous table page' }),
+    ).toBeDisabled();
+    expect(notificationsApi.getNotifications).toHaveBeenLastCalledWith(
+      expect.objectContaining({ limit: 5, offset: 0 }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next table page' }));
+    expect(await screen.findByText('6-10 of 12')).toBeInTheDocument();
+    expect(notificationsApi.getNotifications).toHaveBeenLastCalledWith(
+      expect.objectContaining({ limit: 5, offset: 5 }),
+    );
+
+    fireEvent.change(screen.getByRole('searchbox'), {
+      target: { value: 'important' },
+    });
+    expect(await screen.findByText('1-5 of 12')).toBeInTheDocument();
+    expect(notificationsApi.getNotifications).toHaveBeenLastCalledWith(
+      expect.objectContaining({ search: 'important' }),
+    );
   });
 });

@@ -29,6 +29,8 @@ export const SelectAll = ({
     <TooltipTrigger>
       <Checkbox
         className={styles.label}
+        // Opt out of the row selection checkbox slots provided by the table
+        slot={null}
         aria-label="Select all"
         isDisabled={!totalCount}
         isSelected={count > 0}

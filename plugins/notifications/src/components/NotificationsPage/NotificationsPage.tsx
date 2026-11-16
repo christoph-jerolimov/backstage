@@ -214,19 +214,10 @@ function NotificationsPageContent(
       return notifications;
     }
 
-    // Allow pageSize + 1 so a deep-linked notification can be injected
-    // without silently dropping a row that belongs on this page.
+    // The deep-linked notification is shown in addition to the current page,
+    // so that no row that belongs on this page is silently dropped.
     return [highlightedNotification, ...(notifications ?? [])];
   }, [notifications, highlightedNotification]);
-
-  const injectedHighlightedNotification =
-    highlightedNotification &&
-    !notifications?.some(
-      notification => notification.id === highlightedNotification.id,
-    );
-  const displayedPageSize = injectedHighlightedNotification
-    ? pageSize + 1
-    : pageSize;
 
   if (error) {
     return <ResponseErrorPanel error={error} />;
@@ -286,7 +277,7 @@ function NotificationsPageContent(
             onPageChange={setPageNumber}
             onRowsPerPageChange={setPageSize}
             page={pageNumber}
-            pageSize={displayedPageSize}
+            pageSize={pageSize}
             totalCount={totalCount}
           />
         </Grid.Item>

@@ -71,6 +71,12 @@ export const notificationsTranslationRef = createTranslationRef({
     },
     table: {
       emptyMessage: 'No records to display',
+      searchPlaceholder: 'Filter',
+      columns: {
+        selection: 'Selection',
+        notification: 'Notification',
+        actions: 'Actions',
+      },
       pagination: {
         firstTooltip: 'First Page',
         labelDisplayedRows: '{from}-{to} of {count}',
