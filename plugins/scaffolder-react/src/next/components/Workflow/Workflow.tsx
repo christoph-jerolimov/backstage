@@ -34,9 +34,14 @@ import { useFilteredSchemaProperties } from '../../hooks/useFilteredSchemaProper
 import { useTemplateParameterSchema } from '../../hooks/useTemplateParameterSchema';
 import { useTemplateTimeSavedMinutes } from '../../hooks/useTemplateTimeSaved';
 import { Stepper, type StepperProps } from '../Stepper/Stepper';
+import {
+  DescriptionLayoutMenu,
+  useDescriptionLayout,
+} from './DescriptionLayoutMenu';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   markdown: {
+    overflowWrap: 'anywhere',
     /** to make the styles for React Markdown not leak into the description */
     '& :first-child': {
       marginTop: 0,
@@ -45,7 +50,31 @@ const useStyles = makeStyles({
       marginBottom: 0,
     },
   },
-});
+  sideLayout: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    [theme.breakpoints.down('sm')]: {
+      flexDirection: 'column-reverse',
+      alignItems: 'stretch',
+    },
+  },
+  sideForm: {
+    flex: '4 1 0',
+    minWidth: 0,
+  },
+  sideDescription: {
+    flex: '1 1 0',
+    minWidth: 0,
+    padding: theme.spacing(3),
+    color: theme.palette.text.secondary,
+    borderLeft: `1px solid ${theme.palette.divider}`,
+    alignSelf: 'stretch',
+    [theme.breakpoints.down('sm')]: {
+      borderLeft: 'none',
+      borderBottom: `1px solid ${theme.palette.divider}`,
+    },
+  },
+}));
 
 /**
  * @alpha
@@ -79,6 +108,7 @@ export const Workflow = (workflowProps: WorkflowProps): JSX.Element | null => {
 
   const analytics = useAnalytics();
   const styles = useStyles();
+  const [descriptionLayout, setDescriptionLayout] = useDescriptionLayout();
   const templateRef = stringifyEntityRef({
     kind: 'Template',
     namespace: namespace,
@@ -117,6 +147,20 @@ export const Workflow = (workflowProps: WorkflowProps): JSX.Element | null => {
     return props.onError(error);
   }
 
+  const stepper = sortedManifest && (
+    <Stepper manifest={sortedManifest} onCreate={workflowOnCreate} {...props} />
+  );
+
+  const descriptionContent = sortedManifest && (
+    <MarkdownContent
+      className={styles.markdown}
+      linkTarget="_blank"
+      content={
+        description ?? sortedManifest.description ?? t('workflow.noDescription')
+      }
+    />
+  );
+
   return (
     <Content>
       {loading && <Progress />}
@@ -124,24 +168,30 @@ export const Workflow = (workflowProps: WorkflowProps): JSX.Element | null => {
         <InfoCard
           title={title ?? sortedManifest.title}
           subheader={
-            <MarkdownContent
-              className={styles.markdown}
-              linkTarget="_blank"
-              content={
-                description ??
-                sortedManifest.description ??
-                t('workflow.noDescription')
-              }
+            descriptionLayout === 'above' ? descriptionContent : undefined
+          }
+          action={
+            <DescriptionLayoutMenu
+              layout={descriptionLayout}
+              onChange={setDescriptionLayout}
             />
           }
           noPadding
           titleTypographyProps={{ component: 'h2' }}
         >
-          <Stepper
-            manifest={sortedManifest}
-            onCreate={workflowOnCreate}
-            {...props}
-          />
+          {/* The form keeps its position in the tree so that its state is preserved when the layout changes */}
+          <div
+            className={
+              descriptionLayout === 'side' ? styles.sideLayout : undefined
+            }
+          >
+            <div className={styles.sideForm}>{stepper}</div>
+            {descriptionLayout === 'side' && (
+              <aside className={styles.sideDescription}>
+                {descriptionContent}
+              </aside>
+            )}
+          </div>
         </InfoCard>
       )}
     </Content>

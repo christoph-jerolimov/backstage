@@ -20,9 +20,10 @@ import {
   renderInTestApp,
   TestApiRegistry,
 } from '@backstage/test-utils';
-import { act, fireEvent } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Workflow } from './Workflow';
-import { analyticsApiRef } from '@backstage/core-plugin-api';
+import { analyticsApiRef, storageApiRef } from '@backstage/core-plugin-api';
 import { ScaffolderApi, scaffolderApiRef } from '../../../api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { catalogApiMock } from '@backstage/plugin-catalog-react/testUtils';
@@ -83,7 +84,7 @@ describe('<Workflow />', () => {
       title: 'React JSON Schema Form Test',
     });
 
-    const { getByRole, getAllByRole, getByText } = await renderInTestApp(
+    const { getByRole, getByText } = await renderInTestApp(
       <ApiProvider apis={apis}>
         <Workflow
           title="Different title than template"
@@ -141,12 +142,96 @@ describe('<Workflow />', () => {
     ).toBeDefined();
 
     await act(async () => {
-      fireEvent.click(getAllByRole('button')[1] as HTMLButtonElement);
+      fireEvent.click(getByRole('button', { name: 'Make' }));
     });
 
     expect(onCreate).toHaveBeenCalledWith({
       name: 'prefilled-name',
       age: '53',
     });
+  });
+
+  it('should let the user choose where the description is shown', async () => {
+    const storageApi = mockApis.storage();
+    scaffolderApiMock.getTemplateParameterSchema.mockResolvedValue({
+      steps: [
+        {
+          title: 'Step 1',
+          schema: { properties: { name: { type: 'string' } } },
+        },
+      ],
+      title: 'Test template',
+      description: 'The template description',
+    });
+
+    await renderInTestApp(
+      <ApiProvider
+        apis={TestApiRegistry.from(
+          [scaffolderApiRef, scaffolderApiMock],
+          [catalogApiRef, catalogApi],
+          [analyticsApiRef, analyticsMock],
+          [storageApiRef, storageApi],
+        )}
+      >
+        <Workflow
+          onCreate={jest.fn()}
+          onError={jest.fn()}
+          namespace="default"
+          templateName="docs-template"
+          extensions={[]}
+        />
+      </ApiProvider>,
+    );
+
+    // Shown above the form by default
+    expect(
+      await screen.findByText('The template description'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+
+    const menuButton = screen.getByRole('button', {
+      name: 'Description options',
+    });
+    await userEvent.click(menuButton);
+    expect(
+      screen.getByRole('menuitemradio', {
+        name: 'Show description above form',
+      }),
+    ).toHaveAttribute('aria-checked', 'true');
+
+    // Values that were entered are kept when the layout changes
+    await userEvent.keyboard('{Escape}');
+    await userEvent.type(
+      await screen.findByRole('textbox', { name: 'name' }),
+      'my-name',
+    );
+
+    await userEvent.click(menuButton);
+    await userEvent.click(
+      await screen.findByRole('menuitemradio', { name: 'Hide description' }),
+    );
+    expect(
+      screen.queryByText('The template description'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'name' })).toBeInTheDocument();
+
+    await userEvent.click(menuButton);
+    await userEvent.click(
+      await screen.findByRole('menuitemradio', {
+        name: 'Show description on the side',
+      }),
+    );
+    expect(await screen.findByRole('complementary')).toHaveTextContent(
+      'The template description',
+    );
+    expect(screen.getByRole('textbox', { name: 'name' })).toHaveValue(
+      'my-name',
+    );
+
+    // The selection is stored in the user settings
+    expect(
+      storageApi.forBucket('scaffolder').snapshot('workflowDescriptionLayout')
+        .value,
+    ).toBe('side');
   });
 });

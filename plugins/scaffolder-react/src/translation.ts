@@ -53,6 +53,12 @@ export const scaffolderReactTranslationRef = createTranslationRef({
     },
     workflow: {
       noDescription: 'No description',
+      descriptionMenu: {
+        label: 'Description options',
+        hidden: 'Hide description',
+        above: 'Show description above form',
+        side: 'Show description on the side',
+      },
     },
   },
 });

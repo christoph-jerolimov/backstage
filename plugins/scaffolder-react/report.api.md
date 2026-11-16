@@ -247,10 +247,9 @@ export type ScaffolderOutputText = ScaffolderOutputText_2;
 export const scaffolderReactTranslationRef: TranslationRef<
   'scaffolder-react',
   {
-    readonly 'workflow.noDescription': 'No description';
     readonly 'passwordWidget.content': 'This widget is insecure. Please use [`ui:field: Secret`](https://backstage.io/docs/features/software-templates/writing-templates/#using-secrets) instead of `ui:widget: password`';
-    readonly 'scaffolderPageContextMenu.createLabel': 'Create';
     readonly 'scaffolderPageContextMenu.moreLabel': 'more';
+    readonly 'scaffolderPageContextMenu.createLabel': 'Create';
     readonly 'scaffolderPageContextMenu.editorLabel': 'Manage Templates';
     readonly 'scaffolderPageContextMenu.actionsLabel': 'Installed Actions';
     readonly 'scaffolderPageContextMenu.tasksLabel': 'Task List';
@@ -265,6 +264,11 @@ export const scaffolderReactTranslationRef: TranslationRef<
     readonly 'templateCard.chooseButtonText': 'Choose';
     readonly 'cardHeader.detailBtnTitle': 'Show template entity details';
     readonly 'templateOutputs.title': 'Text Output';
+    readonly 'workflow.noDescription': 'No description';
+    readonly 'workflow.descriptionMenu.label': 'Description options';
+    readonly 'workflow.descriptionMenu.hidden': 'Hide description';
+    readonly 'workflow.descriptionMenu.above': 'Show description above form';
+    readonly 'workflow.descriptionMenu.side': 'Show description on the side';
   }
 >;
 

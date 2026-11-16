@@ -102,6 +102,10 @@ spec:
 
 Let's dive in and pick apart what each of these sections do and what they are.
 
+## `metadata.description`
+
+The description supports Markdown and is shown on the template card and in the template wizard. In the wizard, users choose where the description appears from the menu next to the template title: hidden, above the form, or on the side of the form. The description is shown above the form by default, and the selection is saved in the user settings and applies to all templates.
+
 ## `spec.parameters` - `FormStep | FormStep[]`
 
 These `parameters` are template variables which can be modified in the frontend
