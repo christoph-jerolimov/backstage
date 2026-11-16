@@ -20,6 +20,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { Link } from '../../components/Link';
+import { isExternalUri } from '../../components/Link/Link';
+import { ExternalLinkIcon } from './ExternalLinkIcon';
 import { IconComponent } from '@backstage/core-plugin-api';
 import classnames from 'classnames';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
@@ -36,6 +38,7 @@ export type SidebarSubmenuItemClassKey =
   | 'selected'
   | 'label'
   | 'subtitle'
+  | 'externalLinkIcon'
   | 'dropdownArrow'
   | 'dropdown'
   | 'dropdownItem'
@@ -81,6 +84,10 @@ const useStyles = makeStyles(
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       'text-overflow': 'ellipsis',
+    },
+    externalLinkIcon: {
+      marginLeft: theme.spacing(0.75),
+      verticalAlign: 'text-bottom',
     },
     dropdownArrow: {
       position: 'absolute',
@@ -152,6 +159,10 @@ export type SidebarSubmenuItemProps = {
 
 /**
  * Item used inside a submenu within the sidebar.
+ *
+ * @remarks
+ * Items and dropdown items that link to an external URL show an external link icon,
+ * and external `http` and `https` URLs open in a new window.
  *
  * @public
  */
@@ -234,6 +245,9 @@ export const SidebarSubmenuItem = (props: SidebarSubmenuItemProps) => {
                 >
                   <Typography component="span" className={classes.textContent}>
                     {object.title}
+                    {isExternalUri(object.to) && (
+                      <ExternalLinkIcon className={classes.externalLinkIcon} />
+                    )}
                   </Typography>
                 </Link>
               </Tooltip>
@@ -264,6 +278,9 @@ export const SidebarSubmenuItem = (props: SidebarSubmenuItemProps) => {
             className={classes.label}
           >
             {title}
+            {to && isExternalUri(to) && (
+              <ExternalLinkIcon className={classes.externalLinkIcon} />
+            )}
             <br />
             {subtitle && (
               <Typography

@@ -126,19 +126,29 @@ describe('Sidebar', () => {
 
     it('Submenu item renders an external link when `to` value is provided', async () => {
       await userEvent.hover(screen.getByTestId('item-with-submenu'));
-      expect(screen.getByText('External Link').closest('a')).toHaveAttribute(
-        'href',
-        'https://backstage.io/',
-      );
+      const link = screen.getByText('External Link').closest('a')!;
+      expect(link).toHaveAttribute('href', 'https://backstage.io/');
+      expect(link).toHaveAttribute('target', '_blank');
+      // The item icon and the external link icon
+      expect(link.querySelectorAll('svg')).toHaveLength(2);
+      expect(
+        screen.getByText('Tools').closest('a')!.querySelectorAll('svg'),
+      ).toHaveLength(1);
     });
 
     it('Dropdown item in submenu renders an external link when `to` value is provided', async () => {
       await userEvent.hover(screen.getByTestId('item-with-submenu'));
       await userEvent.click(screen.getByText('Misc'));
-      expect(screen.getByText('dropdown item 3').closest('a')).toHaveAttribute(
-        'href',
-        'https://backstage.io/',
-      );
+      const link = screen.getByText('dropdown item 3').closest('a')!;
+      expect(link).toHaveAttribute('href', 'https://backstage.io/');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link.querySelectorAll('svg')).toHaveLength(1);
+      expect(
+        screen
+          .getByText('dropdown item 1')
+          .closest('a')!
+          .querySelectorAll('svg'),
+      ).toHaveLength(0);
     });
   });
 

@@ -23,6 +23,7 @@ import MenuBookIcon from '@material-ui/icons/MenuBook';
 import CloudQueueIcon from '@material-ui/icons/CloudQueue';
 import AcUnitIcon from '@material-ui/icons/AcUnit';
 import AppsIcon from '@material-ui/icons/Apps';
+import LanguageIcon from '@material-ui/icons/Language';
 import { ComponentType, PropsWithChildren } from 'react';
 import { SidebarPage } from './Page';
 import { Sidebar } from './Bar';
@@ -83,6 +84,11 @@ export const SampleScalableSidebar = () => (
             <SidebarSubmenuItem title="APIs" to="/2" icon={CloudQueueIcon} />
             <SidebarSubmenuItem title="Components" to="/3" icon={AppsIcon} />
             <SidebarSubmenuItem
+              title="Backstage"
+              to="https://backstage.io/"
+              icon={LanguageIcon}
+            />
+            <SidebarSubmenuItem
               title="Misc"
               to="/6"
               icon={AcUnitIcon}
@@ -95,12 +101,21 @@ export const SampleScalableSidebar = () => (
                   title: 'Lorem Ipsum',
                   to: '/8',
                 },
+                {
+                  title: 'Backstage docs',
+                  to: 'https://backstage.io/docs',
+                },
               ]}
             />
           </SidebarSubmenu>
         </SidebarItem>
         <SidebarItem icon={HomeOutlinedIcon} to="#" text="Plugins" />
         <SidebarItem icon={AddCircleOutlineIcon} to="#" text="Create..." />
+        <SidebarItem
+          icon={LanguageIcon}
+          to="https://backstage.io/"
+          text="Backstage"
+        />
       </SidebarGroup>
       <SidebarDivider />
       <SidebarSpace />

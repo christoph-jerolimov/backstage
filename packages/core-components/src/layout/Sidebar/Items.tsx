@@ -33,6 +33,8 @@ import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
 import ArrowDropUp from '@material-ui/icons/ArrowDropUp';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import SearchIcon from '@material-ui/icons/Search';
+import { isExternalUri } from '../../components/Link/Link';
+import { ExternalLinkIcon } from './ExternalLinkIcon';
 import classnames from 'classnames';
 import type { Location } from 'history';
 
@@ -86,6 +88,7 @@ export type SidebarItemClassKey =
   | 'highlightable'
   | 'highlighted'
   | 'label'
+  | 'externalLinkIcon'
   | 'iconContainer'
   | 'searchRoot'
   | 'searchField'
@@ -158,6 +161,10 @@ const makeSidebarStyles = (sidebarConfig: SidebarConfig) =>
         width: '110px',
         overflow: 'hidden',
         'text-overflow': 'ellipsis',
+      },
+      externalLinkIcon: {
+        marginLeft: theme.spacing(0.75),
+        verticalAlign: 'text-bottom',
       },
       iconContainer: {
         boxSizing: 'border-box',
@@ -407,6 +414,10 @@ const SidebarItemBase = forwardRef<
   // depend on the current location, and at least have it being optionally forced to selected.
   // Still waiting on a Q answered to fine tune the implementation
   const { isOpen } = useSidebarOpenState();
+  // Mirrors the external link handling of the Link component
+  const isExternal =
+    !isButtonItem(props) && !!props.to && isExternalUri(props.to);
+  const opensInNewWindow = isExternal && /^https?:/.test(props.to!);
 
   const divStyle =
     !isOpen && hasSubmenu
@@ -446,6 +457,9 @@ const SidebarItemBase = forwardRef<
           className={classes.label}
         >
           {text}
+          {isExternal && (
+            <ExternalLinkIcon className={classes.externalLinkIcon} />
+          )}
         </Typography>
       )}
       <div className={classes.secondaryAction}>{children}</div>
@@ -503,7 +517,10 @@ const SidebarItemBase = forwardRef<
       activeClassName={classes.selected}
       to={props.to ? props.to : ''}
       ref={ref}
-      aria-label={text ? text : props.to}
+      aria-label={`${text ? text : props.to}${
+        opensInNewWindow ? ', Opens in a new window' : ''
+      }`}
+      {...(opensInNewWindow ? { target: '_blank', rel: 'noopener' } : {})}
       {...navLinkProps}
       onClick={handleClick}
     >
@@ -600,7 +617,11 @@ const SidebarItemWithSubmenu = ({
  * Creates a `SidebarItem`
  *
  * @remarks
- * If children contain a `SidebarSubmenu` component the `SidebarItem` will have a expandable submenu
+ * If children contain a `SidebarSubmenu` component the `SidebarItem` will have a expandable submenu.
+ *
+ * If `to` is an external URL, an external link icon is shown next to the text. External
+ * `http` and `https` URLs open in a new window by default, which can be overridden with
+ * the `target` and `rel` props.
  */
 export const SidebarItem = forwardRef<
   any,

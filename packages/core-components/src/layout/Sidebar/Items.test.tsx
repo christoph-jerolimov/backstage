@@ -67,6 +67,17 @@ async function renderSidebar() {
           className={result.current.spotlight}
           noTrack
         />
+        <SidebarItem
+          icon={HomeIcon}
+          to="https://backstage.io/"
+          text="Backstage"
+        />
+        <SidebarItem
+          icon={HomeIcon}
+          to="https://backstage.io/docs"
+          text="Same window"
+          target="_self"
+        />
         <SidebarExpandButton />
       </Sidebar>
     </TestApiProvider>,
@@ -85,6 +96,26 @@ describe('Items', () => {
       expect(
         await screen.findByRole('link', { name: /home/i }),
       ).toBeInTheDocument();
+    });
+
+    it('should open external links in a new window and show an external link icon', async () => {
+      const internal = await screen.findByRole('link', { name: 'Docs' });
+      expect(internal).not.toHaveAttribute('target');
+      expect(internal.querySelectorAll('svg')).toHaveLength(1);
+
+      const external = await screen.findByRole('link', {
+        name: 'Backstage, Opens in a new window',
+      });
+      expect(external).toHaveAttribute('href', 'https://backstage.io/');
+      expect(external).toHaveAttribute('target', '_blank');
+      expect(external).toHaveAttribute('rel', 'noopener');
+      expect(external.querySelectorAll('svg')).toHaveLength(2);
+
+      const sameWindow = await screen.findByRole('link', {
+        name: /Same window/,
+      });
+      expect(sameWindow).toHaveAttribute('target', '_self');
+      expect(sameWindow.querySelectorAll('svg')).toHaveLength(2);
     });
 
     it('should render a button when `to` prop is not provided', async () => {
