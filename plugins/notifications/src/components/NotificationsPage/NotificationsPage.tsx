@@ -48,6 +48,7 @@ import {
   SortByOptions,
 } from '../NotificationsFilters';
 import {
+  GetFacetsResponse,
   GetNotificationsOptions,
   GetNotificationsResponse,
   GetTopicsResponse,
@@ -100,9 +101,15 @@ function NotificationsPageContent(
   const [sorting, setSorting] = useState<SortBy>(SortByOptions.newest.sortBy);
   const [severity, setSeverity] = useState<NotificationSeverity>('low');
   const [topic, setTopic] = useState<string>();
+  const [origin, setOrigin] = useState<string>();
 
   const { error, value, retry, loading } = useNotificationsApi<
-    [GetNotificationsResponse, NotificationStatus, GetTopicsResponse]
+    [
+      GetNotificationsResponse,
+      NotificationStatus,
+      GetTopicsResponse,
+      GetFacetsResponse,
+    ]
   >(
     api => {
       const options: GetNotificationsOptions = {
@@ -121,6 +128,9 @@ function NotificationsPageContent(
       if (topic !== undefined) {
         options.topic = topic;
       }
+      if (origin !== undefined) {
+        options.origin = origin;
+      }
 
       const createdAfterDate =
         CreatedAfterOptions[
@@ -134,6 +144,7 @@ function NotificationsPageContent(
         api.getNotifications(options),
         api.getStatus(),
         api.getTopics(options),
+        api.getFacets(options),
       ]);
     },
     [
@@ -146,6 +157,7 @@ function NotificationsPageContent(
       saved,
       severity,
       topic,
+      origin,
     ],
   );
 
@@ -235,6 +247,7 @@ function NotificationsPageContent(
   const totalCount = value?.[0]?.totalCount;
   const isUnread = !!value?.[1]?.unread;
   const allTopics = value?.[2]?.topics;
+  const allOrigins = value?.[3]?.facets.origin.map(facet => facet.value);
 
   let tableTitle: string = t(TableTitleKeys.all, {
     count: totalCount ?? 0,
@@ -271,6 +284,9 @@ function NotificationsPageContent(
             topic={topic}
             onTopicChanged={setTopic}
             allTopics={allTopics}
+            origin={origin}
+            onOriginChanged={setOrigin}
+            allOrigins={allOrigins}
           />
         </Grid.Item>
         <Grid.Item colSpan="10">

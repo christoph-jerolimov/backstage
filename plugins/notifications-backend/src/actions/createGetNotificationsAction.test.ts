@@ -52,6 +52,7 @@ function createMockStore(
     getNotificationSettings: jest.fn(),
     saveNotificationSettings: jest.fn(),
     getTopics: jest.fn(),
+    getFacets: jest.fn(),
     clearNotifications: jest.fn(),
     ...overrides,
   } as unknown as NotificationsStore;

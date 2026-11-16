@@ -15,7 +15,7 @@
  */
 
 import { renderInTestApp, TestApiProvider } from '@backstage/test-utils';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { toastApiRef } from '@backstage/frontend-plugin-api';
 import { Notification } from '@backstage/plugin-notifications-common';
 import { NotificationsApi, notificationsApiRef } from '../../api';
@@ -41,6 +41,7 @@ describe('NotificationsPage deep linking', () => {
     getNotification: jest.fn(),
     getNotificationSettings: jest.fn(),
     getTopics: jest.fn(),
+    getFacets: jest.fn(),
     updateNotifications: jest.fn(),
     updateNotificationSettings: jest.fn(),
   };
@@ -53,6 +54,18 @@ describe('NotificationsPage deep linking', () => {
     });
     notificationsApi.getStatus.mockResolvedValue({ unread: 1, read: 0 });
     notificationsApi.getTopics.mockResolvedValue({ topics: ['test-topic'] });
+    notificationsApi.getFacets.mockResolvedValue({
+      facets: {
+        origin: [
+          { value: 'plugin-test', count: 1 },
+          { value: 'plugin-other', count: 2 },
+        ],
+        topic: [{ value: 'test-topic', count: 1 }],
+        severity: [],
+        read: [],
+        saved: [],
+      },
+    });
     notificationsApi.getNotification.mockResolvedValue(testNotification);
   });
 
@@ -104,5 +117,55 @@ describe('NotificationsPage deep linking', () => {
       await screen.findByText('Important notification'),
     ).toBeInTheDocument();
     expect(notificationsApi.getNotification).not.toHaveBeenCalled();
+  });
+
+  it('filters the notifications by origin', async () => {
+    await renderInTestApp(
+      <TestApiProvider
+        apis={[
+          [notificationsApiRef, notificationsApi],
+          [toastApiRef, { post: jest.fn() }],
+        ]}
+      >
+        <NotificationsPage />
+      </TestApiProvider>,
+    );
+
+    expect(
+      await screen.findByText('Important notification'),
+    ).toBeInTheDocument();
+    for (const method of [
+      'getNotifications',
+      'getTopics',
+      'getFacets',
+    ] as const) {
+      expect(notificationsApi[method]).toHaveBeenCalledTimes(1);
+      expect(notificationsApi[method]).toHaveBeenLastCalledWith(
+        expect.not.objectContaining({ origin: expect.anything() }),
+      );
+    }
+
+    fireEvent.click(screen.getByLabelText('Origin'));
+    const options = await screen.findAllByRole('option');
+    expect(options.map(option => option.textContent)).toEqual([
+      'Any origin',
+      'plugin-other',
+      'plugin-test',
+    ]);
+    fireEvent.click(options[1]);
+
+    expect(await screen.findByLabelText('Origin')).toHaveTextContent(
+      'plugin-other',
+    );
+    for (const method of [
+      'getNotifications',
+      'getTopics',
+      'getFacets',
+    ] as const) {
+      expect(notificationsApi[method]).toHaveBeenCalledTimes(2);
+      expect(notificationsApi[method]).toHaveBeenLastCalledWith(
+        expect.objectContaining({ origin: 'plugin-other', read: false }),
+      );
+    }
   });
 });

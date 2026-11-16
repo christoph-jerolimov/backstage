@@ -1030,6 +1030,236 @@ describe.each(databases.eachSupportedId())('createRouter (%s)', databaseId => {
         totalCount: 2,
       });
     });
+
+    it('should filter notifications and topics by origin', async () => {
+      const client = await database.getClient();
+      await client('broadcast').insert({
+        id: uuid(),
+        origin: 'external:test-service',
+        title: 'Test broadcast notification',
+        topic: 'broadcast-topic',
+        created: new Date(),
+        severity: 'high',
+      });
+      await client('notification').insert({
+        id: uuid(),
+        user: 'user:default/mock',
+        origin: 'plugin:test',
+        title: 'Test notification',
+        topic: 'plugin-topic',
+        created: new Date(),
+        severity: 'normal',
+      });
+
+      for (const path of ['/', '/notifications']) {
+        const response = await request(app)
+          .get(path)
+          .query({ origin: 'plugin:test' });
+        expect(response.status).toEqual(200);
+        expect(response.body).toEqual({
+          notifications: [
+            expect.objectContaining({
+              origin: 'plugin:test',
+              payload: expect.objectContaining({ title: 'Test notification' }),
+            }),
+          ],
+          totalCount: 1,
+        });
+      }
+
+      const broadcastResponse = await request(app)
+        .get('/notifications')
+        .query({ origin: 'external:test-service' });
+      expect(broadcastResponse.body).toEqual({
+        notifications: [
+          expect.objectContaining({ origin: 'external:test-service' }),
+        ],
+        totalCount: 1,
+      });
+
+      const unknownResponse = await request(app)
+        .get('/notifications')
+        .query({ origin: 'plugin:unknown' });
+      expect(unknownResponse.status).toEqual(200);
+      expect(unknownResponse.body).toEqual({
+        notifications: [],
+        totalCount: 0,
+      });
+
+      const allTopicsResponse = await request(app).get('/topics');
+      expect(allTopicsResponse.status).toEqual(200);
+      expect(allTopicsResponse.body).toEqual({
+        topics: ['broadcast-topic', 'plugin-topic'],
+      });
+
+      const topicsResponse = await request(app)
+        .get('/topics')
+        .query({ origin: 'plugin:test' });
+      expect(topicsResponse.status).toEqual(200);
+      expect(topicsResponse.body).toEqual({ topics: ['plugin-topic'] });
+    });
+  });
+
+  describe('GET /facets', () => {
+    const httpAuth = mockServices.httpAuth({
+      defaultCredentials: mockCredentials.user(),
+    });
+
+    beforeAll(async () => {
+      const router = await createRouter({
+        logger: mockServices.logger.mock(),
+        store,
+        signals: signalService,
+        userInfo,
+        config,
+        httpAuth,
+        auth,
+        catalog,
+      });
+      app = express().use(router).use(mockErrorHandler());
+    });
+
+    beforeEach(async () => {
+      jest.resetAllMocks();
+      const client = await database.getClient();
+      await client('notification').del();
+      await client('broadcast').del();
+      await client('broadcast').insert({
+        id: uuid(),
+        origin: 'external:test-service',
+        title: 'Test broadcast notification',
+        topic: 'broadcast-topic',
+        created: new Date(),
+        severity: 'high',
+      });
+      await client('notification').insert([
+        {
+          id: uuid(),
+          user: 'user:default/mock',
+          origin: 'plugin:test',
+          title: 'Test notification',
+          topic: 'plugin-topic',
+          created: new Date(),
+          severity: 'normal',
+          read: new Date(),
+        },
+        {
+          id: uuid(),
+          user: 'user:default/mock',
+          origin: 'plugin:test',
+          title: 'Another notification',
+          created: new Date(Date.now() - 48 * 60 * 60 * 1000),
+          severity: 'low',
+          saved: new Date(),
+        },
+        {
+          id: uuid(),
+          user: 'user:default/other',
+          origin: 'plugin:other',
+          title: 'Notification of another user',
+          topic: 'other-topic',
+          created: new Date(),
+          severity: 'critical',
+        },
+      ]);
+    });
+
+    it('should return the counts for each filter', async () => {
+      const response = await request(app).get('/facets');
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({
+        facets: {
+          origin: [
+            { value: 'external:test-service', count: 1 },
+            { value: 'plugin:test', count: 2 },
+          ],
+          topic: [
+            { value: 'broadcast-topic', count: 1 },
+            { value: 'plugin-topic', count: 1 },
+          ],
+          severity: [
+            { value: 'critical', count: 0 },
+            { value: 'high', count: 1 },
+            { value: 'normal', count: 1 },
+            { value: 'low', count: 1 },
+          ],
+          read: [
+            { value: 'true', count: 1 },
+            { value: 'false', count: 2 },
+          ],
+          saved: [
+            { value: 'true', count: 1 },
+            { value: 'false', count: 2 },
+          ],
+        },
+      });
+    });
+
+    it('should support the same filters as the notification list', async () => {
+      const originResponse = await request(app)
+        .get('/facets')
+        .query({ origin: 'plugin:test' });
+      expect(originResponse.status).toEqual(200);
+      expect(originResponse.body.facets).toEqual({
+        // The origin filter is not applied to the origin counts
+        origin: [
+          { value: 'external:test-service', count: 1 },
+          { value: 'plugin:test', count: 2 },
+        ],
+        topic: [{ value: 'plugin-topic', count: 1 }],
+        severity: [
+          { value: 'critical', count: 0 },
+          { value: 'high', count: 0 },
+          { value: 'normal', count: 1 },
+          { value: 'low', count: 1 },
+        ],
+        read: [
+          { value: 'true', count: 1 },
+          { value: 'false', count: 1 },
+        ],
+        saved: [
+          { value: 'true', count: 1 },
+          { value: 'false', count: 1 },
+        ],
+      });
+
+      const combinedResponse = await request(app)
+        .get('/facets')
+        .query({
+          topic: 'plugin-topic',
+          search: 'test',
+          read: 'true',
+          saved: 'false',
+          minimumSeverity: 'normal',
+          createdAfter: new Date(
+            Date.now() - 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        });
+      expect(combinedResponse.status).toEqual(200);
+      expect(combinedResponse.body.facets).toEqual({
+        origin: [{ value: 'plugin:test', count: 1 }],
+        topic: [{ value: 'plugin-topic', count: 1 }],
+        severity: [
+          { value: 'critical', count: 0 },
+          { value: 'high', count: 0 },
+          { value: 'normal', count: 1 },
+          { value: 'low', count: 0 },
+        ],
+        read: [
+          { value: 'true', count: 1 },
+          { value: 'false', count: 0 },
+        ],
+        saved: [
+          { value: 'true', count: 0 },
+          { value: 'false', count: 1 },
+        ],
+      });
+
+      const invalidResponse = await request(app)
+        .get('/facets')
+        .query({ createdAfter: 'not-a-date' });
+      expect(invalidResponse.status).toEqual(400);
+    });
   });
 
   describe('GET /settings', () => {

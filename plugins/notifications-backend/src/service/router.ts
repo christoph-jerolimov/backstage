@@ -18,6 +18,7 @@ import express, { Request } from 'express';
 import { createOpenApiRouter, EndpointMap } from '../schema/openapi';
 import { internal as openapi } from '@backstage/backend-openapi-utils';
 import {
+  FacetsGetOptions,
   normalizeSeverity,
   NotificationGetOptions,
   NotificationsStore,
@@ -462,6 +463,9 @@ export async function createRouter(
     if (req.query.search) {
       opts.search = req.query.search;
     }
+    if (req.query.origin) {
+      opts.origin = req.query.origin;
+    }
     if (req.query.read === 'true') {
       opts.read = true;
     } else if (req.query.read === 'false') {
@@ -550,6 +554,17 @@ export async function createRouter(
     appendCommonOptions(req, opts);
     const topics = await store.getTopics(opts);
     res.json(topics);
+  });
+
+  router.get('/facets', async (req, res) => {
+    const user = await getUser(req);
+    const opts: FacetsGetOptions = { user };
+    if (req.query.topic) {
+      opts.topic = req.query.topic;
+    }
+    appendCommonOptions(req, opts);
+    const facets = await store.getFacets(opts);
+    res.json(facets);
   });
 
   const getNotificationHandler: openapi.EndpointMapRequestHandler<

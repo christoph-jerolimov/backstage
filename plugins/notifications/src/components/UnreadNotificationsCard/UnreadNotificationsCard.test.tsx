@@ -41,6 +41,7 @@ describe('UnreadNotificationsCard', () => {
     getNotification: jest.fn(),
     getNotificationSettings: jest.fn(),
     getTopics: jest.fn(),
+    getFacets: jest.fn(),
     updateNotifications: jest.fn(),
     updateNotificationSettings: jest.fn(),
   };

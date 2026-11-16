@@ -15,6 +15,8 @@ instead.
 
 The notifications backend plugin provides an API to create notifications, list notifications per logged-in user, and search based on parameters.
 
+The list of notifications can be filtered by read and saved status, creation date, minimum severity, topic, origin, and a search text. The `/facets` endpoint accepts the same filters and returns the number of matching notifications for each value of the origin, topic, severity, read, and saved filters. Each of these counts applies all filters except its own, so the counts show how many notifications another value of that filter would match.
+
 The plugin uses a relational [database](https://backstage.io/docs/getting-started/config/database) for persistence; no specifics are introduced in this context.
 
 No additional configuration in the app-config is needed, except for optional additional modules for `processors`.
@@ -28,6 +30,8 @@ Otherwise, no specific configuration is needed for the front-end notifications p
 The `NotificationsSidebarItem` component can be used as an active left-side menu item in the front-end. Since the notifications plugin does not yet include a built-in navigation item, it needs to be added manually to your sidebar through a `NavContentBlueprint` in a custom app module. See the [Getting Started](./index.md#add-notifications-sidebar-item) guide for setup instructions.
 
 ![Notifications Page](notificationsPage.png)
+
+The filters next to the notifications table narrow the list by read and saved status, creation date, minimum severity, topic, and origin. The origin is the plugin or external service that sent the notification.
 
 You can customize the sidebar item using its [properties](https://backstage.io/api/stable/functions/_backstage_plugin-notifications.index.NotificationsSidebarItem.html) to fit your specific needs.
 

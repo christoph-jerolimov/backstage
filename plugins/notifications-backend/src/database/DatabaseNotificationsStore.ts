@@ -18,6 +18,9 @@ import {
   resolvePackagePath,
 } from '@backstage/backend-plugin-api';
 import {
+  FacetsGetOptions,
+  NotificationFacet,
+  NotificationFacets,
   NotificationGetOptions,
   NotificationModifyOptions,
   NotificationsStore,
@@ -326,6 +329,10 @@ export class DatabaseNotificationsStore implements NotificationsStore {
 
     if (options.topic) {
       query.where('topic', '=', options.topic);
+    }
+
+    if (options.origin) {
+      query.where('origin', '=', options.origin);
     }
 
     if (options.saved) {
@@ -672,6 +679,67 @@ export class DatabaseNotificationsStore implements NotificationsStore {
       .whereNotNull('topic')
       .distinct(['topic']);
     return { topics: topics.map(row => row.topic) };
+  }
+
+  async getFacets(
+    options: FacetsGetOptions,
+  ): Promise<{ facets: NotificationFacets }> {
+    // Each facet is counted with all filters applied except its own, so that
+    // the counts show what selecting another value of that filter would match.
+    const queryWithout = (filter: keyof FacetsGetOptions) =>
+      this.getNotificationsBaseQuery({
+        ...options,
+        [filter]: undefined,
+        orderField: [],
+      });
+
+    const countByValue = async (
+      column: 'origin' | 'topic' | 'severity',
+      filter: keyof FacetsGetOptions,
+    ): Promise<NotificationFacet[]> => {
+      const rows: Record<string, string | number>[] = await queryWithout(filter)
+        .whereNotNull(column)
+        .select(column)
+        .count('id as CNT')
+        .groupBy(column)
+        .orderBy(column, 'asc');
+      return rows.map(row => ({
+        value: String(row[column]),
+        count: this.mapToInteger(row.CNT),
+      }));
+    };
+
+    const countBySet = async (
+      column: 'read' | 'saved',
+    ): Promise<NotificationFacet[]> => {
+      // Counting a column only includes the rows where it is set
+      const row: Record<string, string | number> | undefined =
+        await queryWithout(column)
+          .count('id as TOTAL')
+          .count(`${column} as CNT`)
+          .first();
+      const total = this.mapToInteger(row?.TOTAL);
+      const set = this.mapToInteger(row?.CNT);
+      return [
+        { value: 'true', count: set },
+        { value: 'false', count: total - set },
+      ];
+    };
+
+    const [origin, topic, severityCounts, read, saved] = await Promise.all([
+      countByValue('origin', 'origin'),
+      countByValue('topic', 'topic'),
+      countByValue('severity', 'minimumSeverity'),
+      countBySet('read'),
+      countBySet('saved'),
+    ]);
+
+    const severity = notificationSeverities.map(value => ({
+      value,
+      count: severityCounts.find(facet => facet.value === value)?.count ?? 0,
+    }));
+
+    return { facets: { origin, topic, severity, read, saved } };
   }
 
   async clearNotifications(options: {

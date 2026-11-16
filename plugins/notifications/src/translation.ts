@@ -68,6 +68,10 @@ export const notificationsTranslationRef = createTranslationRef({
         label: 'Topic',
         anyTopic: 'Any topic',
       },
+      origin: {
+        label: 'Origin',
+        anyOrigin: 'Any origin',
+      },
     },
     table: {
       emptyMessage: 'No records to display',

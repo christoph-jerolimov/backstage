@@ -29,6 +29,7 @@ export const notificationsApiRef = createApiRef<NotificationsApi>({
 /** @public */
 export type GetNotificationsCommonOptions = {
   search?: string;
+  origin?: string;
   read?: boolean;
   saved?: boolean;
   createdAfter?: Date;
@@ -48,6 +49,11 @@ export type GetNotificationsOptions = GetNotificationsCommonOptions & {
 export type GetTopicsOptions = GetNotificationsCommonOptions;
 
 /** @public */
+export type GetFacetsOptions = GetNotificationsCommonOptions & {
+  topic?: string;
+};
+
+/** @public */
 export type UpdateNotificationsOptions = {
   ids: string[];
   read?: boolean;
@@ -63,6 +69,33 @@ export type GetNotificationsResponse = {
 /** @public */
 export type GetTopicsResponse = {
   topics: string[];
+};
+
+/** @public */
+export type NotificationFacet = {
+  value: string;
+  count: number;
+};
+
+/**
+ * The number of notifications per value of each filter. Each facet is counted
+ * with all filters applied except for the one that the facet itself represents.
+ *
+ * @public
+ */
+export type GetFacetsResponse = {
+  facets: {
+    /** Counts per origin, sorted by origin */
+    origin: NotificationFacet[];
+    /** Counts per topic, sorted by topic */
+    topic: NotificationFacet[];
+    /** Counts per exact severity, from most to least severe */
+    severity: NotificationFacet[];
+    /** Counts of read (`'true'`) and unread (`'false'`) notifications */
+    read: NotificationFacet[];
+    /** Counts of saved (`'true'`) and not saved (`'false'`) notifications */
+    saved: NotificationFacet[];
+  };
 };
 
 /** @public */
@@ -86,4 +119,6 @@ export interface NotificationsApi {
   ): Promise<NotificationSettings>;
 
   getTopics(options?: GetTopicsOptions): Promise<GetTopicsResponse>;
+
+  getFacets(options?: GetFacetsOptions): Promise<GetFacetsResponse>;
 }

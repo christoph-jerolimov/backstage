@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {
+  GetFacetsOptions,
+  GetFacetsResponse,
   GetNotificationsCommonOptions,
   GetNotificationsOptions,
   GetNotificationsResponse,
@@ -112,12 +114,26 @@ export class NotificationsClient implements NotificationsApi {
     return await this.request<GetTopicsResponse>(`/topics?${queryString}`);
   }
 
+  async getFacets(options?: GetFacetsOptions): Promise<GetFacetsResponse> {
+    const queryString = new URLSearchParams();
+    this.appendCommonQueryStrings(queryString, options);
+
+    if (options?.topic !== undefined) {
+      queryString.append('topic', options.topic);
+    }
+
+    return await this.request<GetFacetsResponse>(`/facets?${queryString}`);
+  }
+
   private appendCommonQueryStrings(
     queryString: URLSearchParams,
     options?: GetNotificationsCommonOptions,
   ) {
     if (options?.search) {
       queryString.append('search', options.search);
+    }
+    if (options?.origin !== undefined) {
+      queryString.append('origin', options.origin);
     }
     if (options?.read !== undefined) {
       queryString.append('read', options.read ? 'true' : 'false');

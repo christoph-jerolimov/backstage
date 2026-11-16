@@ -366,6 +366,29 @@ describe.each(databases.eachSupportedId())(
         expect(notifications.length).toBe(1);
         expect(notifications.at(0)?.id).toEqual(id1);
       });
+
+      it('should filter notifications based on origin', async () => {
+        await storage.saveNotification(testNotification1);
+        await storage.saveNotification(testNotification4);
+        await storage.saveBroadcast(testNotification5);
+        await storage.saveNotification(otherUserNotification);
+
+        const notifications = await storage.getNotifications({
+          user,
+          origin: 'plugin-test',
+        });
+        expect(notifications.map(idOnly)).toEqual([id5, id4]);
+        expect(
+          await storage.getNotificationsCount({ user, origin: 'plugin-test' }),
+        ).toBe(2);
+
+        expect(
+          await storage.getNotifications({ user, origin: 'abcd-origin' }),
+        ).toEqual([expect.objectContaining({ id: id1 })]);
+        expect(
+          await storage.getNotifications({ user, origin: 'unknown-origin' }),
+        ).toEqual([]);
+      });
     });
 
     describe('getNotifications filters on severity', () => {
@@ -960,6 +983,180 @@ describe.each(databases.eachSupportedId())(
         expect(topics).toEqual({
           topics: [testNotification1.payload.topic],
         });
+      });
+
+      it('should return filtered topics for user by origin', async () => {
+        await storage.saveNotification(testNotification1);
+        await storage.saveNotification(testNotification2);
+        await storage.saveBroadcast(testNotification3);
+        await storage.saveBroadcast(testNotification4);
+        await storage.saveNotification(otherUserNotification);
+
+        expect(
+          await storage.getTopics({ user, origin: testNotification3.origin }),
+        ).toEqual({ topics: [testNotification3.payload.topic] });
+        expect(
+          await storage.getTopics({ user, origin: testNotification4.origin }),
+        ).toEqual({ topics: [] });
+      });
+    });
+
+    describe('getFacets', () => {
+      beforeEach(async () => {
+        await storage.saveNotification({
+          ...testNotification1,
+          read: new Date(),
+        });
+        await storage.saveNotification({
+          ...testNotification2,
+          saved: new Date(),
+        });
+        await storage.saveBroadcast(testNotification3);
+        await storage.saveNotification(testNotification4); // One without topic
+        await storage.saveBroadcast({ ...testNotification5, read: new Date() });
+        await storage.saveNotification(otherUserNotification);
+      });
+
+      it('should count all notifications of the user without filters', async () => {
+        expect(await storage.getFacets({ user })).toEqual({
+          facets: {
+            origin: [
+              { value: 'abcd-origin', count: 1 },
+              { value: 'bcd-origin', count: 1 },
+              { value: 'cd-origin', count: 1 },
+              { value: 'plugin-test', count: 2 },
+            ],
+            topic: [
+              { value: 'efgh-topic', count: 1 },
+              { value: 'fgh-topic', count: 1 },
+              { value: 'gh-topic', count: 1 },
+            ],
+            severity: [
+              { value: 'critical', count: 1 },
+              { value: 'high', count: 0 },
+              { value: 'normal', count: 4 },
+              { value: 'low', count: 0 },
+            ],
+            read: [
+              { value: 'true', count: 2 },
+              { value: 'false', count: 3 },
+            ],
+            saved: [
+              { value: 'true', count: 1 },
+              { value: 'false', count: 4 },
+            ],
+          },
+        });
+
+        // The read status of a broadcast is tracked per user
+        const { facets } = await storage.getFacets({ user: otherUser });
+        expect(facets.origin).toEqual([
+          { value: 'bcd-origin', count: 1 },
+          { value: 'plugin-test', count: 2 },
+        ]);
+        expect(facets.read).toEqual([
+          { value: 'true', count: 0 },
+          { value: 'false', count: 3 },
+        ]);
+      });
+
+      it('should apply all filters to a facet except its own', async () => {
+        const allOrigins = [
+          { value: 'abcd-origin', count: 1 },
+          { value: 'bcd-origin', count: 1 },
+          { value: 'cd-origin', count: 1 },
+          { value: 'plugin-test', count: 2 },
+        ];
+        const allTopics = [
+          { value: 'efgh-topic', count: 1 },
+          { value: 'fgh-topic', count: 1 },
+          { value: 'gh-topic', count: 1 },
+        ];
+
+        expect(
+          await storage.getFacets({ user, origin: 'plugin-test' }),
+        ).toEqual({
+          facets: {
+            origin: allOrigins,
+            topic: [],
+            severity: [
+              { value: 'critical', count: 0 },
+              { value: 'high', count: 0 },
+              { value: 'normal', count: 2 },
+              { value: 'low', count: 0 },
+            ],
+            read: [
+              { value: 'true', count: 1 },
+              { value: 'false', count: 1 },
+            ],
+            saved: [
+              { value: 'true', count: 0 },
+              { value: 'false', count: 2 },
+            ],
+          },
+        });
+
+        expect(await storage.getFacets({ user, topic: 'gh-topic' })).toEqual({
+          facets: {
+            origin: [{ value: 'cd-origin', count: 1 }],
+            topic: allTopics,
+            severity: [
+              { value: 'critical', count: 0 },
+              { value: 'high', count: 0 },
+              { value: 'normal', count: 1 },
+              { value: 'low', count: 0 },
+            ],
+            read: [
+              { value: 'true', count: 0 },
+              { value: 'false', count: 1 },
+            ],
+            saved: [
+              { value: 'true', count: 1 },
+              { value: 'false', count: 0 },
+            ],
+          },
+        });
+
+        expect(
+          await storage.getFacets({
+            user,
+            read: true,
+            minimumSeverity: 'critical',
+          }),
+        ).toEqual({
+          facets: {
+            origin: [{ value: 'abcd-origin', count: 1 }],
+            topic: [{ value: 'efgh-topic', count: 1 }],
+            severity: [
+              { value: 'critical', count: 1 },
+              { value: 'high', count: 0 },
+              { value: 'normal', count: 1 },
+              { value: 'low', count: 0 },
+            ],
+            read: [
+              { value: 'true', count: 1 },
+              { value: 'false', count: 0 },
+            ],
+            saved: [
+              { value: 'true', count: 0 },
+              { value: 'false', count: 1 },
+            ],
+          },
+        });
+
+        const filtered = await storage.getFacets({
+          user,
+          search: 'find me',
+          saved: false,
+          createdAfter: new Date(now - 2 * 60 * 60 * 1000 /* 2 hours ago */),
+        });
+        expect(filtered.facets.origin).toEqual([
+          { value: 'abcd-origin', count: 1 },
+        ]);
+        expect(filtered.facets.saved).toEqual([
+          { value: 'true', count: 0 },
+          { value: 'false', count: 1 },
+        ]);
       });
     });
 

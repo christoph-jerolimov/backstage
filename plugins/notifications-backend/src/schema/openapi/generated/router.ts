@@ -89,6 +89,17 @@ export const spec = {
           type: 'string',
         },
       },
+      origin: {
+        name: 'origin',
+        in: 'query',
+        required: false,
+        allowReserved: true,
+        description:
+          'Only include notifications sent by this origin, for example "plugin:scaffolder".',
+        schema: {
+          type: 'string',
+        },
+      },
       search: {
         name: 'search',
         in: 'query',
@@ -454,6 +465,74 @@ export const spec = {
           },
         },
       },
+      NotificationFacet: {
+        type: 'object',
+        required: ['value', 'count'],
+        properties: {
+          value: {
+            type: 'string',
+            description: 'A value of the filter.',
+          },
+          count: {
+            type: 'integer',
+            description: 'Number of notifications that have this value.',
+          },
+        },
+      },
+      NotificationFacets: {
+        type: 'object',
+        required: ['origin', 'topic', 'severity', 'read', 'saved'],
+        properties: {
+          origin: {
+            type: 'array',
+            description: 'Counts per origin, sorted by origin.',
+            items: {
+              $ref: '#/components/schemas/NotificationFacet',
+            },
+          },
+          topic: {
+            type: 'array',
+            description:
+              'Counts per topic, sorted by topic. Notifications without a topic are not counted.',
+            items: {
+              $ref: '#/components/schemas/NotificationFacet',
+            },
+          },
+          severity: {
+            type: 'array',
+            description:
+              'Counts per exact severity, from most to least severe. All severities are always included.',
+            items: {
+              $ref: '#/components/schemas/NotificationFacet',
+            },
+          },
+          read: {
+            type: 'array',
+            description:
+              'Counts of read ("true") and unread ("false") notifications.',
+            items: {
+              $ref: '#/components/schemas/NotificationFacet',
+            },
+          },
+          saved: {
+            type: 'array',
+            description:
+              'Counts of saved ("true") and not saved ("false") notifications.',
+            items: {
+              $ref: '#/components/schemas/NotificationFacet',
+            },
+          },
+        },
+      },
+      GetFacetsResponse: {
+        type: 'object',
+        required: ['facets'],
+        properties: {
+          facets: {
+            $ref: '#/components/schemas/NotificationFacets',
+          },
+        },
+      },
       Error: {
         type: 'object',
         properties: {
@@ -520,6 +599,9 @@ export const spec = {
           },
           {
             $ref: '#/components/parameters/topic',
+          },
+          {
+            $ref: '#/components/parameters/origin',
           },
           {
             $ref: '#/components/parameters/search',
@@ -615,6 +697,9 @@ export const spec = {
           },
           {
             $ref: '#/components/parameters/topic',
+          },
+          {
+            $ref: '#/components/parameters/origin',
           },
           {
             $ref: '#/components/parameters/search',
@@ -872,6 +957,9 @@ export const spec = {
           'List notification topics that the user has received notifications on.',
         parameters: [
           {
+            $ref: '#/components/parameters/origin',
+          },
+          {
             $ref: '#/components/parameters/search',
           },
           {
@@ -894,6 +982,57 @@ export const spec = {
               'application/json': {
                 schema: {
                   $ref: '#/components/schemas/GetTopicsResponse',
+                },
+              },
+            },
+          },
+          default: {
+            $ref: '#/components/responses/ErrorResponse',
+          },
+        },
+        security: [
+          {},
+          {
+            JWT: [],
+          },
+        ],
+      },
+    },
+    '/facets': {
+      get: {
+        operationId: 'GetFacets',
+        description:
+          "Count the current user's notifications per value of each filter. Accepts the same filters as `GET /notifications`. Each facet is counted with all filters applied except for the one that the facet itself represents, so that the counts show what selecting another value would match.",
+        parameters: [
+          {
+            $ref: '#/components/parameters/topic',
+          },
+          {
+            $ref: '#/components/parameters/origin',
+          },
+          {
+            $ref: '#/components/parameters/search',
+          },
+          {
+            $ref: '#/components/parameters/read',
+          },
+          {
+            $ref: '#/components/parameters/saved',
+          },
+          {
+            $ref: '#/components/parameters/createdAfter',
+          },
+          {
+            $ref: '#/components/parameters/minimumSeverity',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'The notification counts for each filter.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/GetFacetsResponse',
                 },
               },
             },

@@ -104,6 +104,27 @@ describe('NotificationsClient', () => {
       expect(response).toEqual(expectedResp);
     });
 
+    it('should fetch notifications of the origin', async () => {
+      server.use(
+        http.get(`${mockBaseUrl}/notifications`, ({ request }) => {
+          const url = new URL(request.url);
+          expect(Object.fromEntries(url.searchParams)).toEqual({
+            limit: '10',
+            offset: '0',
+            origin: 'plugin-test',
+          });
+          return HttpResponse.json(expectedResp);
+        }),
+      );
+
+      const response = await client.getNotifications({
+        limit: 10,
+        offset: 0,
+        origin: 'plugin-test',
+      });
+      expect(response).toEqual(expectedResp);
+    });
+
     it('should omit unselected fetch options', async () => {
       server.use(
         http.get(`${mockBaseUrl}/notifications`, ({ request }) => {
@@ -182,6 +203,7 @@ describe('NotificationsClient', () => {
           const url = new URL(request.url);
           expect(Object.fromEntries(url.searchParams)).toEqual({
             search: 'find me',
+            origin: 'plugin-test',
             read: 'true',
             createdAfter: '1970-01-01T00:00:00.005Z',
           });
@@ -191,10 +213,80 @@ describe('NotificationsClient', () => {
 
       const response = await client.getTopics({
         search: 'find me',
+        origin: 'plugin-test',
         read: true,
         createdAfter: new Date(5),
       });
       expect(response).toEqual(expectedResp);
+    });
+  });
+
+  describe('getFacets', () => {
+    const expectedResp = {
+      facets: {
+        origin: [{ value: 'plugin-test', count: 1 }],
+        topic: [{ value: testTopic, count: 1 }],
+        severity: [
+          { value: 'critical', count: 0 },
+          { value: 'high', count: 0 },
+          { value: 'normal', count: 1 },
+          { value: 'low', count: 0 },
+        ],
+        read: [
+          { value: 'true', count: 0 },
+          { value: 'false', count: 1 },
+        ],
+        saved: [
+          { value: 'true', count: 0 },
+          { value: 'false', count: 1 },
+        ],
+      },
+    };
+
+    it('should fetch facets with and without options', async () => {
+      const receivedParams: string[] = [];
+      server.use(
+        http.get(`${mockBaseUrl}/facets`, ({ request }) => {
+          receivedParams.push(new URL(request.url).searchParams.toString());
+          return HttpResponse.json(expectedResp);
+        }),
+      );
+
+      expect(await client.getFacets()).toEqual(expectedResp);
+      expect(
+        await client.getFacets({
+          search: 'find me',
+          origin: 'plugin-test',
+          read: false,
+          saved: true,
+          createdAfter: new Date(5),
+          minimumSeverity: 'high',
+          topic: testTopic,
+        }),
+      ).toEqual(expectedResp);
+
+      expect(receivedParams).toHaveLength(2);
+      expect(receivedParams[0]).toBe('');
+      expect(
+        Object.fromEntries(new URLSearchParams(receivedParams[1])),
+      ).toEqual({
+        search: 'find me',
+        origin: 'plugin-test',
+        read: 'false',
+        saved: 'true',
+        createdAfter: '1970-01-01T00:00:00.005Z',
+        minimumSeverity: 'high',
+        topic: testTopic,
+      });
+    });
+
+    it('should throw if the request fails', async () => {
+      server.use(
+        http.get(`${mockBaseUrl}/facets`, () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
+      await expect(client.getFacets()).rejects.toThrow(/500/);
     });
   });
 });

@@ -38,6 +38,9 @@ export type NotificationsFiltersProps = {
   topic?: string;
   onTopicChanged: (value: string | undefined) => void;
   allTopics?: string[];
+  origin?: string;
+  onOriginChanged: (value: string | undefined) => void;
+  allOrigins?: string[];
 };
 
 const ALL = '___all___';
@@ -118,6 +121,9 @@ export const NotificationsFilters = ({
   topic,
   onTopicChanged,
   allTopics,
+  origin,
+  onOriginChanged,
+  allOrigins,
 }: NotificationsFiltersProps) => {
   const { t } = useTranslationRef(notificationsTranslationRef);
   const sortByText = getSortByText(sorting);
@@ -172,7 +178,16 @@ export const NotificationsFilters = ({
     onTopicChanged(value === ALL ? undefined : value);
   };
 
+  const handleOnOriginChanged = (key: Key | Key[] | null) => {
+    const value = (Array.isArray(key) ? key[0] : key) as string;
+    onOriginChanged(value === ALL ? undefined : value);
+  };
+
   const sortedAllTopics = [...(allTopics ?? [])].sort((a, b) =>
+    a.localeCompare(b),
+  );
+
+  const sortedAllOrigins = [...(allOrigins ?? [])].sort((a, b) =>
     a.localeCompare(b),
   );
 
@@ -236,6 +251,19 @@ export const NotificationsFilters = ({
         options={[
           { value: ALL, label: t('filters.topic.anyTopic') },
           ...sortedAllTopics.map((item: string) => ({
+            value: item,
+            label: item,
+          })),
+        ]}
+      />
+
+      <Select
+        label={t('filters.origin.label')}
+        value={origin ?? ALL}
+        onChange={handleOnOriginChanged}
+        options={[
+          { value: ALL, label: t('filters.origin.anyOrigin') },
+          ...sortedAllOrigins.map((item: string) => ({
             value: item,
             label: item,
           })),

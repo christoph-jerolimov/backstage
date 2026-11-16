@@ -38,6 +38,7 @@ export type NotificationGetOptions = {
   search?: string;
   orderField?: EntityOrder[];
   topic?: string;
+  origin?: string;
   read?: boolean;
   saved?: boolean;
   createdAfter?: Date;
@@ -53,10 +54,36 @@ export type NotificationModifyOptions = {
 export type TopicGetOptions = {
   user: string;
   search?: string;
+  origin?: string;
   read?: boolean;
   saved?: boolean;
   createdAfter?: Date;
   minimumSeverity?: NotificationSeverity;
+};
+
+/** @internal */
+export type FacetsGetOptions = TopicGetOptions & {
+  topic?: string;
+};
+
+/** @internal */
+export type NotificationFacet = {
+  value: string;
+  count: number;
+};
+
+/**
+ * The number of notifications per value of each filter. Each facet is counted
+ * with all filters applied except for the one that the facet itself represents.
+ *
+ * @internal
+ */
+export type NotificationFacets = {
+  origin: NotificationFacet[];
+  topic: NotificationFacet[];
+  severity: NotificationFacet[];
+  read: NotificationFacet[];
+  saved: NotificationFacet[];
 };
 
 /** @internal */
@@ -114,6 +141,8 @@ export interface NotificationsStore {
   }): Promise<void>;
 
   getTopics(options: TopicGetOptions): Promise<{ topics: string[] }>;
+
+  getFacets(options: FacetsGetOptions): Promise<{ facets: NotificationFacets }>;
 
   clearNotifications(options: {
     maxAge: HumanDuration;
