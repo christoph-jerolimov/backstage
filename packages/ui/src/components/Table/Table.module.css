@@ -87,18 +87,30 @@
     user-select: none;
     display: inline-flex;
     align-items: center;
-    gap: var(--bui-space-1);
-    opacity: 0;
-    transition: opacity 0.1s ease-in-out;
+    flex-shrink: 0;
     color: var(--bui-fg-secondary);
+    /* Collapsed by default so the label can use the full column width. The
+       indicator only takes up space while the column header is hovered,
+       focused via keyboard, or actively sorted. The negative margin cancels
+       the flex gap of the head content while collapsed. */
+    width: 0;
+    margin-left: calc(-1 * var(--bui-space-1));
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.1s ease-in-out, width 0.1s ease-in-out,
+      margin-left 0.1s ease-in-out;
 
     .bui-TableHead:hover &,
+    .bui-TableHead[data-focus-visible] &,
     [data-sort-direction='ascending'] &,
     [data-sort-direction='descending'] & {
+      width: 16px;
+      margin-left: 0;
       opacity: 1;
     }
 
     & svg {
+      flex-shrink: 0;
       transition: transform 0.1s ease-in-out;
     }
     [data-sort-direction='descending'] & svg {
