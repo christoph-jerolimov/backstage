@@ -71,6 +71,14 @@ export const components: Page[] = [
     slug: 'dialog',
   },
   {
+    title: 'FieldError',
+    slug: 'field-error',
+  },
+  {
+    title: 'FieldLabel',
+    slug: 'field-label',
+  },
+  {
     title: 'Flex',
     slug: 'flex',
   },
