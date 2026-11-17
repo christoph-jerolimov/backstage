@@ -37,6 +37,7 @@ import classnames from 'classnames';
 import type { Location } from 'history';
 
 import {
+  Children,
   ComponentProps,
   ComponentType,
   CSSProperties,
@@ -158,6 +159,9 @@ const makeSidebarStyles = (sidebarConfig: SidebarConfig) =>
         width: '110px',
         overflow: 'hidden',
         'text-overflow': 'ellipsis',
+        // Keeps a small gap between a truncated label and the sidebar edge
+        // when there is no secondary action following the label.
+        paddingRight: theme.spacing(1),
       },
       iconContainer: {
         boxSizing: 'border-box',
@@ -434,6 +438,14 @@ const SidebarItemBase = forwardRef<
     </Badge>
   );
 
+  // The secondary action slot takes up a fixed width, so it is only rendered
+  // when there is something to show in it. This lets the label use the full
+  // remaining width of the sidebar. Items with a submenu always render the
+  // slot, since the submenu arrow is toggled on hover and the label should
+  // not jump around when that happens.
+  const hasSecondaryAction =
+    hasSubmenu || Children.toArray(children).length > 0;
+
   const openContent = (
     <>
       <Box data-testid="login-button" className={classes.iconContainer}>
@@ -448,7 +460,9 @@ const SidebarItemBase = forwardRef<
           {text}
         </Typography>
       )}
-      <div className={classes.secondaryAction}>{children}</div>
+      {hasSecondaryAction && (
+        <div className={classes.secondaryAction}>{children}</div>
+      )}
     </>
   );
 
