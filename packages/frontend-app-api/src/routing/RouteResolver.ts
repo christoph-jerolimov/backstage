@@ -33,6 +33,10 @@ import {
 import { RouteAliasResolver } from './RouteAliasResolver';
 import { joinPaths } from './joinPaths';
 
+const MAX_CACHED_SOURCE_LOCATIONS = 32;
+
+type RouteMatches = NonNullable<ReturnType<typeof matchRoutes>>;
+
 /**
  * Resolves the absolute route ref that our target route ref is pointing pointing to, as well
  * as the relative target path.
@@ -91,19 +95,10 @@ function resolveTargetRef(
  */
 function resolveBasePath(
   targetRef: RouteRef,
-  sourceLocation: Parameters<typeof matchRoutes>[1],
+  match: RouteMatches,
   routePaths: Map<RouteRef, string>,
   routeParents: Map<RouteRef, RouteRef | undefined>,
-  routeObjects: BackstageRouteObject[],
 ) {
-  // While traversing the app element tree we build up the routeObjects structure
-  // used here. It is the same kind of structure that react-router creates, with the
-  // addition that associated route refs are stored throughout the tree. This lets
-  // us look up all route refs that can be reached from our source location.
-  // Because of the similar route object structure, we can use `matchRoutes` from
-  // react-router to do the lookup of our current location.
-  const match = matchRoutes(routeObjects, sourceLocation) ?? [];
-
   // While we search for a common routing root between our current location and
   // the target route, we build a list of all route refs we find that we need
   // to traverse to reach the target.
@@ -171,6 +166,7 @@ export class RouteResolver implements RouteResolutionApi {
   private readonly appBasePath: string; // base path without a trailing slash
   private readonly routeAliasResolver: RouteAliasResolver;
   private readonly routeRefsById: Map<string, RouteRef | SubRouteRef>;
+  private readonly routeMatches = new Map<string, RouteMatches>();
 
   constructor(
     routePaths: Map<RouteRef, string>,
@@ -219,10 +215,9 @@ export class RouteResolver implements RouteResolutionApi {
     // that is the difference between the parent path and the base of our target location.
     const basePath = resolveBasePath(
       targetRef,
-      relativeSourceLocation,
+      this.matchSourceLocation(relativeSourceLocation),
       this.routePaths,
       this.routeParents,
-      this.routeObjects,
     );
 
     const routeFunc: RouteFunc<TParams> = (...[params]) => {
@@ -245,6 +240,32 @@ export class RouteResolver implements RouteResolutionApi {
       return joinPaths(basePath, generatePath(targetPath, encodedParams));
     };
     return routeFunc;
+  }
+
+  // While traversing the app element tree we build up the routeObjects structure
+  // used here. It is the same kind of structure that react-router creates, with the
+  // addition that associated route refs are stored throughout the tree. This lets
+  // us look up all route refs that can be reached from our source location.
+  // Because of the similar route object structure, we can use `matchRoutes` from
+  // react-router to do the lookup of our current location.
+  //
+  // Matching walks the entire route tree, and many callers resolve routes from the
+  // same source location, so the most recently used matches are cached.
+  private matchSourceLocation(sourceLocation: string): RouteMatches {
+    let match = this.routeMatches.get(sourceLocation);
+    if (match) {
+      this.routeMatches.delete(sourceLocation);
+    } else {
+      match = matchRoutes(this.routeObjects, sourceLocation) ?? [];
+    }
+    this.routeMatches.set(sourceLocation, match);
+    if (this.routeMatches.size > MAX_CACHED_SOURCE_LOCATIONS) {
+      const oldestLocation = this.routeMatches.keys().next().value;
+      if (oldestLocation !== undefined) {
+        this.routeMatches.delete(oldestLocation);
+      }
+    }
+    return match;
   }
 
   private trimPath(targetPath: string) {
